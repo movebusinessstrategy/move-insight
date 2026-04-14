@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════════
+#  NUNCA SUBIR — credenciais
+# ═══════════════════════════════════════════════════════════════════
+.env
+.env.*
+!.env.example
+
+# ═══════════════════════════════════════════════════════════════════
+#  NUNCA SUBIR — sessões WhatsApp (dá acesso à sua conta)
+# ═══════════════════════════════════════════════════════════════════
+.wwebjs_auth/
+.wwebjs_auth_*/
+.wwebjs_cache/
+.chrome-disparador2-profile/
+
+# ═══════════════════════════════════════════════════════════════════
+#  NUNCA SUBIR — dados de clientes e usuários
+# ═══════════════════════════════════════════════════════════════════
+# Dados multi-tenant (todos os usuários)
+data/
+
+# Listas de contatos na raiz (LGPD: dados pessoais de terceiros)
+*.csv
+clientes.csv
+dogfilo.csv
+lista_clientes.csv
+move.csv
+
+# Estado do app (listas, progresso, histórico, agendamentos, blacklist)
+listas.json
+progress.json
+historico.json
+agendamentos.json
+blacklist.json
+contas.json
+
+# Uploads de mídia do usuário
+upload/
+imagens/
+
+# ═══════════════════════════════════════════════════════════════════
+#  Dependências e builds
+# ═══════════════════════════════════════════════════════════════════
+node_modules/
+
+# ═══════════════════════════════════════════════════════════════════
+#  Logs
+# ═══════════════════════════════════════════════════════════════════
+*.log
+npm-debug.log*
+
+# ═══════════════════════════════════════════════════════════════════
+#  Sistema / editor
+# ═══════════════════════════════════════════════════════════════════
+.DS_Store
+Thumbs.db
+.claude/
+.vscode/
+.idea/
+*.swp
+*.tmp

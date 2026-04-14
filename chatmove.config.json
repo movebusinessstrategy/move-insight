@@ -1,0 +1,10 @@
+{
+  "mensagem": "Olá {nome}! Tudo bem? {hora} {data}\n\nPassando para te avisar sobre nossa promoção especial de hoje!",
+  "enviarImagem": false,
+  "modoCaption": false,
+  "imagemNome": "",
+  "delayMin": 1000,
+  "delayMax": 2000,
+  "pausarACada": 75,
+  "duracaoPausa": 10000
+}

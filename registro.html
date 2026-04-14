@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar conta ChatMOVE</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ease:160ms cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"]{--bg:#1c1c1e;--bg2:#2c2c2e;--surface:#252527;--surface2:#303032;--surface3:#3a3a3c;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.11);--border3:rgba(255,255,255,.18);--text:#f5f5f7;--text2:rgba(245,245,247,.64);--text3:rgba(245,245,247,.36);--gold:#c6a96b;--gold2:#d9be86;--gold3:#b89555;--gold-g:linear-gradient(135deg,#b89555 0%,#d7bc83 100%);--gold-bg:rgba(198,169,107,.09);--gold-bg2:rgba(198,169,107,.05);--red:#ff5f57;--green:#30d158;--sh:0 2px 12px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.22)}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
+.glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(ellipse,rgba(198,169,107,.07) 0%,transparent 70%);pointer-events:none}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;width:100%;max-width:460px;position:relative;z-index:1;box-shadow:var(--sh)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--gold) 40%,var(--gold2) 60%,transparent 90%);opacity:.5;border-radius:20px 20px 0 0}
+.logo-area{text-align:center;margin-bottom:24px}
+.logo-img{max-width:120px;max-height:40px;object-fit:contain;display:block;margin:0 auto}
+.logo-fallback{font-size:16px;font-weight:800;color:var(--text);display:none}
+.logo-fallback span{color:var(--gold)}
+h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:22px}
+.step-dots{display:flex;gap:6px;margin-bottom:24px}
+.sdot{height:3px;border-radius:999px;background:var(--border3);transition:all var(--ease)}
+.sdot.on{background:var(--gold);width:28px}
+.sdot:not(.on){width:14px}
+.planos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.plano-opt{border:1.5px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:all var(--ease);position:relative;background:var(--surface2)}
+.plano-opt:hover{border-color:var(--border2)}
+.plano-opt.on{border-color:var(--gold);background:var(--gold-bg)}
+.plano-opt input{position:absolute;opacity:0;width:0;height:0}
+.p-nome{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.p-val{font-size:26px;font-weight:800;letter-spacing:-.04em}
+.p-val.gold{color:var(--gold2)}
+.p-per{font-size:11px;color:var(--text3);margin-top:2px}
+.pop-b{position:absolute;top:10px;right:10px;font-size:8px;font-weight:800;letter-spacing:.1em;background:var(--gold);color:#111;padding:3px 8px;border-radius:999px}
+.fg{margin-bottom:16px}
+label{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+input[type=text],input[type=email],input[type=password]{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;transition:border-color var(--ease),box-shadow var(--ease)}
+input:hover{border-color:var(--border2)}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
+.btn{width:100%;height:44px;border-radius:999px;border:none;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:all var(--ease)}
+.btn-gold{background:var(--gold);color:#111;box-shadow:0 4px 14px rgba(198,169,107,.3)}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(198,169,107,.45)}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.msg{padding:11px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;display:none;line-height:1.5}
+.msg.erro{background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);color:var(--red)}
+.msg.ok{background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.2);color:var(--green)}
+.hint{font-size:12px;color:var(--text3);text-align:center;margin-top:14px;line-height:1.6}
+.link{color:var(--gold);text-decoration:none;font-weight:600}
+.link:hover{opacity:.75}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="card">
+  <div class="logo-area">
+    <img class="logo-img" src="logomidnight.png" alt="ChatMOVE" onerror="this.style.display='none';document.getElementById('logoFb').style.display='block'">
+    <div class="logo-fallback" id="logoFb"><span>Chat</span>MOVE</div>
+  </div>
+
+  <!-- Passo 1: Plano -->
+  <div id="s1">
+    <div class="step-dots"><div class="sdot on"></div><div class="sdot"></div></div>
+    <h2>Escolha seu plano</h2>
+    <p class="subtitle">Você pode mudar a qualquer momento.</p>
+
+    <div style="display:flex;justify-content:center;margin-bottom:18px">
+      <div style="display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;gap:4px">
+        <button type="button" id="cbMensal" onclick="selCiclo('mensal')" style="border:none;background:var(--gold);color:#111;padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Mensal</button>
+        <button type="button" id="cbAnual" onclick="selCiclo('anual')" style="border:none;background:transparent;color:var(--text2);padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px">Anual <span style="background:var(--green);color:#fff;font-size:8px;padding:2px 5px;border-radius:4px;font-weight:800">-2 MESES</span></button>
+      </div>
+    </div>
+
+    <div class="planos-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <label class="plano-opt" id="optB">
+        <input type="radio" name="pl" value="basico" onchange="selPlano('basico')">
+        <div class="p-nome">Básico</div>
+        <div class="p-val" data-plano="basico">R$<span class="pv-int">49</span><span class="pv-cent" style="font-size:12px">,90</span></div>
+        <div class="p-per"><span class="pv-per">/mês</span> · 100/dia · 1 nº</div>
+      </label>
+      <label class="plano-opt on" id="optP">
+        <input type="radio" name="pl" value="premium" checked onchange="selPlano('premium')">
+        <div class="pop-b">Popular</div>
+        <div class="p-nome">Premium</div>
+        <div class="p-val gold" data-plano="premium">R$<span class="pv-int">99</span><span class="pv-cent" style="font-size:12px">,90</span></div>
+        <div class="p-per"><span class="pv-per">/mês</span> · 500/dia · 2 nº</div>
+      </label>
+      <label class="plano-opt" id="optPro">
+        <input type="radio" name="pl" value="pro" onchange="selPlano('pro')">
+        <div class="p-nome">Pro</div>
+        <div class="p-val" data-plano="pro">R$<span class="pv-int">199</span><span class="pv-cent" style="font-size:12px">,90</span></div>
+        <div class="p-per"><span class="pv-per">/mês</span> · 1.000/dia + agenda</div>
+      </label>
+    </div>
+    <button class="btn btn-gold" onclick="irS2()">Continuar →</button>
+    <div class="hint">Já tem conta? <a href="/login.html" class="link">Entrar</a></div>
+  </div>
+
+  <!-- Passo 2: Dados -->
+  <div id="s2" style="display:none">
+    <div class="step-dots"><div class="sdot"></div><div class="sdot on"></div></div>
+    <h2>Criar conta</h2>
+    <p class="subtitle">Plano <strong id="plLabel" style="color:var(--gold)">Premium</strong> selecionado.</p>
+    <div id="msgBox" class="msg"></div>
+    <div class="fg"><label>Nome completo</label><input type="text" id="nome" placeholder="Seu nome" autocomplete="name"></div>
+    <div class="fg"><label>E-mail</label><input type="email" id="email" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="fg"><label>Senha</label><input type="password" id="senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+    <button class="btn btn-gold" id="btnReg" onclick="registrar()">Criar conta e pagar</button>
+    <div class="hint">💳 Você será redirecionado ao Mercado Pago para finalizar o pagamento via Pix, boleto ou cartão.</div>
+  </div>
+</div>
+
+<script>
+var pl='premium', ci='mensal';
+var PRECOS={basico:{mensal:4990,anual:49900},premium:{mensal:9990,anual:99900},pro:{mensal:19990,anual:199900}};
+var NOMES={basico:'Básico',premium:'Premium',pro:'Pro'};
+
+function fmtInt(c){return Math.floor(c/100).toLocaleString('pt-BR');}
+function fmtCent(c){return ',' + String(c%100).padStart(2,'0');}
+function fmtReaisFull(c){return 'R$ '+fmtInt(c)+fmtCent(c);}
+
+function selPlano(p){
+  pl=p;
+  ['optB','optP','optPro'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('on');});
+  var map={basico:'optB',premium:'optP',pro:'optPro'};
+  var el=document.getElementById(map[p]); if(el)el.classList.add('on');
+  var radio=document.querySelector('input[name="pl"][value="'+p+'"]'); if(radio)radio.checked=true;
+}
+function selCiclo(c){
+  ci=c;
+  var on=document.getElementById('cbMensal'), off=document.getElementById('cbAnual');
+  if(c==='anual'){var t=on;on=off;off=t;}
+  on.style.background='var(--gold)';on.style.color='#111';
+  off.style.background='transparent';off.style.color='var(--text2)';
+  document.querySelectorAll('.p-val[data-plano]').forEach(function(el){
+    var v=PRECOS[el.dataset.plano][c];
+    el.querySelector('.pv-int').textContent=fmtInt(v);
+    el.querySelector('.pv-cent').textContent=fmtCent(v);
+  });
+  document.querySelectorAll('.pv-per').forEach(function(el){
+    el.textContent=c==='anual'?'/ano':'/mês';
+  });
+}
+function irS2(){
+  document.getElementById('s1').style.display='none';
+  document.getElementById('s2').style.display='';
+  var suf=ci==='anual'?'ano · 2 meses grátis':'mês';
+  document.getElementById('plLabel').textContent=NOMES[pl]+' · '+fmtReaisFull(PRECOS[pl][ci])+'/'+suf;
+}
+function show(t,c){var b=document.getElementById('msgBox');b.textContent=t;b.className='msg '+c;b.style.display='block';}
+
+// Query params: ?plano=premium&ciclo=anual
+(function(){
+  var q=new URLSearchParams(location.search);
+  var p=q.get('plano'); if(p && PRECOS[p]) selPlano(p);
+  var c=q.get('ciclo'); if(c==='anual') selCiclo('anual');
+})();
+
+async function registrar(){
+  var n=document.getElementById('nome').value.trim(),e=document.getElementById('email').value.trim(),s=document.getElementById('senha').value;
+  if(!n||!e||!s){show('Preencha todos os campos','erro');return;}
+  if(s.length<6){show('Senha deve ter ao menos 6 caracteres','erro');return;}
+  var btn=document.getElementById('btnReg');btn.disabled=true;btn.textContent='Criando conta...';
+  try{
+    var r=await fetch('/api/auth/registro',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:n,email:e,senha:s,plano:pl,ciclo:ci})});
+    var d=await r.json();
+    if(!r.ok){show(d.erro||'Erro ao criar conta','erro');btn.disabled=false;btn.textContent='Criar conta e pagar';return;}
+    btn.textContent='Redirecionando para pagamento...';
+    var r2=await fetch('/api/pagamento/criar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:d.userId,plano:pl,ciclo:ci})});
+    var d2=await r2.json();
+    if(!r2.ok||!d2.checkoutUrl){show(d2.erro||'Erro ao gerar pagamento','erro');btn.disabled=false;btn.textContent='Criar conta e pagar';return;}
+    window.location.href=d2.checkoutUrl;
+  }catch(err){show('Erro de conexão','erro');btn.disabled=false;btn.textContent='Criar conta e pagar';}
+}
+</script>
+</body>
+</html>

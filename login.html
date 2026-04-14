@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — ChatMOVE</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ease:160ms cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"]{--bg:#1c1c1e;--bg2:#2c2c2e;--surface:#252527;--surface2:#303032;--surface3:#3a3a3c;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.11);--border3:rgba(255,255,255,.18);--text:#f5f5f7;--text2:rgba(245,245,247,.64);--text3:rgba(245,245,247,.36);--gold:#c6a96b;--gold2:#d9be86;--gold3:#b89555;--gold-g:linear-gradient(135deg,#b89555 0%,#d7bc83 100%);--gold-bg:rgba(198,169,107,.09);--gold-bg2:rgba(198,169,107,.05);--red:#ff5f57;--green:#30d158;--sh:0 2px 12px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.22)}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
+.glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(ellipse,rgba(198,169,107,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:44px 40px;width:100%;max-width:400px;position:relative;z-index:1;box-shadow:var(--sh)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--gold) 40%,var(--gold2) 60%,transparent 90%);opacity:.5;border-radius:20px 20px 0 0}
+.logo-area{text-align:center;margin-bottom:32px}
+.logo-img{max-width:140px;max-height:48px;object-fit:contain;display:block;margin:0 auto}
+.logo-fallback{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--text);display:none}
+.logo-fallback span{color:var(--gold)}
+h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+.fg{margin-bottom:18px}
+label{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;transition:border-color var(--ease),box-shadow var(--ease)}
+input:hover{border-color:var(--border2)}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
+.btn{width:100%;height:44px;border-radius:999px;border:none;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:all var(--ease);margin-top:4px}
+.btn-gold{background:var(--gold);color:#111;box-shadow:0 4px 14px rgba(198,169,107,.3)}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(198,169,107,.45)}
+.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.msg{padding:11px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;display:none;line-height:1.5}
+.msg.erro{background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);color:var(--red)}
+.msg.ok{background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.2);color:var(--green)}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:12px;color:var(--text3)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.link{color:var(--gold);text-decoration:none;font-weight:600;transition:opacity var(--ease)}
+.link:hover{opacity:.75}
+.foot-link{text-align:center;margin-top:20px;font-size:13px;color:var(--text3)}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="card">
+  <div class="logo-area">
+    <img class="logo-img" src="logomidnight.png" alt="ChatMOVE" onerror="this.style.display='none';document.getElementById('logoFb').style.display='block'">
+    <div class="logo-fallback" id="logoFb"><span>Chat</span>MOVE</div>
+  </div>
+  <h2>Bem-vindo de volta</h2>
+  <p class="subtitle">Entre na sua conta para continuar</p>
+  <div id="msgBox" class="msg"></div>
+  <div class="fg"><label>E-mail</label><input type="email" id="email" placeholder="seu@email.com" autocomplete="email"></div>
+  <div class="fg"><label>Senha</label><input type="password" id="senha" placeholder="••••••••" autocomplete="current-password"></div>
+  <button class="btn btn-gold" id="btnLogin" onclick="login()">Entrar</button>
+  <div class="divider">ou</div>
+  <div style="text-align:center;font-size:13px;color:var(--text2)">Não tem conta? <a href="/registro.html" class="link">Criar conta</a></div>
+</div>
+<div class="foot-link"><a href="/landing.html" class="link" style="color:var(--text3);font-size:12px">← Voltar ao site</a></div>
+<script>
+if(localStorage.getItem('cm_token')) window.location.href='/chatmove.html';
+var p=new URLSearchParams(location.search);
+if(p.get('ativado')) show('✅ Conta ativada! Faça login para começar.','ok');
+if(p.get('pendente')) show('⏳ Pagamento em análise. Faça login após confirmação.','ok');
+function show(t,c){var b=document.getElementById('msgBox');b.textContent=t;b.className='msg '+c;b.style.display='block';}
+document.addEventListener('keydown',function(e){if(e.key==='Enter')login();});
+async function login(){
+  var e=document.getElementById('email').value.trim(),s=document.getElementById('senha').value;
+  if(!e||!s){show('Preencha e-mail e senha','erro');return;}
+  var btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='Entrando...';
+  try{
+    var r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,senha:s})});
+    var d=await r.json();
+    if(!r.ok){show(d.pendente?'💳 Pagamento não confirmado. Complete o pagamento para ativar.':d.erro||'Erro ao entrar','erro');btn.disabled=false;btn.textContent='Entrar';return;}
+    localStorage.setItem('cm_token',d.token);localStorage.setItem('cm_user',JSON.stringify(d.user));
+    window.location.href=d.user.admin?'/admin.html':'/chatmove.html';
+  }catch(err){show('Erro de conexão com o servidor','erro');btn.disabled=false;btn.textContent='Entrar';}
+}
+</script>
+</body>
+</html>

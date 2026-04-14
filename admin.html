@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin ChatMOVE</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ease:160ms cubic-bezier(.4,0,.2,1)}
+[data-theme="dark"]{--bg:#1c1c1e;--bg2:#2c2c2e;--surface:#252527;--surface2:#303032;--surface3:#3a3a3c;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.11);--border3:rgba(255,255,255,.18);--text:#f5f5f7;--text2:rgba(245,245,247,.64);--text3:rgba(245,245,247,.36);--gold:#c6a96b;--gold2:#d9be86;--gold3:#b89555;--gold-g:linear-gradient(135deg,#b89555 0%,#d7bc83 100%);--gold-bg:rgba(198,169,107,.09);--gold-bg2:rgba(198,169,107,.05);--red:#ff5f57;--green:#30d158;--sh:0 2px 12px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.22);--sh-sm:0 1px 4px rgba(0,0,0,.28),0 4px 12px rgba(0,0,0,.18)}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.shell{display:flex;min-height:100vh}
+
+/* Sidebar igual ao chatmove */
+.sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border2);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden}
+.sidebar::before{content:'';display:block;height:1px;background:linear-gradient(90deg,transparent 5%,var(--gold) 40%,var(--gold2) 60%,transparent 95%);opacity:.7;flex-shrink:0}
+.sb-top{padding:24px 20px 20px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:0}
+.logo-img{max-width:130px;max-height:44px;object-fit:contain;display:block;margin:0 auto}
+.logo-fallback{font-size:16px;font-weight:800;letter-spacing:-.02em;display:none}
+.logo-fallback span{color:var(--gold)}
+.admin-badge{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:var(--gold-bg);border:1px solid rgba(198,169,107,.15);padding:3px 10px;border-radius:999px;margin-top:10px}
+.nav{flex:1;padding:8px 12px 12px;overflow-y:auto}
+.nav-sec{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);padding:10px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;border:1px solid transparent;margin-bottom:1px;transition:background var(--ease),border-color var(--ease);font-size:13px;font-weight:500;color:var(--text2);text-decoration:none}
+.nav-item:hover{background:var(--gold-bg2);color:var(--text)}
+.nav-item.active{background:var(--gold-bg);border-color:rgba(198,169,107,.2);color:var(--text);font-weight:600}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;color:var(--text3)}
+.nav-item.active svg,.nav-item:hover svg{color:var(--gold)}
+.sb-foot{padding:12px;border-top:1px solid var(--border)}
+.sb-foot a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;font-size:12px;color:var(--text3);text-decoration:none;transition:all var(--ease)}
+.sb-foot a:hover{color:var(--text2);background:var(--gold-bg2)}
+
+/* Main */
+.main{flex:1;padding:44px 52px;overflow-y:auto}
+.sec{display:none}.sec.active{display:block}
+.page-hd{display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:32px}
+.ph-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--gold-bg);color:var(--gold);flex-shrink:0}
+.ph-title{font-size:20px;font-weight:800;letter-spacing:-.03em}
+.ph-desc{font-size:13px;color:var(--text2);margin-top:3px}
+
+/* Cards de stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
+.stat-c{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px 18px;box-shadow:var(--sh-sm);position:relative;overflow:hidden}
+.stat-c.hi{border-color:rgba(198,169,107,.2)}
+.stat-c::after{content:'';position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(105deg,transparent,rgba(198,169,107,.04) 40%,rgba(255,230,160,.06) 50%,rgba(198,169,107,.04) 60%,transparent);animation:shim 8s ease-in-out infinite;pointer-events:none}
+@keyframes shim{0%{left:-80%;opacity:0}6%{opacity:1}48%{left:150%;opacity:1}58%{opacity:0}100%{left:150%;opacity:0}}
+.stat-c>*{position:relative;z-index:1}
+.s-num{font-size:36px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.s-num.gold{color:var(--gold)}
+.s-num.green{color:var(--green)}
+.s-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:6px}
+
+/* Tabela */
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--sh-sm)}
+.tbl-top{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tbl-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text2)}
+input[type=text]{background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:8px 12px;outline:none;transition:border-color var(--ease);width:240px}
+input[type=text]:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
+.filters{display:flex;gap:6px}
+.f-btn{padding:6px 14px;border-radius:999px;border:1px solid var(--border2);background:none;color:var(--text3);font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;transition:all var(--ease)}
+.f-btn.on{background:var(--gold-bg);border-color:rgba(198,169,107,.2);color:var(--gold)}
+.f-btn:hover:not(.on){border-color:var(--border3);color:var(--text2)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--surface2);position:sticky;top:0;z-index:1}
+th{padding:10px 14px;text-align:left;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--gold-bg2)}
+.bx{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid}
+.bx.ativo{color:var(--green);border-color:rgba(48,209,88,.22);background:rgba(48,209,88,.08)}
+.bx.inativo{color:var(--text3);border-color:var(--border2);background:rgba(255,255,255,.03)}
+.bx.premium{color:var(--gold);border-color:rgba(198,169,107,.22);background:var(--gold-bg)}
+.bx.basico{color:var(--text2);border-color:var(--border2)}
+.act-row{display:flex;gap:5px}
+.act-btn{padding:4px 11px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);font-size:10px;font-family:inherit;font-weight:600;cursor:pointer;transition:all var(--ease)}
+.act-btn:hover{border-color:var(--gold2);color:var(--gold)}
+.act-btn.danger:hover{border-color:var(--red);color:var(--red)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sb-top">
+      <img class="logo-img" src="logomidnight.png" alt="ChatMOVE" onerror="this.style.display='none';document.getElementById('logoFb').style.display='block'">
+      <div class="logo-fallback" id="logoFb"><span>Chat</span>MOVE</div>
+      <div class="admin-badge">Painel Admin</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-sec">Visão geral</div>
+      <a class="nav-item active" href="#" onclick="goSec('dashboard',this);return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="#" onclick="goSec('usuarios',this);return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuários
+      </a>
+    </nav>
+    <div class="sb-foot">
+      <a href="/chatmove.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ir ao ChatMOVE</a>
+      <a href="#" onclick="sair()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- DASHBOARD -->
+    <div id="s-dashboard" class="sec active">
+      <div class="page-hd">
+        <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div><div class="ph-title">Dashboard</div><div class="ph-desc">Visão geral da plataforma</div></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-c hi"><div class="s-num gold" id="stMrr">—</div><div class="s-lbl">MRR Estimado</div></div>
+        <div class="stat-c"><div class="s-num green" id="stAtivos">—</div><div class="s-lbl">Assinantes Ativos</div></div>
+        <div class="stat-c"><div class="s-num" id="stPrem">—</div><div class="s-lbl">Premium</div></div>
+        <div class="stat-c"><div class="s-num" id="stBas">—</div><div class="s-lbl">Básico</div></div>
+      </div>
+    </div>
+
+    <!-- USUÁRIOS -->
+    <div id="s-usuarios" class="sec">
+      <div class="page-hd">
+        <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div><div class="ph-title">Usuários</div><div class="ph-desc">Gerencie assinantes e planos</div></div>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-top">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="filters">
+              <button class="f-btn on" onclick="fil('todos',this)">Todos</button>
+              <button class="f-btn" onclick="fil('ativos',this)">Ativos</button>
+              <button class="f-btn" onclick="fil('pendentes',this)">Pendentes</button>
+              <button class="f-btn" onclick="fil('premium',this)">Premium</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="text" id="busca" placeholder="Buscar..." oninput="render()">
+            <span id="cnt" style="font-size:12px;color:var(--text3);white-space:nowrap"></span>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>E-mail</th><th>Plano</th><th>Status</th><th>Cadastro</th><th>Ações</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+var token=localStorage.getItem('cm_token');
+if(!token)window.location.href='/login.html';
+var usuarios=[], filtro='todos';
+
+async function api(url,m,b){
+  var o={headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}};
+  if(m)o.method=m; if(b)o.body=JSON.stringify(b);
+  var r=await fetch(url,o);
+  if(r.status===401){localStorage.clear();window.location.href='/login.html';}
+  return r.json();
+}
+
+async function loadStats(){
+  var s=await api('/api/admin/stats');
+  document.getElementById('stMrr').textContent='R$'+(s.mrr_centavos/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('stAtivos').textContent=s.ativos;
+  document.getElementById('stPrem').textContent=s.premium;
+  document.getElementById('stBas').textContent=s.basico;
+}
+async function loadUsers(){
+  usuarios=await api('/api/admin/usuarios')||[];render();
+}
+function fil(f,btn){
+  filtro=f;
+  document.querySelectorAll('.f-btn').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');render();
+}
+function render(){
+  var q=(document.getElementById('busca').value||'').toLowerCase();
+  var list=usuarios.filter(function(u){
+    if(filtro==='ativos'&&!u.ativo)return false;
+    if(filtro==='pendentes'&&u.ativo)return false;
+    if(filtro==='premium'&&u.plano!=='premium')return false;
+    if(q&&!u.nome.toLowerCase().includes(q)&&!u.email.toLowerCase().includes(q))return false;
+    return true;
+  });
+  document.getElementById('cnt').textContent=list.length+' usuário(s)';
+  var body=document.getElementById('tbody');
+  if(!list.length){body.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Nenhum resultado</td></tr>';return;}
+  body.innerHTML=list.map(function(u){
+    var dt=new Date(u.criadoEm).toLocaleDateString('pt-BR');
+    return '<tr><td style="color:var(--text);font-weight:600">'+(u.admin?'':'')+u.nome+'</td>'+
+      '<td style="font-size:12px">'+u.email+'</td>'+
+      '<td><span class="bx '+(u.plano||'basico')+'">'+(u.plano||'básico')+'</span></td>'+
+      '<td><span class="bx '+(u.ativo?'ativo':'inativo')+'">'+( u.ativo?'Ativo':'Pendente')+'</span></td>'+
+      '<td style="font-size:12px;color:var(--text3)">'+dt+'</td>'+
+      '<td><div class="act-row">'+
+        (u.ativo
+          ?'<button class="act-btn danger" onclick="suspender(\''+u.id+'\')">Suspender</button>'
+          :'<button class="act-btn" onclick="ativar(\''+u.id+'\')">Ativar</button>')+
+        '<button class="act-btn" onclick="trocarPlano(\''+u.id+'\'\,\''+u.plano+'\')">Plano</button>'+
+      '</div></td></tr>';
+  }).join('');
+}
+async function ativar(id){await api('/api/admin/usuarios/'+id+'/ativar','POST');loadUsers();}
+async function suspender(id){if(!confirm('Suspender?'))return;await api('/api/admin/usuarios/'+id+'/suspender','POST');loadUsers();}
+async function trocarPlano(id,atual){
+  var planos=['basico','premium','pro','owner'];
+  var opts=planos.map(function(p){return '<option value="'+p+'"'+(p===atual?' selected':'')+'>'+p.charAt(0).toUpperCase()+p.slice(1)+'</option>';}).join('');
+  var sel=document.createElement('select');
+  sel.innerHTML=opts;
+  sel.style.cssText='background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:12px;padding:4px 8px;outline:none;cursor:pointer';
+  var confirmed=false;
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:500;display:flex;align-items:center;justify-content:center';
+  var card=document.createElement('div');
+  card.style.cssText='background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:28px 32px;min-width:280px;box-shadow:var(--sh)';
+  card.innerHTML='<div style="font-size:16px;font-weight:800;letter-spacing:-.02em;margin-bottom:16px">Alterar plano</div>'+
+    '<div style="margin-bottom:16px">'+opts.replace('<option','<option').replace(/selected/g,'selected')+'</div>'+
+    '<div style="display:flex;gap:8px">';
+  var selEl=document.createElement('select');
+  selEl.innerHTML=opts;
+  selEl.style.cssText='width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;padding:10px 12px;outline:none;margin-bottom:16px';
+  card.querySelector('div:nth-child(2)').replaceWith(selEl);
+  var btnOk=document.createElement('button');
+  btnOk.textContent='Salvar';
+  btnOk.style.cssText='flex:1;height:38px;border-radius:999px;border:none;background:var(--gold);color:#111;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer';
+  var btnCan=document.createElement('button');
+  btnCan.textContent='Cancelar';
+  btnCan.style.cssText='flex:1;height:38px;border-radius:999px;border:1px solid var(--border2);background:none;color:var(--text2);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer';
+  var btns=card.querySelector('div:last-child');
+  btns.appendChild(btnOk);btns.appendChild(btnCan);
+  overlay.appendChild(card);document.body.appendChild(overlay);
+  btnCan.onclick=function(){document.body.removeChild(overlay);};
+  btnOk.onclick=async function(){
+    var novo=selEl.value;
+    document.body.removeChild(overlay);
+    await api('/api/admin/usuarios/'+id+'/plano','POST',{plano:novo});
+    loadUsers();
+  };
+}
+function goSec(id,el){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  document.getElementById('s-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='dashboard')loadStats();
+  if(id==='usuarios')loadUsers();
+}
+function sair(){localStorage.clear();window.location.href='/login.html';}
+api('/api/auth/me').then(function(u){if(!u.admin){window.location.href='/chatmove.html';return;}loadStats();});
+</script>
+</body>
+</html>

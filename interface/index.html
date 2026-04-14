@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<title>MOVE | Disparador WhatsApp</title>
+<style>
+  body{background:#0f0f11;font-family:Arial;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;margin:0}
+  .container{width:720px;background:#17171c;padding:40px;border-radius:14px;box-shadow:0 0 25px rgba(0,0,0,.6)}
+  h1{margin:0 0 18px 0;font-size:24px}
+  label{display:block;margin-top:14px;margin-bottom:6px;font-size:13px;color:#aaa}
+  textarea{width:100%;height:140px;background:#111;border:1px solid #333;border-radius:10px;color:#fff;padding:12px;font-size:14px}
+  input[type=file]{width:100%;padding:10px;background:#111;border:1px solid #333;border-radius:10px;color:#fff}
+  .row{display:flex;gap:12px;margin-top:18px}
+  button{flex:1;padding:14px;background:#c5a46c;border:none;border-radius:10px;font-weight:bold;font-size:15px;cursor:pointer}
+  button.secondary{background:#2a2a2f;color:#fff;border:1px solid #3a3a44}
+  button.danger{background:#3a1f1f;color:#fff;border:1px solid #6a2b2b}
+  button:disabled{opacity:.35;cursor:not-allowed}
+  .card{margin-top:16px;background:#111;border:1px solid #222;border-radius:12px;padding:14px;color:#bdbdbd}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#0c0c0e;border:1px solid #2a2a2f;color:#ddd;font-size:12px}
+  .muted{color:#888;font-size:12px;margin-top:6px}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono";white-space:pre-wrap}
+  .ok{border-color:#2a5a2a}
+  .warn{border-color:#6a5a2a}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>MOVE | Disparador WhatsApp</h1>
+
+  <div class="card" id="cardWa">
+    WhatsApp: <span class="pill" id="wa">Desconectado</span>
+    <div class="muted">Se pedir QR, ele aparece no TERMINAL do VS Code.</div>
+  </div>
+
+  <label>Arquivo CSV (upload automático)</label>
+  <input type="file" id="csv" accept=".csv" />
+
+  <label>Imagem (opcional) (upload automático)</label>
+  <input type="file" id="imagem" accept=".jpg,.jpeg,.png" />
+
+  <label>Mensagem (por enquanto é só visual)</label>
+  <textarea id="mensagem">Olá {indicado}, tudo bem?
+
+Estou entrando em contato pois o {indicador} iniciou um tratamento aqui conosco e comentou que poderia fazer sentido para você também.</textarea>
+
+  <div class="row">
+    <button onclick="conectar()" id="btnConectar">Conectar WhatsApp</button>
+    <button onclick="desconectar()" class="secondary" id="btnDesconectar">Desconectar</button>
+  </div>
+
+  <div class="row">
+    <button onclick="disparar()" id="btnDisparar" disabled>Iniciar Disparo</button>
+    <button onclick="parar()" class="danger" id="btnParar">Parar</button>
+  </div>
+
+  <div class="card">
+    <div style="margin-bottom:8px;color:#ddd;font-weight:bold">Progresso</div>
+    <div id="progress" class="mono">Aguardando…</div>
+  </div>
+</div>
+
+<script>
+let uploadedOnce = false;
+
+async function autoUpload(){
+  const csv = document.getElementById("csv").files[0];
+  const imagem = document.getElementById("imagem").files[0];
+
+  // só faz upload se tiver csv OU imagem selecionados
+  if (!csv && !imagem) return;
+
+  const form = new FormData();
+  if (csv) form.append("csv", csv);
+  if (imagem) form.append("imagem", imagem);
+
+  document.getElementById("progress").innerText = "📤 Enviando arquivos…";
+
+  const res = await fetch("/upload", { method:"POST", body: form });
+  const txt = await res.text();
+  document.getElementById("progress").innerText = txt;
+
+  uploadedOnce = !!csv; // CSV é o essencial
+}
+
+document.getElementById("csv").addEventListener("change", autoUpload);
+document.getElementById("imagem").addEventListener("change", autoUpload);
+
+async function conectar(){
+  document.getElementById("progress").innerText = "Conectando…";
+  const res = await fetch("/conectar");
+  document.getElementById("progress").innerText = await res.text();
+}
+
+async function desconectar(){
+  document.getElementById("progress").innerText = "Desconectando…";
+  const res = await fetch("/desconectar");
+  document.getElementById("progress").innerText = await res.text();
+}
+
+async function disparar(){
+  document.getElementById("progress").innerText = "Iniciando disparo…";
+  const res = await fetch("/disparar");
+  document.getElementById("progress").innerText = await res.text();
+}
+
+async function parar(){
+  const res = await fetch("/parar");
+  document.getElementById("progress").innerText = await res.text();
+}
+
+async function tick(){
+  const res = await fetch("/status");
+  const s = await res.json();
+
+  const wa = (s.whatsapp || "Desconectado");
+  document.getElementById("wa").innerText = wa;
+  document.getElementById("progress").innerText = s.progress || "Aguardando…";
+
+  const card = document.getElementById("cardWa");
+  card.classList.remove("ok","warn");
+  if (wa.toLowerCase().includes("conect")) card.classList.add("ok");
+  else if (wa.toLowerCase().includes("qr") || wa.toLowerCase().includes("conectando")) card.classList.add("warn");
+
+  const conectado = wa.toLowerCase().includes("conect");
+  // só habilita disparo se estiver conectado e tiver CSV enviado/selecionado
+  const temCsvSelecionado = !!document.getElementById("csv").files[0];
+  document.getElementById("btnDisparar").disabled = !(conectado && (uploadedOnce || temCsvSelecionado));
+
+  // Se tiver processo rodando em SEND, bloquear conectar
+  const running = !!s.running;
+  const mode = (s.mode || "");
+  document.getElementById("btnConectar").disabled = running && mode === "send";
+}
+setInterval(tick, 1200);
+tick();
+</script>
+
+</body>
+</html>
