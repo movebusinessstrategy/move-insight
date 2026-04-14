@@ -966,6 +966,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
         <div class="step-info"><div class="step-name">Agendamento</div><div class="step-sub">Disparos programados</div></div>
       </div>
+
+      <div class="step" onclick="goTo(11)" data-s="11">
+        <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+        <div class="step-info"><div class="step-name">Assinatura</div><div class="step-sub">Plano e cobrança</div></div>
+      </div>
     </nav>
 
     <!-- Footer status -->
@@ -1730,6 +1735,47 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
           <div class="card-aside"><button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="carregarAgendamentos()">Atualizar</button></div>
         </div>
         <div id="agendamentosLista"><div class="empty">Nenhum agendamento salvo</div></div>
+      </div>
+    </div>
+
+    <!-- ── 11 ASSINATURA ── -->
+    <div class="page" id="p11">
+      <div class="page-header">
+        <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+        <div class="ph-text"><div class="ph-title">Assinatura</div><div class="ph-desc">Gerencie seu plano, ciclo de cobrança e cancelamento.</div></div>
+      </div>
+
+      <!-- Plano atual -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Plano atual</div></div>
+        <div id="assInfo" style="padding:8px 0">
+          <div class="empty">Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Mudar plano -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Mudar de plano</div></div>
+        <div id="assPlanos" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px"></div>
+        <div class="hint" style="margin-top:12px">
+          <strong>Mensal:</strong> troca imediata, novo valor entra na próxima cobrança.<br>
+          <strong>Anual:</strong> upgrade cobra a diferença proporcional aos dias restantes; downgrade entra na renovação.
+        </div>
+      </div>
+
+      <!-- Trocar ciclo -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Ciclo de cobrança</div></div>
+        <div id="assCiclo" style="margin-top:8px">
+          <div class="empty">Carregando...</div>
+        </div>
+      </div>
+
+      <!-- Cancelar -->
+      <div class="card" style="border-color:rgba(255,95,87,.18)">
+        <div class="card-hd"><div class="card-dot" style="background:var(--red)"></div><div class="card-title" style="color:var(--red)">Cancelar assinatura</div></div>
+        <p style="font-size:13px;color:var(--text2);margin:8px 0 14px;line-height:1.5">Ao cancelar você mantém acesso até o fim do período já pago. Depois disso sua conta fica inativa até assinar novamente.</p>
+        <button class="btn btn-ghost" id="btnCancelarAss" onclick="cancelarAssinatura()" style="border-color:rgba(255,95,87,.3);color:var(--red);height:38px;font-size:12px">Cancelar minha assinatura</button>
       </div>
     </div>
 
@@ -2868,6 +2914,122 @@ window.goTo = function(n) {
   if(n===8) carregarContas();
   if(n===9) carregarBlacklist();
   if(n===10){ carregarSelectoresAg(); window.carregarAgendamentos(); }
+  if(n===11) carregarAssinatura();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ASSINATURA
+// ─────────────────────────────────────────────────────────────────────────────
+function fmtBRL(cents) {
+  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+window.carregarAssinatura = function() {
+  authFetch('/api/assinatura').then(function(d) {
+    if (!d) return;
+    window._assAtual = d;
+
+    var info = document.getElementById('assInfo'); if (!info) return;
+    var venc = d.proximoVencimento ? new Date(d.proximoVencimento).toLocaleDateString('pt-BR') : '—';
+    var statusLabel = d.status === 'authorized' ? '<span style="color:var(--green);font-weight:700">Ativa</span>'
+      : d.status === 'cancelled' ? '<span style="color:var(--red);font-weight:700">Cancelada</span>'
+      : d.status === 'aguardando_autorizacao' ? '<span style="color:#b45309;font-weight:700">Aguardando autorização</span>'
+      : '<span style="color:var(--text3);font-weight:700">Pendente</span>';
+    info.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Plano</div><div style="font-size:18px;font-weight:800;color:var(--gold);margin-top:2px">' + d.planoNome + '</div></div>' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Ciclo</div><div style="font-size:18px;font-weight:800;margin-top:2px">' + (d.ciclo === 'anual' ? 'Anual' : 'Mensal') + '</div></div>' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Próximo vencimento</div><div style="font-size:15px;font-weight:600;margin-top:2px">' + venc + '</div></div>' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Status</div><div style="font-size:15px;margin-top:2px">' + statusLabel + '</div></div>' +
+        '<div style="grid-column:1/-1"><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">Valor cobrado</div><div style="font-size:15px;font-weight:700;margin-top:2px">' + fmtBRL(d.precoAtual) + ' / ' + (d.ciclo === 'anual' ? 'ano' : 'mês') + '</div></div>' +
+      '</div>' +
+      (d.upgradePendente ? '<div style="margin-top:14px;padding:12px;background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;font-size:12px;color:#92400e">⏳ Upgrade para <strong>' + ((d.planos[d.upgradePendente.plano]||{}).nome||'') + '</strong> aguardando pagamento de ' + fmtBRL(d.upgradePendente.valor) + '</div>' : '');
+
+    var planosEl = document.getElementById('assPlanos'); if (!planosEl) return;
+    var ordem = ['basico', 'premium', 'pro'];
+    planosEl.innerHTML = ordem.map(function(k) {
+      var p = d.planos[k]; if (!p) return '';
+      var preco = d.ciclo === 'anual' ? p.precoAnual : p.precoMensal;
+      var atual = k === d.plano;
+      var cor = atual ? 'var(--gold)' : 'var(--border)';
+      var btn = atual
+        ? '<button class="btn btn-ghost" disabled style="width:100%;height:36px;font-size:11px;opacity:.5">Plano atual</button>'
+        : '<button class="btn btn-gold" style="width:100%;height:36px;font-size:11px" onclick="mudarPlano(\'' + k + '\')">' + (d.planos[k].precoMensal > d.planos[d.plano].precoMensal ? 'Fazer upgrade' : 'Mudar para este') + '</button>';
+      return '<div style="border:1.5px solid ' + cor + ';border-radius:12px;padding:16px;' + (atual?'background:var(--gold-bg)':'') + '">' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">' + p.nome + '</div>' +
+        '<div style="font-size:20px;font-weight:800;letter-spacing:-.03em">' + fmtBRL(preco) + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-bottom:10px">' + (d.ciclo === 'anual' ? 'por ano' : 'por mês') + '</div>' +
+        '<div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:12px">' +
+          '• ' + p.limiteEnviosDia + ' envios/dia<br>' +
+          '• ' + p.contasWhatsApp + ' WhatsApp' + (p.contasWhatsApp>1?'s':'') + '<br>' +
+          '• ' + (p.agendamento ? 'Agendamento ✓' : 'Sem agendamento') + '<br>' +
+          '• ' + (p.recorrente ? 'Recorrente ✓' : 'Sem recorrente') +
+        '</div>' + btn + '</div>';
+    }).join('');
+
+    var cicloEl = document.getElementById('assCiclo');
+    var cicloOposto = d.ciclo === 'anual' ? 'mensal' : 'anual';
+    var nomeOposto = d.ciclo === 'anual' ? 'Mensal' : 'Anual';
+    var precoOposto = d.ciclo === 'anual' ? d.planos[d.plano].precoMensal : d.planos[d.plano].precoAnual;
+    cicloEl.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+        '<div><div style="font-size:13px;font-weight:600">Você paga <strong>' + fmtBRL(d.precoAtual) + '</strong> por ' + (d.ciclo === 'anual' ? 'ano' : 'mês') + '</div>' +
+        '<div style="font-size:12px;color:var(--text2);margin-top:4px">Mudando para ' + nomeOposto + ': ' + fmtBRL(precoOposto) + '/' + (cicloOposto === 'anual' ? 'ano · 2 meses grátis' : 'mês') + '</div></div>' +
+        '<button class="btn btn-gold" style="height:36px;font-size:11px;padding:0 16px" onclick="trocarCiclo(\'' + cicloOposto + '\')">Mudar para ' + nomeOposto + '</button>' +
+      '</div>';
+
+    var btnCanc = document.getElementById('btnCancelarAss');
+    if (btnCanc && d.status === 'cancelled') {
+      btnCanc.disabled = true; btnCanc.textContent = 'Assinatura já cancelada'; btnCanc.style.opacity = '.5';
+    }
+  });
+};
+
+window.mudarPlano = function(novoPlano) {
+  var d = window._assAtual; if (!d) return;
+  var atualInfo = d.planos[d.plano], novoInfo = d.planos[novoPlano];
+  var precoAtual = d.ciclo === 'anual' ? atualInfo.precoAnual : atualInfo.precoMensal;
+  var precoNovo = d.ciclo === 'anual' ? novoInfo.precoAnual : novoInfo.precoMensal;
+  var ehUpgrade = precoNovo > precoAtual;
+  var msg;
+  if (d.ciclo === 'mensal' || !ehUpgrade) {
+    msg = 'Trocar de ' + atualInfo.nome + ' para ' + novoInfo.nome + '?\n\nVocê passa a ter acesso ao plano ' + novoInfo.nome + ' imediatamente. O novo valor de ' + fmtBRL(precoNovo) + ' entra na próxima ' + (d.ciclo === 'anual' ? 'renovação anual' : 'cobrança mensal') + '.';
+  } else {
+    msg = 'Fazer upgrade de ' + atualInfo.nome + ' para ' + novoInfo.nome + '?\n\nVocê será redirecionado para pagar a diferença proporcional aos dias restantes. Após o pagamento, seu plano é atualizado.';
+  }
+  if (!confirm(msg)) return;
+  post('/api/assinatura/upgrade', { plano: novoPlano }).then(function(r) {
+    if (!r || !r.ok) { toast((r && r.erro) || 'Erro ao mudar plano', 'erro'); return; }
+    if (r.tipo === 'proration' && r.checkoutUrl) {
+      toast('Redirecionando para pagamento da diferença (' + fmtBRL(r.valor) + ')', 'ok');
+      setTimeout(function() { window.location.href = r.checkoutUrl; }, 1500);
+    } else {
+      toast(r.mensagem || 'Plano alterado!', 'ok');
+      carregarAssinatura();
+    }
+  });
+};
+
+window.trocarCiclo = function(novoCiclo) {
+  if (!confirm('Mudar ciclo para ' + (novoCiclo === 'anual' ? 'ANUAL' : 'MENSAL') + '?\n\nSua assinatura atual será cancelada e você será redirecionado para autorizar a nova cobrança. Você mantém acesso até o fim do período já pago.')) return;
+  post('/api/assinatura/trocar-ciclo', { ciclo: novoCiclo }).then(function(r) {
+    if (!r || !r.ok) { toast((r && r.erro) || 'Erro ao trocar ciclo', 'erro'); return; }
+    if (r.checkoutUrl) {
+      toast('Redirecionando para autorizar nova assinatura', 'ok');
+      setTimeout(function() { window.location.href = r.checkoutUrl; }, 1500);
+    }
+  });
+};
+
+window.cancelarAssinatura = function() {
+  var d = window._assAtual; if (!d) return;
+  var ateQuando = d.proximoVencimento ? new Date(d.proximoVencimento).toLocaleDateString('pt-BR') : 'o fim do período atual';
+  if (!confirm('Cancelar sua assinatura?\n\nVocê mantém acesso até ' + ateQuando + '. Depois disso a conta fica inativa.')) return;
+  post('/api/assinatura/cancelar', {}).then(function(r) {
+    if (!r || !r.ok) { toast((r && r.erro) || 'Erro ao cancelar', 'erro'); return; }
+    toast(r.mensagem || 'Assinatura cancelada', 'warn');
+    carregarAssinatura();
+  });
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -323,15 +323,192 @@ app.post("/api/pagamento/webhook", async (req, res) => {
       const ref = String(pay.external_reference || "");
       if (ref.startsWith("upgrade|")) {
         const [, userId, novoPlano] = ref.split("|");
-        if (userId && novoPlano) {
-          atualizarUsuario(userId, { plano: novoPlano });
-          console.log(`⬆️  Upgrade (proration) confirmado · user=${userId} → ${novoPlano}`);
+        if (!userId || !novoPlano) return;
+        const user = lerUsuario(userId);
+        if (!user) return;
+        atualizarUsuario(userId, { plano: novoPlano, upgradePendente: null });
+        // Atualiza valor da preapproval pro novo plano (pra próximas renovações virem certas)
+        if (user.assinaturaId) {
+          const novoValor = precoDo(novoPlano, user.ciclo || "mensal");
+          try {
+            await mpFetch(`/preapproval/${user.assinaturaId}`, {
+              method: "PUT",
+              body: JSON.stringify({ auto_recurring: { transaction_amount: novoValor / 100, currency_id: "BRL" } })
+            });
+          } catch (e) { console.error("PUT preapproval após proration:", e.message); }
         }
+        console.log(`⬆️  Upgrade (proration) confirmado · user=${userId} → ${novoPlano}`);
       }
       return;
     }
   } catch (e) {
     console.error("Webhook erro:", e.message);
+  }
+});
+
+// ── GESTÃO DE ASSINATURA ──────────────────────────────────────────────────────
+
+// Info da assinatura do usuário logado
+app.get("/api/assinatura", authMiddleware, (req, res) => {
+  const u = req.user;
+  const planoInfo = PLANOS[u.plano] || PLANOS.basico;
+  res.json({
+    plano: u.plano,
+    planoNome: planoInfo.nome,
+    ciclo: u.ciclo || "mensal",
+    ativo: !!u.ativo,
+    status: u.assinaturaStatus || (u.ativo ? "authorized" : "pending"),
+    proximoVencimento: u.proximoVencimento || null,
+    canceladoEm: u.canceladoEm || null,
+    upgradePendente: u.upgradePendente || null,
+    precoAtual: precoDo(u.plano, u.ciclo || "mensal"),
+    planos: Object.fromEntries(Object.entries(PLANOS).filter(([k]) => k !== "owner").map(([k, v]) => [k, {
+      nome: v.nome, precoMensal: v.precoMensal, precoAnual: v.precoAnual,
+      limiteEnviosDia: v.limiteEnviosDia, contasWhatsApp: v.contasWhatsApp,
+      agendamento: v.agendamento, recorrente: v.recorrente, descricao: v.descricao
+    }]))
+  });
+});
+
+// Upgrade/downgrade dentro do mesmo ciclo
+app.post("/api/assinatura/upgrade", authMiddleware, async (req, res) => {
+  const u = req.user;
+  const { plano: novoPlano } = req.body;
+  if (!PLANOS[novoPlano] || novoPlano === "owner") return res.status(400).json({ erro: "Plano inválido" });
+  if (novoPlano === u.plano) return res.status(400).json({ erro: "Você já está neste plano" });
+  if (!u.assinaturaId) return res.status(400).json({ erro: "Nenhuma assinatura ativa" });
+  if (!u.ativo) return res.status(400).json({ erro: "Ative seu plano antes de fazer upgrade" });
+
+  const ciclo = u.ciclo || "mensal";
+  const precoNovo = precoDo(novoPlano, ciclo);
+  const precoAtual = precoDo(u.plano, ciclo);
+  const ehUpgrade = precoNovo > precoAtual;
+
+  // Mensal (qualquer direção) OU anual que seja downgrade: só atualiza o valor no MP, novo preço entra no próximo ciclo
+  if (ciclo === "mensal" || !ehUpgrade) {
+    try {
+      await mpFetch(`/preapproval/${u.assinaturaId}`, {
+        method: "PUT",
+        body: JSON.stringify({ auto_recurring: { transaction_amount: precoNovo / 100, currency_id: "BRL" } })
+      });
+      atualizarUsuario(u.id, { plano: novoPlano });
+      const quando = ciclo === "mensal" ? "próxima cobrança mensal" : "próxima renovação anual";
+      return res.json({ ok: true, tipo: "imediato", mensagem: `Plano alterado para ${PLANOS[novoPlano].nome}. Novo valor entra na ${quando}.` });
+    } catch (e) {
+      console.error("Upgrade simples:", e.message);
+      return res.status(500).json({ erro: "Erro ao atualizar assinatura" });
+    }
+  }
+
+  // Upgrade anual com proration: cobra a diferença proporcional aos dias restantes
+  if (!u.proximoVencimento) return res.status(400).json({ erro: "Vencimento não disponível. Tente novamente em alguns minutos." });
+  const agora = Date.now();
+  const diasRestantes = Math.max(1, Math.ceil((new Date(u.proximoVencimento) - agora) / 86400000));
+  const diferenca = precoNovo - precoAtual;
+  const prorataCents = Math.max(100, Math.round((diferenca * diasRestantes) / 365));
+
+  try {
+    const base = mpBaseUrl();
+    const pref = await mpFetch("/checkout/preferences", {
+      method: "POST",
+      body: JSON.stringify({
+        items: [{
+          title: `ChatMOVE — Upgrade para ${PLANOS[novoPlano].nome} (${diasRestantes} dias restantes)`,
+          unit_price: prorataCents / 100,
+          quantity: 1,
+          currency_id: "BRL"
+        }],
+        payer: { email: u.email },
+        external_reference: `upgrade|${u.id}|${novoPlano}`,
+        back_urls: {
+          success: `${base}/chatmove.html?upgrade=ok`,
+          failure: `${base}/chatmove.html?upgrade=erro`,
+          pending: `${base}/chatmove.html?upgrade=pendente`
+        },
+        auto_return: "approved",
+        notification_url: `${base}/api/pagamento/webhook`
+      })
+    });
+    atualizarUsuario(u.id, { upgradePendente: { plano: novoPlano, valor: prorataCents, criadoEm: new Date().toISOString() } });
+    res.json({ ok: true, tipo: "proration", checkoutUrl: pref.init_point, valor: prorataCents, diasRestantes });
+  } catch (e) {
+    console.error("Upgrade proration:", e.message);
+    res.status(500).json({ erro: "Erro ao gerar cobrança da diferença" });
+  }
+});
+
+// Cancelar assinatura (mantém acesso até fim do período pago)
+app.post("/api/assinatura/cancelar", authMiddleware, async (req, res) => {
+  const u = req.user;
+  if (!u.assinaturaId) return res.status(400).json({ erro: "Nenhuma assinatura ativa" });
+  if (u.assinaturaStatus === "cancelled") return res.status(400).json({ erro: "Assinatura já cancelada" });
+
+  try {
+    await mpFetch(`/preapproval/${u.assinaturaId}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "cancelled" })
+    });
+    atualizarUsuario(u.id, { assinaturaStatus: "cancelled", canceladoEm: new Date().toISOString() });
+    const ateQuando = u.proximoVencimento ? new Date(u.proximoVencimento).toLocaleDateString("pt-BR") : "fim do período atual";
+    res.json({ ok: true, mensagem: `Assinatura cancelada. Você mantém acesso até ${ateQuando}.` });
+  } catch (e) {
+    console.error("Cancelar:", e.message);
+    res.status(500).json({ erro: "Erro ao cancelar assinatura" });
+  }
+});
+
+// Trocar ciclo (mensal↔anual) — V1 simples: cancela a atual e gera link pra nova
+app.post("/api/assinatura/trocar-ciclo", authMiddleware, async (req, res) => {
+  const u = req.user;
+  const novoCiclo = req.body.ciclo === "anual" ? "anual" : "mensal";
+  const cicloAtual = u.ciclo || "mensal";
+  if (novoCiclo === cicloAtual) return res.status(400).json({ erro: "Você já está neste ciclo" });
+  if (!u.assinaturaId) return res.status(400).json({ erro: "Nenhuma assinatura ativa" });
+
+  try {
+    // 1) Cancela a assinatura atual (mantém acesso até fim do período já pago)
+    await mpFetch(`/preapproval/${u.assinaturaId}`, {
+      method: "PUT",
+      body: JSON.stringify({ status: "cancelled" })
+    });
+
+    // 2) Cria nova preapproval no ciclo desejado
+    const planoInfo = PLANOS[u.plano];
+    const preco = precoDo(u.plano, novoCiclo);
+    const base = mpBaseUrl();
+    const nova = await mpFetch("/preapproval", {
+      method: "POST",
+      body: JSON.stringify({
+        reason: `ChatMOVE ${planoInfo.nome} (${novoCiclo === "anual" ? "Anual" : "Mensal"})`,
+        external_reference: `${u.id}|${u.plano}|${novoCiclo}`,
+        payer_email: u.email,
+        back_url: `${base}/chatmove.html?ciclo=ok`,
+        auto_recurring: {
+          frequency: novoCiclo === "anual" ? 12 : 1,
+          frequency_type: "months",
+          transaction_amount: preco / 100,
+          currency_id: "BRL"
+        },
+        status: "pending"
+      })
+    });
+
+    // Preserva assinatura antiga em histórico e aponta pra nova
+    atualizarUsuario(u.id, {
+      assinaturaAnteriorId: u.assinaturaId,
+      assinaturaId: nova.id,
+      ciclo: novoCiclo,
+      assinaturaStatus: "aguardando_autorizacao"
+    });
+
+    res.json({
+      ok: true,
+      checkoutUrl: nova.init_point,
+      mensagem: `Autorize a nova assinatura ${novoCiclo}. Você mantém acesso ${cicloAtual} até o fim do período pago.`
+    });
+  } catch (e) {
+    console.error("Trocar ciclo:", e.message);
+    res.status(500).json({ erro: "Erro ao trocar ciclo de cobrança" });
   }
 });
 
