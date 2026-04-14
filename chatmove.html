@@ -9,46 +9,47 @@
 // ── AUTH + PLANO ──────────────────────────────────────────────────────────────
 window._authToken = localStorage.getItem('cm_token') || null;
 window._authUser  = null;
-window._planoAtual = 'owner'; // permissivo até servidor confirmar
+window._planoAtual = 'basico';
+
+// Sem token: redireciona imediatamente pro login (antes de renderizar)
+if (!window._authToken) {
+  window.location.replace('/login.html');
+}
 
 try {
   var _u = localStorage.getItem('cm_user');
   if (_u) {
     window._authUser  = JSON.parse(_u);
-    window._planoAtual = window._authUser.plano || 'owner';
+    window._planoAtual = window._authUser.plano || 'basico';
   }
 } catch(e) {}
 
-// Se tem token, valida no servidor em background
+// Valida token no servidor
 if (window._authToken) {
   fetch('/api/auth/me', { headers: { 'Authorization': 'Bearer ' + window._authToken } })
     .then(function(r) {
-      if (r.status === 401) {
+      if (r.status === 401 || r.status === 403) {
         localStorage.clear();
-        window.location.href = '/login.html';
+        window.location.replace('/login.html');
         return null;
       }
       return r.json();
     })
     .then(function(data) {
       if (!data) return;
-      // Atualizar dados frescos do servidor
       window._authUser   = data;
-      window._planoAtual = data.plano || 'owner';
+      window._planoAtual = data.plano || 'basico';
       localStorage.setItem('cm_user', JSON.stringify({
         id: data.id, nome: data.nome, email: data.email,
         plano: data.plano, admin: data.admin
       }));
-      // Re-aplicar tudo com dados frescos do servidor
       if (window._showUserInfo) window._showUserInfo();
       if (window.aplicarBloqueioNav) window.aplicarBloqueioNav();
-      // Remover lock do recorrente se for owner/pro
       var lockEl = document.getElementById('recorrenteLock');
       if (lockEl) lockEl.style.display = window.podeRecorrente() ? 'none' : 'inline';
     })
     .catch(function() {});
 }
-// Sem token: modo single-user (server.js antigo), continua normalmente
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
