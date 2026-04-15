@@ -182,13 +182,24 @@ function criarPuppeteerBase(chromePath) {
   // Perfil dedicado por sessão — impede que contas diferentes compartilhem
   // localStorage/IndexedDB do Chromium (causa do bug "2ª conta ja conectada")
   const userDataDir = path.join(AUTH_DIR, ".chromium-profile");
+  try {
+    if (!fs.existsSync(userDataDir)) fs.mkdirSync(userDataDir, { recursive: true });
+    // Remove SingletonLock/Cookie/Socket de crashes anteriores (impedem o launch)
+    for (const f of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
+      const p = path.join(userDataDir, f);
+      if (fs.existsSync(p) || fs.lstatSync(p, { throwIfNoEntry: false })) {
+        try { fs.unlinkSync(p); } catch(_) {}
+      }
+    }
+  } catch (e) {
+    console.log("⚠️  Não foi possível preparar userDataDir:", e.message);
+  }
   const args = [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
     "--disable-gpu",
     "--lang=pt-BR",
-    `--user-data-dir=${userDataDir}`,
   ];
   if (!forceHeadless) args.push("--start-maximized");
   const puppeteer = {
@@ -196,7 +207,7 @@ function criarPuppeteerBase(chromePath) {
     defaultViewport: forceHeadless ? { width: 1280, height: 800 } : null,
     ignoreHTTPSErrors: true,
     timeout: 120000,
-    userDataDir,
+    userDataDir,  // Puppeteer cuida do --user-data-dir sozinho
     args,
   };
   if (chromePath) {
