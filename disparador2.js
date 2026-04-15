@@ -176,24 +176,23 @@ function detectarChrome() {
 const detectarChromeNoMac = detectarChrome;
 
 // ── PUPPETEER — flags de Chrome, com headless auto ──────────────────────────
+// IMPORTANTE: não setar userDataDir aqui — LocalAuth do whatsapp-web.js gerencia
+// seu próprio perfil do Chromium baseado em dataPath+clientId. Cada AUTH_DIR
+// distinto (conta WhatsApp diferente) já produz um perfil Chromium isolado.
 function criarPuppeteerBase(chromePath) {
   const isLinuxServer = process.platform === "linux" && !process.env.DISPLAY;
   const forceHeadless = process.env.HEADLESS === "1" || isLinuxServer;
-  // Perfil dedicado por sessão — impede que contas diferentes compartilhem
-  // localStorage/IndexedDB do Chromium (causa do bug "2ª conta ja conectada")
-  const userDataDir = path.join(AUTH_DIR, ".chromium-profile");
+  // Limpa SingletonLock residuais dentro do perfil gerenciado pelo LocalAuth
+  // (são criados pelo Chromium e impedem relaunches após crash)
   try {
-    if (!fs.existsSync(userDataDir)) fs.mkdirSync(userDataDir, { recursive: true });
-    // Remove SingletonLock/Cookie/Socket de crashes anteriores (impedem o launch)
-    for (const f of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
-      const p = path.join(userDataDir, f);
-      if (fs.existsSync(p) || fs.lstatSync(p, { throwIfNoEntry: false })) {
-        try { fs.unlinkSync(p); } catch(_) {}
+    const sessDir = path.join(AUTH_DIR, "session-disparador-m4");
+    if (fs.existsSync(sessDir)) {
+      for (const f of ["SingletonLock", "SingletonCookie", "SingletonSocket"]) {
+        const p = path.join(sessDir, f);
+        try { if (fs.lstatSync(p, { throwIfNoEntry: false })) fs.unlinkSync(p); } catch(_) {}
       }
     }
-  } catch (e) {
-    console.log("⚠️  Não foi possível preparar userDataDir:", e.message);
-  }
+  } catch(_) {}
   const args = [
     "--no-sandbox",
     "--disable-setuid-sandbox",
@@ -207,7 +206,6 @@ function criarPuppeteerBase(chromePath) {
     defaultViewport: forceHeadless ? { width: 1280, height: 800 } : null,
     ignoreHTTPSErrors: true,
     timeout: 120000,
-    userDataDir,  // Puppeteer cuida do --user-data-dir sozinho
     args,
   };
   if (chromePath) {
