@@ -2372,7 +2372,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var ws;
   function conectarWS() {
     try {
-      var wsUrl = 'ws://' + window.location.host;
+      var wsProto = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+      var wsUrl = wsProto + window.location.host;
       if (window._authToken) wsUrl += '?token=' + window._authToken;
       ws = new WebSocket(wsUrl);
     }
