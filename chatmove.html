@@ -1381,6 +1381,17 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
 
         <!-- Aba: Importar -->
         <div class="tab-c on" id="tc-import">
+          <!-- Download modelo -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:12px 14px;background:var(--gold-bg);border:1px solid rgba(198,169,107,.18);border-radius:11px;gap:10px;flex-wrap:wrap">
+            <div style="flex:1;min-width:180px">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">Não tem um CSV pronto?</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">Baixe o modelo, preencha no Excel/Google Sheets e faça upload aqui.</div>
+            </div>
+            <button class="btn btn-outline" style="height:34px;font-size:11px;gap:6px;flex-shrink:0" onclick="baixarModelo()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Baixar modelo CSV
+            </button>
+          </div>
           <div class="dz" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')">
             <input type="file" accept=".csv,.txt" onchange="loadCsv(event)">
             <div class="dz-icon">
@@ -1604,16 +1615,6 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
         <div class="ph-text">
           <div class="ph-title">Conexão</div>
           <div class="ph-desc">Confira tudo e conecte o WhatsApp.</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Resumo</div></div>
-        <div class="sum-list">
-          <div class="sum-row"><div class="sum-key">Mensagem</div><div class="sum-val gold" id="sumMsg"> </div></div>
-          <div class="sum-row"><div class="sum-key">Mídia</div><div class="sum-val" id="sumMd"> </div></div>
-          <div class="sum-row"><div class="sum-key">Contatos válidos</div><div class="sum-val ok" id="sumCt"> </div></div>
-          <div class="sum-row"><div class="sum-key">Intervalo</div><div class="sum-val" id="sumDl"> </div></div>
         </div>
       </div>
 
@@ -2068,10 +2069,14 @@ window.toggleMedia = function() {
   var cr = document.getElementById('captRow');   if (cr) cr.style.display = on ? '' : 'none';
 };
 window.swTab = function(id, btn) {
-  document.querySelectorAll('.tabs .tab').forEach(function(b) { b.classList.remove('on'); });
-  document.querySelectorAll('.tab-c').forEach(function(c) { c.classList.remove('on'); });
+  // Escopo: limita a manipulação ao card que contém esse tabset (evita que uma
+  // página quebre o estado das abas de outra página).
+  var scope = btn.closest('.card') || document;
+  scope.querySelectorAll('.tabs .tab').forEach(function(b) { b.classList.remove('on'); });
+  scope.querySelectorAll('.tab-c').forEach(function(c) { c.classList.remove('on'); });
   btn.classList.add('on');
-  var tc = document.getElementById('tc-' + id); if (tc) tc.classList.add('on');
+  var tc = scope.querySelector('#tc-' + id) || document.getElementById('tc-' + id);
+  if (tc) tc.classList.add('on');
 };
 window.pickImg = function(e) { var f = e.target.files[0]; if (f) lerArq(f, 'imgPv'); };
 window.dropImg = function(e) { e.preventDefault(); e.currentTarget.classList.remove('over'); var f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) lerArq(f, 'imgPv'); };
