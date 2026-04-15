@@ -254,6 +254,79 @@ label.sel-opt:has(> input:checked) {
   background: var(--gold-bg) !important;
   box-shadow: 0 0 0 2px rgba(198,169,107,.18);
 }
+/* Empty states amigáveis */
+.empty-nice { display:flex; flex-direction:column; align-items:center; gap:10px; padding:32px 20px; text-align:center; }
+.empty-nice .en-ico { width:56px; height:56px; border-radius:16px; background:var(--gold-bg); color:var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+.empty-nice .en-title { font-size:15px; font-weight:700; color:var(--text); letter-spacing:-.01em; }
+.empty-nice .en-desc { font-size:13px; color:var(--text2); max-width:340px; line-height:1.5; }
+.empty-nice .en-cta { margin-top:6px; }
+
+/* Tooltips nos itens da sidebar (desktop) */
+.step { position: relative; }
+.step[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  background: var(--surface3);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+  z-index: 40;
+}
+.step[data-tooltip]:hover::after { opacity: 1; transition-delay: .4s; }
+@media (max-width: 900px) { .step[data-tooltip]::after { display: none !important; } }
+
+/* Home — CTAs e checklist */
+.home-cta {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+  padding: 20px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--ease);
+  font-family: inherit;
+  color: var(--text);
+}
+.home-cta:hover { border-color: var(--gold); background: var(--gold-bg); transform: translateY(-2px); }
+.home-cta-ico { width: 40px; height: 40px; border-radius: 10px; background: var(--gold-bg); color: var(--gold); display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+.home-cta-title { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+.home-cta-desc { font-size: 12px; color: var(--text2); line-height: 1.4; }
+
+.check-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: all var(--ease);
+}
+.check-item:hover { border-color: var(--gold2); }
+.check-item.done { opacity: .55; }
+.check-bullet { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: transparent; font-size: 14px; font-weight: 800; }
+.check-item.done .check-bullet { background: var(--green); border-color: var(--green); color: #fff; }
+.check-label { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+.check-item.done .check-label { text-decoration: line-through; color: var(--text2); }
+.check-arrow { color: var(--text3); font-size: 16px; transition: transform var(--ease); }
+.check-item:hover .check-arrow { color: var(--gold); transform: translateX(3px); }
+.check-item.done .check-arrow { display: none; }
+
+@media(max-width:900px){
+  .home-cta { padding: 16px; }
+  /* Stats e CTAs home colapsam via seletor genérico de grid */
+}
+
 label.sel-opt:has(> input:checked)::after {
   content: '✓ Selecionado';
   font-size: 9px;
@@ -980,23 +1053,32 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
     <!-- Nav -->
     <nav class="nav">
+      <div class="nav-section">Início</div>
+
+      <div class="step active" onclick="goTo(0)" data-s="0" data-tooltip="Início · resumo e atalhos">
+        <div class="step-icon-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="step-info"><div class="step-name">Home</div><div class="step-sub">Início e atalhos</div></div>
+      </div>
+
       <div class="nav-section">Campanha</div>
 
-      <div class="step active" onclick="goTo(1)" data-s="1">
+      <div class="step" onclick="goTo(1)" data-s="1" data-tooltip="Mensagem · texto que vai pros contatos">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <div class="step-info"><div class="step-name">Mensagem</div><div class="step-sub">Redigir mensagem</div></div>
       </div>
 
-      <div class="step" onclick="goTo(2)" data-s="2">
+      <div class="step" onclick="goTo(2)" data-s="2" data-tooltip="Mídia · imagem ou PDF opcional">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </div>
         <div class="step-info"><div class="step-name">Mídia</div><div class="step-sub">Anexar mídia</div></div>
       </div>
 
-      <div class="step" onclick="goTo(3)" data-s="3">
+      <div class="step" onclick="goTo(3)" data-s="3" data-tooltip="Contatos · importe sua lista">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
@@ -1005,21 +1087,21 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
       <div class="nav-section">Disparo</div>
 
-      <div class="step" onclick="goTo(4)" data-s="4">
+      <div class="step" onclick="goTo(4)" data-s="4" data-tooltip="Configurações · velocidade e pausas">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         </div>
         <div class="step-info"><div class="step-name">Configurações</div><div class="step-sub">Velocidade de envio</div></div>
       </div>
 
-      <div class="step" onclick="goTo(5)" data-s="5">
+      <div class="step" onclick="goTo(5)" data-s="5" data-tooltip="Conexão · escolher a conta WhatsApp">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
         </div>
         <div class="step-info"><div class="step-name">Conexão</div><div class="step-sub">Autenticação</div></div>
       </div>
 
-      <div class="step" onclick="goTo(6)" data-s="6">
+      <div class="step" onclick="goTo(6)" data-s="6" data-tooltip="Monitor · acompanhar o envio ao vivo">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         </div>
@@ -1028,27 +1110,27 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
       <div class="nav-section">Gestão</div>
 
-      <div class="step" onclick="goTo(7)" data-s="7">
+      <div class="step" onclick="goTo(7)" data-s="7" data-tooltip="Histórico · campanhas anteriores">
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
         <div class="step-info"><div class="step-name">Histórico</div><div class="step-sub">Histórico</div></div>
       </div>
 
-      <div class="step" onclick="goTo(8)" data-s="8">
+      <div class="step" onclick="goTo(8)" data-s="8" data-tooltip="Contas · seus números conectados">
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
         <div class="step-info"><div class="step-name">Contas</div><div class="step-sub">Seus números</div></div>
       </div>
 
-      <div class="step" onclick="goTo(9)" data-s="9">
+      <div class="step" onclick="goTo(9)" data-s="9" data-tooltip="Blacklist · números que NÃO recebem">
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
         <div class="step-info"><div class="step-name">Blacklist</div><div class="step-sub">Números bloqueados</div></div>
       </div>
 
-      <div class="step" onclick="goTo(10)" data-s="10">
+      <div class="step" onclick="goTo(10)" data-s="10" data-tooltip="Agendamento · programar disparos">
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
         <div class="step-info"><div class="step-name">Agendamento</div><div class="step-sub">Disparos programados</div></div>
       </div>
 
-      <div class="step" onclick="goTo(11)" data-s="11">
+      <div class="step" onclick="goTo(11)" data-s="11" data-tooltip="Assinatura · plano e cobrança">
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
         <div class="step-info"><div class="step-name">Assinatura</div><div class="step-sub">Plano e cobrança</div></div>
       </div>
@@ -1099,8 +1181,50 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   <!-- MAIN -->
   <main class="main">
 
+    <!-- ── 00 HOME ── -->
+    <div class="page active" id="p0">
+      <div class="page-header">
+        <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+        <div class="ph-text"><div class="ph-title">Olá<span id="homeNome"></span> 👋</div><div class="ph-desc" id="homeSub">Bem-vindo ao ChatMOVE. Vamos preparar tudo pra sua primeira campanha?</div></div>
+      </div>
+
+      <!-- Checklist de onboarding (some quando tudo completo) -->
+      <div class="card" id="homeChecklist" style="display:none">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Primeiros passos</div><div class="card-aside"><span id="homeCheckProgresso" style="font-size:11px;color:var(--text3)"></span></div></div>
+        <div id="homeCheckLista" style="display:flex;flex-direction:column;gap:8px;margin-top:6px"></div>
+      </div>
+
+      <!-- Stats rápidos -->
+      <div class="stats-row" id="homeStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px"></div>
+
+      <!-- CTAs principais -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px">
+        <button class="home-cta" onclick="goTo(1)">
+          <div class="home-cta-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="home-cta-title">Nova campanha</div>
+          <div class="home-cta-desc">Monte mensagem, escolha lista e dispare</div>
+        </button>
+        <button class="home-cta" onclick="goTo(3)">
+          <div class="home-cta-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+          <div class="home-cta-title">Meus contatos</div>
+          <div class="home-cta-desc">Importe ou gerencie suas listas</div>
+        </button>
+        <button class="home-cta" onclick="goTo(7)">
+          <div class="home-cta-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="home-cta-title">Ver histórico</div>
+          <div class="home-cta-desc">Campanhas anteriores</div>
+        </button>
+      </div>
+
+      <!-- Últimas campanhas -->
+      <div class="card" id="homeUltimas" style="margin-top:18px;display:none">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Últimas campanhas</div></div>
+        <div id="homeUltimasLista"></div>
+      </div>
+    </div>
+
     <!-- ── 01 MENSAGEM ── -->
-    <div class="page active" id="p1">
+    <div class="page" id="p1">
       <div class="pip-bar"><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
       <div class="page-header">
         <div class="ph-icon">
@@ -1668,7 +1792,7 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
       </div>
       <div class="card">
         <div class="card-hd"><div class="card-dot"></div><div class="card-title">Contas salvas</div></div>
-        <div id="contasLista"><div class="empty">Nenhuma conta cadastrada</div></div>
+        <div id="contasLista"><div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><div class="en-title">Nenhuma conta ainda</div><div class="en-desc">Cadastre um número no campo acima (ex: "Pessoal" ou "Empresa"), depois clique em <strong>Conectar</strong> pra parear o WhatsApp.</div></div></div>
       </div>
 
       <!-- Painel de conexão in-page -->
@@ -1708,7 +1832,7 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
         <div class="card-hd"><div class="card-dot"></div><div class="card-title">Bloqueados</div>
           <div class="card-aside"><span id="blCount" style="font-size:10px;color:var(--text3);font-weight:700">0</span></div>
         </div>
-        <div id="blacklistLista"><div class="empty">Nenhum número bloqueado</div></div>
+        <div id="blacklistLista"><div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div><div class="en-title">Blacklist vazia</div><div class="en-desc">Números aqui <strong>não</strong> recebem suas campanhas — útil pra descadastros e clientes que pediram pra não receber mais.</div></div></div>
       </div>
     </div>
 
@@ -1826,7 +1950,7 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
           <div class="card-title">Agendamentos ativos</div>
           <div class="card-aside"><button class="btn btn-ghost" style="height:28px;font-size:10px" onclick="carregarAgendamentos()">Atualizar</button></div>
         </div>
-        <div id="agendamentosLista"><div class="empty">Nenhum agendamento salvo</div></div>
+        <div id="agendamentosLista"><div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="en-title">Nenhum agendamento ainda</div><div class="en-desc">Preencha o formulário acima pra programar um disparo futuro (uma vez ou recorrente por dia da semana).</div></div></div>
       </div>
     </div>
 
@@ -2675,7 +2799,7 @@ window.carregarHistorico = function() {
   authFetch('/api/historico').then(function(hist) {
     hist = hist || [];
     var lista = document.getElementById('historicoLista'); if(!lista) return;
-    if (!hist.length) { lista.innerHTML='<div class="empty">Nenhuma campanha registrada</div>'; return; }
+    if (!hist.length) { lista.innerHTML='<div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="en-title">Sem campanhas por enquanto</div><div class="en-desc">Assim que você disparar sua primeira campanha, ela aparece aqui com status, total de envios e erros.</div><div class="en-cta"><button class="btn btn-gold" style="height:36px;font-size:12px;padding:0 18px" onclick="goTo(1)">Começar uma campanha</button></div></div>'; return; }
     lista.innerHTML = hist.map(function(h) {
       var d = new Date(h.dataEnvio);
       var ds = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -3061,7 +3185,82 @@ window.goTo = function(n) {
   if(n===9) carregarBlacklist();
   if(n===10){ carregarSelectoresAg(); window.carregarAgendamentos(); }
   if(n===11) carregarAssinatura();
+  if(n===0) carregarHome();
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOME / DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+window.carregarHome = function() {
+  authFetch('/api/home').then(function(d) {
+    if (!d) return;
+    var sauda = document.getElementById('homeNome');
+    if (sauda && d.nome) sauda.textContent = ', ' + (d.nome.split(' ')[0]);
+    var sub = document.getElementById('homeSub');
+    if (sub) sub.textContent = d.checklist.tudo
+      ? 'Tudo pronto. Vamos disparar uma campanha?'
+      : 'Vamos terminar de preparar sua conta?';
+
+    var items = [
+      { key: 'whatsapp', label: 'Conectar seu WhatsApp', goTo: 5 },
+      { key: 'lista',    label: 'Importar sua primeira lista de contatos', goTo: 3 },
+      { key: 'mensagem', label: 'Escrever a mensagem', goTo: 1 },
+      { key: 'disparo',  label: 'Enviar sua primeira campanha', goTo: 5 }
+    ];
+    var feitos = items.filter(function(i){ return d.checklist[i.key]; }).length;
+    var box = document.getElementById('homeChecklist');
+    if (box) {
+      if (d.checklist.tudo) { box.style.display = 'none'; }
+      else {
+        box.style.display = '';
+        var prog = document.getElementById('homeCheckProgresso');
+        if (prog) prog.textContent = feitos + ' de ' + items.length + ' concluídos';
+        var lista = document.getElementById('homeCheckLista');
+        if (lista) {
+          lista.innerHTML = items.map(function(i) {
+            var done = !!d.checklist[i.key];
+            return '<div class="check-item' + (done?' done':'') + '" onclick="goTo(' + i.goTo + ')">' +
+              '<div class="check-bullet">' + (done?'✓':'') + '</div>' +
+              '<div class="check-label">' + i.label + '</div>' +
+              '<div class="check-arrow">→</div>' +
+              '</div>';
+          }).join('');
+        }
+      }
+    }
+
+    var stats = document.getElementById('homeStats');
+    if (stats) {
+      var tiles = [
+        { num: d.envioRestanteHoje, lbl: 'Envios restantes hoje', gold: true },
+        { num: d.stats.totalEnviados30d, lbl: 'Enviados (30 dias)' },
+        { num: d.stats.totalContatosUnicos, lbl: 'Contatos salvos' },
+        { num: d.stats.totalContas, lbl: 'Contas WhatsApp' }
+      ];
+      stats.innerHTML = tiles.map(function(t) {
+        return '<div class="card" style="padding:16px 18px"><div style="font-size:22px;font-weight:800;letter-spacing:-.03em;' + (t.gold?'color:var(--gold)':'') + '">' + (t.num || 0) + '</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:4px">' + t.lbl + '</div></div>';
+      }).join('');
+    }
+
+    var ult = d.ultimasCampanhas || [];
+    var secUlt = document.getElementById('homeUltimas');
+    var listaUlt = document.getElementById('homeUltimasLista');
+    if (secUlt && listaUlt) {
+      if (!ult.length) { secUlt.style.display = 'none'; }
+      else {
+        secUlt.style.display = '';
+        listaUlt.innerHTML = ult.map(function(c) {
+          var dt = c.data ? new Date(c.data).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+          return '<div class="trow"><div style="flex:1"><div class="t-lbl">' + (c.nome || 'Campanha') + '</div><div class="t-sub">' + dt + '</div></div><div style="font-size:13px;font-weight:700;color:var(--green)">' + (c.enviados || 0) + ' enviados</div></div>';
+        }).join('');
+      }
+    }
+  });
+};
+
+// Carrega home ao abrir o painel
+if (document.readyState !== 'loading') setTimeout(function(){ if (localStorage.getItem('cm_token')) carregarHome(); }, 300);
+else document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if (localStorage.getItem('cm_token')) carregarHome(); }, 300); });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MOBILE SIDEBAR
@@ -3222,7 +3421,7 @@ window.carregarListasSalvas = function() {
     if (!grid) return;
 
     if (!listas.length) {
-      grid.innerHTML = '<div class="empty">Nenhuma lista salva ainda.<br>Importe um CSV e salve com um nome.</div>';
+      grid.innerHTML = '<div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="en-title">Nenhuma lista salva</div><div class="en-desc">Importe um CSV ou cole contatos acima, depois clique em <strong>Salvar como lista</strong>. Assim você reutiliza em próximas campanhas sem importar de novo.</div></div>';
       return;
     }
 

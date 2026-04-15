@@ -530,6 +530,51 @@ app.post("/api/pagamento/webhook", async (req, res) => {
   }
 });
 
+// ── HOME / DASHBOARD ──────────────────────────────────────────────────────────
+app.get("/api/home", authMiddleware, (req, res) => {
+  const uid = req.userId;
+  const contas = lerUser(uid, "contas.json", []);
+  const listas = lerUser(uid, "listas.json", []);
+  const cfg    = lerUser(uid, "chatmove.config.json", {});
+  const hist   = lerUser(uid, "historico.json", []);
+  const user   = req.user;
+  const plano  = PLANOS[user.plano] || PLANOS.basico;
+
+  // Estatísticas últimos 30 dias
+  const agora = Date.now();
+  const ult30 = hist.filter(h => (agora - new Date(h.data || h.criadoEm || 0).getTime()) < 30 * 86400000);
+  const totalEnviados30d = ult30.reduce((s, h) => s + (h.enviados || 0), 0);
+  const campanhasMes = ult30.length;
+
+  // Checklist de onboarding
+  const temWhatsApp = contas.length > 0;
+  const temLista = listas.length > 0;
+  const temMsg = !!(cfg && cfg.mensagem && cfg.mensagem.trim().length > 0);
+  const temDisparo = hist.length > 0;
+
+  res.json({
+    nome: user.nome || "",
+    planoNome: plano.nome,
+    envioRestanteHoje: Math.max(0, plano.limiteEnviosDia - (user.enviosHoje || 0)),
+    limiteEnviosDia: plano.limiteEnviosDia,
+    stats: {
+      totalEnviados30d,
+      campanhasMes,
+      totalContatosUnicos: listas.reduce((s, l) => s + (l.total || 0), 0),
+      totalListas: listas.length,
+      totalContas: contas.length
+    },
+    checklist: {
+      whatsapp: temWhatsApp,
+      lista: temLista,
+      mensagem: temMsg,
+      disparo: temDisparo,
+      tudo: temWhatsApp && temLista && temMsg && temDisparo
+    },
+    ultimasCampanhas: hist.slice(0, 5).map(h => ({ id: h.id, nome: h.nome, enviados: h.enviados, data: h.data || h.criadoEm }))
+  });
+});
+
 // ── GESTÃO DE ASSINATURA ──────────────────────────────────────────────────────
 
 // Info da assinatura do usuário logado
