@@ -98,7 +98,7 @@ tbody tr:hover td{background:var(--gold-bg2)}
       </a>
     </nav>
     <div class="sb-foot">
-      <a href="/chatmove.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ir ao ChatMOVE</a>
+      <a href="/painel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ir ao ChatMOVE</a>
       <a href="#" onclick="sair()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</a>
     </div>
   </aside>
@@ -150,14 +150,14 @@ tbody tr:hover td{background:var(--gold-bg2)}
 
 <script>
 var token=localStorage.getItem('cm_token');
-if(!token)window.location.href='/login.html';
+if(!token)window.location.href='/login';
 var usuarios=[], filtro='todos';
 
 async function api(url,m,b){
   var o={headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}};
   if(m)o.method=m; if(b)o.body=JSON.stringify(b);
   var r=await fetch(url,o);
-  if(r.status===401){localStorage.clear();window.location.href='/login.html';}
+  if(r.status===401){localStorage.clear();window.location.href='/login';}
   return r.json();
 }
 
@@ -257,8 +257,8 @@ function goSec(id,el){
   if(id==='dashboard')loadStats();
   if(id==='usuarios')loadUsers();
 }
-function sair(){localStorage.clear();window.location.href='/login.html';}
-api('/api/auth/me').then(function(u){if(!u.admin){window.location.href='/chatmove.html';return;}loadStats();});
+function sair(){localStorage.clear();window.location.href='/login';}
+api('/api/auth/me').then(function(u){if(!u.admin){window.location.href='/painel';return;}loadStats();});
 </script>
 </body>
 </html>

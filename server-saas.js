@@ -20,6 +20,29 @@ const DATA   = path.join(ROOT, "data"); // pasta raiz de dados por usuário
 if (!fs.existsSync(DATA)) fs.mkdirSync(DATA, { recursive: true });
 
 app.use(express.json({ limit: "50mb" }));
+
+// ── URLs limpas ───────────────────────────────────────────────────────────────
+// Mapeia rotas amigáveis para os arquivos HTML
+const rotasLimpas = {
+  "/":         "landing.html",
+  "/login":    "login.html",
+  "/registro": "registro.html",
+  "/painel":   "chatmove.html",
+  "/admin":    "admin.html",
+  "/termos":   "termos.html"
+};
+Object.entries(rotasLimpas).forEach(([rota, arquivo]) => {
+  app.get(rota, (req, res) => res.sendFile(path.join(ROOT, arquivo)));
+});
+// Redirect permanente dos .html antigos para as URLs limpas (SEO + hygiene)
+const mapaRedirect = { "/landing.html": "/", "/login.html": "/login", "/registro.html": "/registro", "/chatmove.html": "/painel", "/admin.html": "/admin", "/termos.html": "/termos" };
+Object.entries(mapaRedirect).forEach(([de, para]) => {
+  app.get(de, (req, res) => {
+    const qs = req.url.includes("?") ? req.url.substring(req.url.indexOf("?")) : "";
+    res.redirect(301, para + qs);
+  });
+});
+
 app.use(express.static(ROOT));
 
 // ── JWT simples (sem lib externa) ─────────────────────────────────────────────
@@ -381,7 +404,7 @@ app.post("/api/pagamento/criar", async (req, res) => {
         reason: `ChatMOVE ${planoInfo.nome} (${cicloNorm === "anual" ? "Anual" : "Mensal"})`,
         external_reference: `${userId}|${plano}|${cicloNorm}`,
         payer_email: user.email,
-        back_url: `${base}/login.html?ativado=1`,
+        back_url: `${base}/login?ativado=1`,
         auto_recurring: {
           frequency: cicloNorm === "anual" ? 12 : 1,
           frequency_type: "months",
@@ -582,9 +605,9 @@ app.post("/api/assinatura/upgrade", authMiddleware, async (req, res) => {
         payer: { email: u.email },
         external_reference: `upgrade|${u.id}|${novoPlano}`,
         back_urls: {
-          success: `${base}/chatmove.html?upgrade=ok`,
-          failure: `${base}/chatmove.html?upgrade=erro`,
-          pending: `${base}/chatmove.html?upgrade=pendente`
+          success: `${base}/painel?upgrade=ok`,
+          failure: `${base}/painel?upgrade=erro`,
+          pending: `${base}/painel?upgrade=pendente`
         },
         auto_return: "approved",
         notification_url: `${base}/api/pagamento/webhook`
@@ -643,7 +666,7 @@ app.post("/api/assinatura/trocar-ciclo", authMiddleware, async (req, res) => {
         reason: `ChatMOVE ${planoInfo.nome} (${novoCiclo === "anual" ? "Anual" : "Mensal"})`,
         external_reference: `${u.id}|${u.plano}|${novoCiclo}`,
         payer_email: u.email,
-        back_url: `${base}/chatmove.html?ciclo=ok`,
+        back_url: `${base}/painel?ciclo=ok`,
         auto_recurring: {
           frequency: novoCiclo === "anual" ? 12 : 1,
           frequency_type: "months",
@@ -1054,7 +1077,7 @@ app.get("/logout", (req, res) => {
 localStorage.clear();
 sessionStorage.clear();
 document.cookie.split(";").forEach(function(c){document.cookie=c.replace(/^ +/,"").replace(/=.*/,"=;expires="+new Date().toUTCString()+";path=/");});
-window.location.href = '/login.html';
+window.location.href = '/login';
 </script>
 <p>Saindo...</p>
 </body></html>`);
@@ -1063,7 +1086,7 @@ window.location.href = '/login.html';
 app.get("/setup", (req, res) => {
   const users = lerUsuarios();
   if (users.some(u => u.admin)) {
-    res.redirect("/login.html");
+    res.redirect("/login");
     return;
   }
   res.send(`<!DOCTYPE html>
@@ -1117,7 +1140,7 @@ async function criar(){
     var d=await r.json();
     if(!r.ok){show(d.erro||'Erro','erro');btn.disabled=false;btn.textContent='Criar conta admin';return;}
     show('✅ Admin criado! Redirecionando para o login...','ok');
-    setTimeout(function(){window.location.href='/login.html';},2000);
+    setTimeout(function(){window.location.href='/login';},2000);
   }catch(err){show('Erro de conexão','erro');btn.disabled=false;btn.textContent='Criar conta admin';}
 }
 function show(t,c){var m=document.getElementById('msg');m.textContent=t;m.className='msg '+c;m.style.display='block';}

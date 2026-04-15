@@ -123,7 +123,7 @@ footer a:hover { color:var(--text2); }
 <body>
 
 <nav>
-  <a href="/landing.html" class="nav-logo">
+  <a href="/" class="nav-logo">
     <img src="logosilversun.png" alt="ChatMOVE" id="navLogo" style="height:36px;width:auto;display:none">
     <span id="navLogoText" class="nav-logo-text">ChatMOVE</span>
   </a>
@@ -134,7 +134,7 @@ footer a:hover { color:var(--text2); }
     <a href="#faq">FAQ</a>
   </div>
   <div class="nav-actions">
-    <a href="/login.html" class="btn-nav-ghost">Entrar</a>
+    <a href="/login" class="btn-nav-ghost">Entrar</a>
     <a href="#planos" class="btn-nav-gold">Criar conta</a>
   </div>
 </nav>
@@ -211,7 +211,7 @@ footer a:hover { color:var(--text2); }
         <div class="p-item off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Agendamento pontual</div>
         <div class="p-item off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Agendamento recorrente</div>
       </div>
-      <a href="/registro.html?plano=basico&ciclo=mensal" class="btn-plano btn-basico" data-plano="basico">Criar conta no Básico</a>
+      <a href="/registro?plano=basico&ciclo=mensal" class="btn-plano btn-basico" data-plano="basico">Criar conta no Básico</a>
     </div>
 
     <!-- PREMIUM -->
@@ -229,7 +229,7 @@ footer a:hover { color:var(--text2); }
         <div class="p-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Agendamento pontual (uma vez)</div>
         <div class="p-item off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Agendamento recorrente</div>
       </div>
-      <a href="/registro.html?plano=premium&ciclo=mensal" class="btn-plano btn-prem" data-plano="premium">Criar conta no Premium</a>
+      <a href="/registro?plano=premium&ciclo=mensal" class="btn-plano btn-prem" data-plano="premium">Criar conta no Premium</a>
     </div>
 
     <!-- PRO -->
@@ -246,7 +246,7 @@ footer a:hover { color:var(--text2); }
         <div class="p-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Agendamento pontual (uma vez)</div>
         <div class="p-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Agendamento recorrente</div>
       </div>
-      <a href="/registro.html?plano=pro&ciclo=mensal" class="btn-plano btn-basico" data-plano="pro" style="border-color:rgba(198,169,107,.3);color:var(--gold)">Criar conta no Pro</a>
+      <a href="/registro?plano=pro&ciclo=mensal" class="btn-plano btn-basico" data-plano="pro" style="border-color:rgba(198,169,107,.3);color:var(--gold)">Criar conta no Pro</a>
     </div>
   </div>
 </div>
@@ -279,7 +279,7 @@ footer a:hover { color:var(--text2); }
     <div id="footerLogoText" class="f-logo">Chat<span>MOVE</span></div>
     <p style="font-size:11px;color:var(--text3);margin-top:4px">Move Business Solution · 2026</p>
   </div>
-  <div style="display:flex;gap:20px"><a href="/login.html">Entrar</a><a href="/registro.html">Criar conta</a></div>
+  <div style="display:flex;gap:20px"><a href="/login">Entrar</a><a href="/registro">Criar conta</a></div>
 </footer>
 
 <script>
@@ -314,7 +314,7 @@ window.setCiclo = function(ciclo) {
     el.textContent = ciclo === 'anual' ? 'por ano · 2 meses grátis' : 'por mês';
   });
   document.querySelectorAll('a.btn-plano[data-plano]').forEach(function(a) {
-    a.href = '/registro.html?plano=' + a.dataset.plano + '&ciclo=' + ciclo;
+    a.href = '/registro?plano=' + a.dataset.plano + '&ciclo=' + ciclo;
   });
 };
 </script>

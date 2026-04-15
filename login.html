@@ -53,13 +53,13 @@ input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
   <button class="btn btn-gold" id="btnLogin" onclick="login()">Entrar</button>
   <div class="divider" id="gsiDivider">ou</div>
   <div id="gsiBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-  <div style="text-align:center;font-size:13px;color:var(--text2)">Não tem conta? <a href="/registro.html" class="link">Criar conta</a></div>
+  <div style="text-align:center;font-size:13px;color:var(--text2)">Não tem conta? <a href="/registro" class="link">Criar conta</a></div>
 </div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<div class="foot-link"><a href="/landing.html" class="link" style="color:var(--text3);font-size:12px">← Voltar ao site</a></div>
+<div class="foot-link"><a href="/" class="link" style="color:var(--text3);font-size:12px">← Voltar ao site</a></div>
 <script>
-if(localStorage.getItem('cm_token')) window.location.href='/chatmove.html';
+if(localStorage.getItem('cm_token')) window.location.href='/painel';
 var p=new URLSearchParams(location.search);
 if(p.get('ativado')) show('✅ Conta ativada! Faça login para começar.','ok');
 if(p.get('pendente')) show('⏳ Pagamento em análise. Faça login após confirmação.','ok');
@@ -74,7 +74,7 @@ async function login(){
     var d=await r.json();
     if(!r.ok){show(d.pendente?'💳 Pagamento não confirmado. Complete o pagamento para ativar.':d.erro||'Erro ao entrar','erro');btn.disabled=false;btn.textContent='Entrar';return;}
     localStorage.setItem('cm_token',d.token);localStorage.setItem('cm_user',JSON.stringify(d.user));
-    window.location.href=d.user.admin?'/admin.html':'/chatmove.html';
+    window.location.href=d.user.admin?'/admin':'/painel';
   }catch(err){show('Erro de conexão com o servidor','erro');btn.disabled=false;btn.textContent='Entrar';}
 }
 
@@ -86,7 +86,7 @@ window.onGoogleCredential=async function(resp){
     if(!r.ok){show(d.erro||'Erro no login Google','erro');return;}
     localStorage.setItem('cm_token',d.token);
     localStorage.setItem('cm_user',JSON.stringify(d.user));
-    window.location.href=d.user.admin?'/admin.html':'/chatmove.html';
+    window.location.href=d.user.admin?'/admin':'/painel';
   }catch(e){show('Erro de conexão','erro');}
 };
 fetch('/api/config/public').then(function(r){return r.json();}).then(function(c){

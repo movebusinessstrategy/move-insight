@@ -13,7 +13,7 @@ window._planoAtual = 'basico';
 
 // Sem token: redireciona imediatamente pro login (antes de renderizar)
 if (!window._authToken) {
-  window.location.replace('/login.html');
+  window.location.replace('/login');
 }
 
 try {
@@ -30,7 +30,7 @@ if (window._authToken) {
     .then(function(r) {
       if (r.status === 401 || r.status === 403) {
         localStorage.clear();
-        window.location.replace('/login.html');
+        window.location.replace('/login');
         return null;
       }
       return r.json();
@@ -39,7 +39,7 @@ if (window._authToken) {
       if (!data) return;
       // Se cadastro incompleto (veio via Google), força completar antes de usar o app
       if (data.cadastroCompleto === false) {
-        window.location.replace('/registro.html?completar=1');
+        window.location.replace('/registro?completar=1');
         return;
       }
       window._authUser   = data;
@@ -842,7 +842,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
       <div class="upgrade-feat-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Suporte prioritário</div>
     </div>
     <div class="upgrade-btns">
-      <a href="/registro.html?plano=pro&upgrade=1" class="btn-upgrade gold">Fazer upgrade para Pro</a>
+      <a href="/registro?plano=pro&upgrade=1" class="btn-upgrade gold">Fazer upgrade para Pro</a>
       <button class="btn-upgrade ghost" onclick="fecharUpgrade()">Continuar no Básico</button>
     </div>
   </div>
@@ -875,7 +875,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
     <label class="aviso-check" for="avisoAceite" style="cursor:pointer">
       <input type="checkbox" id="avisoAceite" onchange="verificarAceite()">
       <span>
-        Entendo os riscos e aceito os <a href="/termos.html" target="_blank" onclick="event.stopPropagation();event.preventDefault();window.open('/termos.html','_blank')">Termos de Uso</a>. Sou o único responsável pelo conteúdo enviado.
+        Entendo os riscos e aceito os <a href="/termos" target="_blank" onclick="event.stopPropagation();event.preventDefault();window.open('/termos','_blank')">Termos de Uso</a>. Sou o único responsável pelo conteúdo enviado.
       </span>
     </label>
     <button class="btn btn-gold" id="btnAvisoOk" onclick="fecharAviso()" disabled
@@ -983,7 +983,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
     <div class="sb-foot">
       <!-- Link admin (só para admin) -->
       <div id="adminLink" style="display:none;margin-bottom:6px">
-        <a href="/admin.html" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;font-size:12px;font-weight:600;color:var(--gold);text-decoration:none;background:var(--gold-bg);border:1px solid rgba(198,169,107,.15);transition:all var(--ease)" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+        <a href="/admin" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;font-size:12px;font-weight:600;color:var(--gold);text-decoration:none;background:var(--gold-bg);border:1px solid rgba(198,169,107,.15);transition:all var(--ease)" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           Painel Admin
         </a>
@@ -2053,7 +2053,7 @@ function authHeaders() {
 function authFetch(url) {
   return fetch(url, { headers: authHeaders() })
     .then(function(r) {
-      if (r.status === 401) { localStorage.clear(); window.location.href = '/login.html'; return null; }
+      if (r.status === 401) { localStorage.clear(); window.location.href = '/login'; return null; }
       return r.json();
     }).catch(function() { return null; });
 }
@@ -2065,7 +2065,7 @@ function post(url, data) {
   var headers = Object.assign({ 'Content-Type': 'application/json' }, authHeaders());
   return fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data) })
     .then(function(r) {
-      if (r.status === 401) { localStorage.clear(); window.location.href = '/login.html'; return null; }
+      if (r.status === 401) { localStorage.clear(); window.location.href = '/login'; return null; }
       return r.json();
     }).catch(function() { return null; });
 }
@@ -3280,7 +3280,7 @@ window.salvarNumNotif = function() {
 // ── INFO DO USUÁRIO (modo SaaS) ───────────────────────────────────────────────
 window.sairSaas = function() {
   localStorage.clear();
-  window.location.href = '/login.html';
+  window.location.href = '/login';
 };
 window._showUserInfo = function() {
   var user = window._authUser;

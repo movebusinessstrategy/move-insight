@@ -112,7 +112,7 @@ input.invalid{border-color:var(--red)}
       </label>
     </div>
     <button class="btn btn-gold" onclick="irS2()">Continuar →</button>
-    <div class="hint">Já tem conta? <a href="/login.html" class="link">Entrar</a></div>
+    <div class="hint">Já tem conta? <a href="/login" class="link">Entrar</a></div>
   </div>
 
   <!-- Passo 2: Dados básicos + PF/PJ + Google -->
@@ -181,7 +181,7 @@ input.invalid{border-color:var(--red)}
     <div class="checkbox-row">
       <input type="checkbox" id="termos">
       <label for="termos" style="font-size:11px;letter-spacing:0;text-transform:none;font-weight:400;color:var(--text2);margin:0">
-        Li e aceito os <a href="/termos.html" target="_blank" class="link">Termos de Uso</a> e a <a href="/termos.html#privacidade" target="_blank" class="link">Política de Privacidade</a>, autorizando o tratamento dos meus dados conforme a LGPD.
+        Li e aceito os <a href="/termos" target="_blank" class="link">Termos de Uso</a> e a <a href="/termos#privacidade" target="_blank" class="link">Política de Privacidade</a>, autorizando o tratamento dos meus dados conforme a LGPD.
       </label>
     </div>
 
@@ -406,13 +406,13 @@ if (window._modoCompletar) {
   // Substitui o "Voltar" dos steps 2 e 3 por "Sair" pra evitar loop
   document.querySelectorAll('#s2 .btn-ghost, #s3 .btn-ghost').forEach(function(b){
     b.textContent='Sair';
-    b.onclick=function(){ localStorage.clear(); window.location.href='/login.html'; };
+    b.onclick=function(){ localStorage.clear(); window.location.href='/login'; };
   });
   // Busca dados do usuário e preenche email + plano
   fetch('/api/auth/me',{headers:{Authorization:'Bearer '+localStorage.getItem('cm_token')}})
     .then(function(r){return r.json();})
     .then(function(u){
-      if (!u || u.cadastroCompleto) { window.location.href='/chatmove.html'; return; }
+      if (!u || u.cadastroCompleto) { window.location.href='/painel'; return; }
       pl = u.plano || 'premium';
       ci = u.ciclo || 'mensal';
       var emailEl = document.getElementById('email');
@@ -444,7 +444,7 @@ window.onGoogleCredential=async function(resp){
     localStorage.setItem('cm_token',d.token);
     localStorage.setItem('cm_user',JSON.stringify(d.user));
     // Se cadastro incompleto, vai pro painel (lá mostra modal de completar cadastro)
-    window.location.href='/chatmove.html';
+    window.location.href='/painel';
   }catch(e){show('Erro de conexão','erro','msgBox2');if(btn)btn.style.opacity='1';}
 };
 window.onload=function(){
