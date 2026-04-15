@@ -1108,7 +1108,15 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
         </div>
         <div class="ph-text">
           <div class="ph-title">Mensagem</div>
-          <div class="ph-desc">Texto da mensagem com variáveis personalizadas.</div>
+          <div class="ph-desc">Dê um nome à campanha e escreva a mensagem.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Nome da campanha</div></div>
+        <div class="fg" style="margin-bottom:0">
+          <input type="text" id="nomeCampanha" placeholder="Ex: Promoção Sexta-feira">
+          <div class="hint" style="margin-top:8px">Como essa campanha vai aparecer no histórico.</div>
         </div>
       </div>
 
@@ -1485,17 +1493,10 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
       </div>
 
       <div class="card">
-        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Campanha</div></div>
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Conta WhatsApp</div></div>
 
-        <!-- Nome -->
-        <div class="fg" style="margin-bottom:16px">
-          <label>Nome da campanha</label>
-          <input type="text" id="nomeCampanha" placeholder="Ex: Promoção Sexta-feira">
-        </div>
-
-        <!-- Conta -->
         <div class="fg" style="margin-bottom:0">
-          <label>Conta WhatsApp</label>
+          <label>Selecione a conta de envio</label>
           <div id="contaSelector" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
           <button class="btn btn-ghost" style="height:34px;font-size:11px;gap:6px" onclick="goTo(8)">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
