@@ -244,6 +244,30 @@ body {
 
 /* ── FOOTER ── */
 .sb-foot { padding: 12px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: var(--surface); z-index: 5; }
+
+/* ═══════════════════════════════════════
+   DESTAQUE DE SELEÇÃO — labels marcadas com .sel-opt
+═══════════════════════════════════════ */
+label.sel-opt { transition: all var(--ease); }
+label.sel-opt:has(> input:checked) {
+  border-color: var(--gold) !important;
+  background: var(--gold-bg) !important;
+  box-shadow: 0 0 0 2px rgba(198,169,107,.18);
+}
+label.sel-opt:has(> input:checked)::after {
+  content: '✓ Selecionado';
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: var(--surface);
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(198,169,107,.3);
+  margin-left: auto;
+  flex-shrink: 0;
+}
 .sb-social { display:flex; align-items:center; justify-content:center; gap:14px; padding:10px 0 4px; margin-top:8px; border-top:1px solid var(--border); }
 .sb-social a { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; color:var(--text3); transition:all var(--ease); text-decoration:none; }
 .sb-social a:hover { color:var(--gold); background:var(--gold-bg); }
@@ -2524,13 +2548,13 @@ function carregarContas() {
     }
     ['contaSelector','agContaSelector'].forEach(function(id) {
       var sel = document.getElementById(id); if (!sel) return;
-      var h = '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
+      var h = '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
         '<input type="radio" name="' + id + '" value="" ' + (!_contaAtiva ? 'checked' : '') + ' style="accent-color:var(--gold)"><span style="font-size:13px;font-weight:500">Padrão (conta atual)</span></label>';
       contas.forEach(function(c) {
-        h += '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
+        h += '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
           '<input type="radio" name="' + id + '" value="' + c.id + '" ' + (_contaAtiva===c.id?'checked':'') + ' style="accent-color:var(--gold)">' +
           '<span style="font-size:13px;font-weight:500">' + c.nome + '</span>' +
-          (c.numero ? '<span style="font-size:11px;color:var(--text3);margin-left:auto">' + c.numero + '</span>' : '') + '</label>';
+          (c.numero ? '<span style="font-size:11px;color:var(--text3)">' + c.numero + '</span>' : '') + '</label>';
       });
       sel.innerHTML = h;
     });
@@ -2778,7 +2802,7 @@ function carregarListasAgendamento() {
       return;
     }
     sel.innerHTML = listas.map(function(l) {
-      return '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer;transition:all var(--ease)">' +
+      return '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
         '<input type="radio" name="agLista" value="' + l.id + '" style="accent-color:var(--gold)" onchange="_agListaId=this.value">' +
         '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">' + l.nome + '</div>' +
         '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + l.total + ' contatos</div></div>' +
@@ -2790,13 +2814,13 @@ function carregarContasAgendamento() {
   return authFetch('/api/contas').then(function(contas) {
     contas = contas || [];
     var sel = document.getElementById('agContaSelector'); if (!sel) return;
-    var h = '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
+    var h = '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
       '<input type="radio" name="agConta" value="" checked style="accent-color:var(--gold)"><span style="font-size:13px;font-weight:500">Padrão (conta atual)</span></label>';
     contas.forEach(function(c) {
-      h += '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
+      h += '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
         '<input type="radio" name="agConta" value="' + c.id + '" style="accent-color:var(--gold)">' +
         '<span style="font-size:13px;font-weight:500">' + c.nome + '</span>' +
-        (c.numero ? '<span style="font-size:10px;color:var(--text3);margin-left:auto">' + c.numero + '</span>' : '') + '</label>';
+        (c.numero ? '<span style="font-size:10px;color:var(--text3)">' + c.numero + '</span>' : '') + '</label>';
     });
     sel.innerHTML = h;
   });
