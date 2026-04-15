@@ -782,11 +782,11 @@ function contarEnvio(userId, quantidade) {
 
 app.get("/api/contas",     authMiddleware, (req, res) => {
   const contas = lerUser(req.userId, "contas.json", []);
-  // Anexa estado de conexão baseado na existência do dir de sessão
+  // Marca como conectada só se o worker escreveu o marker de autenticação
   const enriched = contas.map(c => {
     const dir = path.join(userDir(req.userId), ".wwebjs_auth_" + c.id);
-    const sessPath = path.join(dir, "session-disparador-m4");
-    return { ...c, conectado: fs.existsSync(sessPath) };
+    const marker = path.join(dir, ".wa-authenticated");
+    return { ...c, conectado: fs.existsSync(marker) };
   });
   res.json(enriched);
 });

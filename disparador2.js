@@ -258,10 +258,14 @@ function registrarEventosCliente(client) {
 
   client.on("authenticated", () => {
     log("🔐 Autenticação realizada com sucesso");
+    console.log("CHATMOVE_EVENT:" + JSON.stringify({ tipo: "autenticado" }));
+    // Marca explicitamente este AUTH_DIR como autenticado (lido pela UI)
+    try { fs.writeFileSync(path.join(AUTH_DIR, ".wa-authenticated"), new Date().toISOString()); } catch(_) {}
   });
 
   client.on("ready", () => {
     log("✅ Cliente WhatsApp conectado e pronto!");
+    try { fs.writeFileSync(path.join(AUTH_DIR, ".wa-authenticated"), new Date().toISOString()); } catch(_) {}
   });
 
   client.on("change_state", (state) => {
