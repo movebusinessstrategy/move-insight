@@ -295,6 +295,18 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
   res.json({ ...safe, plano_info: PLANOS[req.user.plano] || PLANOS.owner });
 });
 
+// Encerra worker de conexão e dispatcher do usuário ao sair
+app.post("/api/auth/logout", authMiddleware, (req, res) => {
+  const uid = req.userId;
+  if (conexoes[uid]?.proc) { try { conexoes[uid].proc.kill("SIGTERM"); } catch(_) {} delete conexoes[uid]; }
+  if (processos[uid])      { try { processos[uid].kill("SIGTERM"); } catch(_) {} delete processos[uid]; }
+  if (testes[uid])         { try { testes[uid].kill("SIGTERM"); } catch(_) {} delete testes[uid]; }
+  // Força fechar WS do usuário (o cliente também deve fechar, mas por segurança)
+  (wsClientes[uid] || new Set()).forEach(ws => { try { ws.close(); } catch(_) {} });
+  delete wsClientes[uid];
+  res.json({ ok: true });
+});
+
 // Login via Google — valida credential (ID Token) contra o Google e cria/loga o usuário
 app.post("/api/auth/google", async (req, res) => {
   const { credential, plano, ciclo } = req.body || {};
@@ -768,7 +780,16 @@ function contarEnvio(userId, quantidade) {
 // ── APIs do ChatMOVE (multi-tenant) ───────────────────────────────────────────
 // Todas as rotas abaixo requerem auth e usam dados isolados por userId
 
-app.get("/api/contas",     authMiddleware, (req, res) => res.json(lerUser(req.userId, "contas.json", [])));
+app.get("/api/contas",     authMiddleware, (req, res) => {
+  const contas = lerUser(req.userId, "contas.json", []);
+  // Anexa estado de conexão baseado na existência do dir de sessão
+  const enriched = contas.map(c => {
+    const dir = path.join(userDir(req.userId), ".wwebjs_auth_" + c.id);
+    const sessPath = path.join(dir, "session-disparador-m4");
+    return { ...c, conectado: fs.existsSync(sessPath) };
+  });
+  res.json(enriched);
+});
 app.post("/api/contas",    authMiddleware, (req, res) => {
   const { nome, numero } = req.body;
   if (!nome) return res.status(400).json({ erro: "Nome obrigatório" });

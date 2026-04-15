@@ -2560,8 +2560,40 @@ window.fecharConnPanel = function() {
 // ─────────────────────────────────────────────────────────────────────────────
 // FLUXO DE CONEXÃO (separado do disparo)
 // ─────────────────────────────────────────────────────────────────────────────
+// Ajusta a UI do p5 (Conexão) conforme a conta selecionada:
+// mostra "conectado" se aquela conta tem sessão salva, senão mostra idle.
+window.atualizarEstadoConexao = function() {
+  var contaId = getContaSelecionada('contaSelector') || null;
+  var idle  = document.getElementById('stateIdle');
+  var qrDiv = document.getElementById('stateQR');
+  var ready = document.getElementById('stateReady');
+  authFetch('/api/contas').then(function(contas) {
+    contas = contas || [];
+    var match = contaId ? contas.find(function(c){ return c.id === contaId; }) : null;
+    var conectada = match && match.conectado;
+    if (qrDiv) qrDiv.style.display = 'none';
+    if (conectada) {
+      if (idle)  idle.style.display  = 'none';
+      if (ready) {
+        ready.style.display = '';
+        var nm = document.getElementById('contaConectadaNome');
+        if (nm) nm.textContent = match.nome + (match.numero ? ' · ' + match.numero : '');
+      }
+    } else {
+      if (ready) ready.style.display = 'none';
+      if (idle)  idle.style.display  = '';
+    }
+  });
+};
+
 window.conectarWhatsApp = function() {
   var contaId = getContaSelecionada('contaSelector') || null;
+  if (!contaId) {
+    // Sem conta selecionada, leva para Contas (criar uma antes de conectar)
+    toast('Crie uma conta em "Contas" antes de conectar', 'erro');
+    setTimeout(function(){ window.goTo(8); }, 800);
+    return;
+  }
   window._contaEmConexao = contaId;
   window._connMode = 'p5';
 
@@ -3237,7 +3269,7 @@ window.goTo = function(n) {
   if (n === 6) { window.buildSum && window.buildSum(); atualizarEstadoStartCamp(); }
   window.scrollTo(0, 0);
   // Carregar dados das páginas de gestão
-  if(n===5) carregarContas();
+  if(n===5) { carregarContas(); setTimeout(atualizarEstadoConexao, 400); }
   if(n===7) window.carregarHistorico();
   if(n===8) carregarContas();
   if(n===9) carregarBlacklist();
@@ -3697,8 +3729,15 @@ window.salvarNumNotif = function() {
 
 // ── INFO DO USUÁRIO (modo SaaS) ───────────────────────────────────────────────
 window.sairSaas = function() {
-  localStorage.clear();
-  window.location.href = '/login';
+  var token = localStorage.getItem('cm_token');
+  // Tenta encerrar workers/WS no servidor antes de sair (fire-and-forget)
+  if (token) {
+    try { fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }); } catch(_) {}
+  }
+  try { localStorage.clear(); } catch(_) {}
+  try { sessionStorage.clear(); } catch(_) {}
+  // Força reload sem cache para não arrastar UI do usuário anterior
+  window.location.replace('/login?logout=1');
 };
 window._showUserInfo = function() {
   var user = window._authUser;

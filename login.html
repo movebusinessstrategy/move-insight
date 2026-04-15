@@ -64,10 +64,13 @@ input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <div class="foot-link"><a href="/" class="link" style="color:var(--text3);font-size:12px">← Voltar ao site</a></div>
 <script>
-if(localStorage.getItem('cm_token')) window.location.href='/painel';
 var p=new URLSearchParams(location.search);
+// Se vier do logout, limpa tudo antes de qualquer redirect
+if(p.get('logout')){ try{localStorage.clear(); sessionStorage.clear();}catch(e){} }
+if(localStorage.getItem('cm_token')) window.location.href='/painel';
 if(p.get('ativado')) show('✅ Conta ativada! Faça login para começar.','ok');
 if(p.get('pendente')) show('⏳ Pagamento em análise. Faça login após confirmação.','ok');
+if(p.get('logout')) show('Você saiu da sua conta.','ok');
 function show(t,c){var b=document.getElementById('msgBox');b.textContent=t;b.className='msg '+c;b.style.display='block';}
 document.addEventListener('keydown',function(e){if(e.key==='Enter')login();});
 async function login(){
