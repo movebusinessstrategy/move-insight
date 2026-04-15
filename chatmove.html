@@ -820,13 +820,47 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
 .footer { margin-top: auto; padding-top: 40px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .02em; user-select: none; }
 
-@media (max-width: 720px) {
+/* ═══════════════════════════════════════
+   MOBILE — hamburger + drawer + collapse grids
+═══════════════════════════════════════ */
+.mb-menu-btn { display:none; position:fixed; top:12px; left:12px; z-index:60; width:42px; height:42px; border-radius:12px; border:1px solid var(--border2); background:var(--surface); color:var(--text); align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--sh-sm,0 4px 12px rgba(0,0,0,.3)); }
+.mb-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); z-index:45; animation:fadeIn .2s }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+@media (max-width: 900px) {
+  .mb-menu-btn { display:flex; }
   .shell { flex-direction: column; }
-  .sidebar { width: 100%; height: auto; position: relative; }
-  .nav { display: flex; flex-wrap: wrap; padding: 8px; gap: 4px; }
-  .step { flex: 1 0 auto; min-width: 120px; }
-  .main { padding: 20px 16px 36px; }
-  .stats-row, .mon-grid { grid-template-columns: 1fr 1fr; }
+  .sidebar { position:fixed; top:0; bottom:0; left:0; width:280px; max-width:85vw; height:100vh; transform:translateX(-100%); transition:transform .25s cubic-bezier(.4,0,.2,1); z-index:50; box-shadow:4px 0 24px rgba(0,0,0,.4); }
+  .sidebar.open { transform:translateX(0); }
+  body.sb-open .mb-backdrop { display:block; }
+  .main { padding: 64px 16px 36px; }
+  .page-header { gap:10px; margin-bottom:14px; padding-bottom:14px; }
+  .ph-icon { width:36px; height:36px; }
+  .ph-title { font-size:17px; }
+  .ph-desc { font-size:12px; }
+  .card { padding:16px; }
+  .card-hd { margin-bottom:12px; }
+  /* collapse grids que estão inline como 1fr 1fr ou 3 colunas */
+  .stats-row, .mon-grid { grid-template-columns: 1fr 1fr !important; gap:8px; }
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"] { grid-template-columns:1fr !important; gap:10px !important; }
+  [style*="grid-template-columns:1fr 2fr"] { grid-template-columns:1fr !important; }
+  /* Assinatura: cards de planos empilham */
+  #assPlanos { grid-template-columns:1fr !important; }
+  .fg-row, .fg-row-3 { grid-template-columns:1fr !important; }
+  .pip-bar { display:none; }
+  /* input, textarea */
+  input[type=text], input[type=email], input[type=password], input[type=date], input[type=tel], input[type=time], textarea, select { font-size:16px !important; } /* evita zoom no iOS */
+}
+@media (max-width: 600px) {
+  .main { padding: 60px 12px 24px; }
+  .stats-row, .mon-grid { grid-template-columns: 1fr !important; }
+  .card { padding:14px; border-radius:14px; }
+  .btn, .btn-gold, .btn-ghost { font-size:13px; }
+  .trow { flex-direction:column !important; align-items:stretch !important; }
+  .t-lbl { font-size:14px; }
+  /* Tabelas horizontais rolam se precisar */
+  .tbl-card { overflow-x:auto; }
 }
 </style>
 </head>
@@ -889,6 +923,12 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   </div>
 </div>
 
+
+<!-- Botão hamburger (só aparece em mobile) -->
+<button class="mb-menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="mb-backdrop" onclick="toggleSidebar()"></div>
 
 <div class="shell">
 
@@ -2936,6 +2976,27 @@ window.goTo = function(n) {
   if(n===10){ carregarSelectoresAg(); window.carregarAgendamentos(); }
   if(n===11) carregarAssinatura();
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MOBILE SIDEBAR
+// ─────────────────────────────────────────────────────────────────────────────
+window.toggleSidebar = function() {
+  var sb = document.querySelector('.sidebar');
+  if (!sb) return;
+  sb.classList.toggle('open');
+  document.body.classList.toggle('sb-open', sb.classList.contains('open'));
+};
+// Fecha sidebar ao clicar em qualquer item do menu (só mobile)
+document.addEventListener('click', function(e) {
+  var step = e.target.closest('.step');
+  if (step && window.innerWidth <= 900) {
+    var sb = document.querySelector('.sidebar');
+    if (sb && sb.classList.contains('open')) {
+      sb.classList.remove('open');
+      document.body.classList.remove('sb-open');
+    }
+  }
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ASSINATURA

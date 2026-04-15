@@ -117,6 +117,17 @@ footer a:hover { color:var(--text2); }
   .feat-grid{grid-template-columns:1fr;}
   .planos{grid-template-columns:1fr;}
   footer{padding:24px;flex-direction:column;text-align:center;}
+  /* Seção planos tem grid inline 1fr 1fr 1fr — força 1 coluna no mobile */
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"]{grid-template-columns:1fr !important;}
+  .sec-title{font-size:32px !important;}
+  .hero-title{font-size:38px !important;}
+}
+@media(max-width:480px){
+  .sec{padding:48px 16px;}
+  .sec-title{font-size:26px !important;}
+  .hero-title{font-size:30px !important;}
+  .btn-primary,.btn-secondary,.btn-nav-gold{font-size:12px;padding:10px 18px}
 }
 </style>
 </head>

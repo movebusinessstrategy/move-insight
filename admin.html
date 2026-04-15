@@ -80,9 +80,41 @@ tbody tr:hover td{background:var(--gold-bg2)}
 .act-btn{padding:4px 11px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);font-size:10px;font-family:inherit;font-weight:600;cursor:pointer;transition:all var(--ease)}
 .act-btn:hover{border-color:var(--gold2);color:var(--gold)}
 .act-btn.danger:hover{border-color:var(--red);color:var(--red)}
+
+/* Mobile */
+.mb-menu-btn{display:none;position:fixed;top:12px;left:12px;z-index:60;width:42px;height:42px;border-radius:12px;border:1px solid var(--border2);background:var(--surface);color:var(--text);align-items:center;justify-content:center;cursor:pointer}
+.mb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:45}
+@media(max-width:900px){
+  .mb-menu-btn{display:flex}
+  .shell{flex-direction:column}
+  .sidebar{position:fixed;top:0;bottom:0;left:0;width:280px;max-width:85vw;height:100vh;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:50;box-shadow:4px 0 24px rgba(0,0,0,.4)}
+  .sidebar.open{transform:translateX(0)}
+  body.sb-open .mb-backdrop{display:block}
+  .main{padding:64px 16px 24px}
+  .page-hd{padding-bottom:14px;margin-bottom:18px}
+  .ph-title{font-size:17px}
+  .stats-row{grid-template-columns:1fr 1fr !important;gap:10px}
+  .stat-c{padding:16px 14px}
+  .s-num{font-size:26px}
+  .tbl-top{flex-direction:column;align-items:stretch;gap:10px}
+  .tbl-top input[type=text]{width:100%}
+  .tbl-card{overflow-x:auto}
+  table{min-width:640px}
+  input[type=text]{font-size:16px !important}
+}
+@media(max-width:600px){
+  .main{padding:60px 12px 20px}
+  .stats-row{grid-template-columns:1fr !important}
+  .act-row{flex-wrap:wrap;gap:4px}
+  .act-btn{font-size:9px;padding:4px 8px}
+}
 </style>
 </head>
 <body>
+<button class="mb-menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="mb-backdrop" onclick="toggleSidebar()"></div>
 <div class="shell">
   <aside class="sidebar">
     <div class="sb-top">
@@ -164,6 +196,8 @@ tbody tr:hover td{background:var(--gold-bg2)}
 <script>
 var token=localStorage.getItem('cm_token');
 if(!token)window.location.href='/login';
+window.toggleSidebar=function(){var s=document.querySelector('.sidebar');if(!s)return;s.classList.toggle('open');document.body.classList.toggle('sb-open',s.classList.contains('open'));};
+document.addEventListener('click',function(e){var n=e.target.closest('.nav-item');if(n&&window.innerWidth<=900){var s=document.querySelector('.sidebar');if(s&&s.classList.contains('open')){s.classList.remove('open');document.body.classList.remove('sb-open');}}});
 var usuarios=[], filtro='todos';
 
 async function api(url,m,b){

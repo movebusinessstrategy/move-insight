@@ -67,6 +67,24 @@ input.invalid{border-color:var(--red)}
 .divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--text3);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
 #gsiBtn{display:flex;justify-content:center;margin-bottom:8px}
+
+/* Mobile */
+@media(max-width:640px){
+  body{padding:12px}
+  .card{padding:24px 20px;border-radius:16px}
+  h2{font-size:18px}
+  .planos-grid{grid-template-columns:1fr !important;gap:8px}
+  .plano-opt{padding:14px}
+  .pop-b{top:8px;right:8px}
+  .fg-row,.fg-row-3{grid-template-columns:1fr !important;gap:0}
+  .fg-row>div,.fg-row-3>div{margin-bottom:14px}
+  input[type=text],input[type=email],input[type=password],input[type=date],input[type=tel],select{font-size:16px !important}
+  .btn-row{flex-direction:column-reverse}
+  .btn-row .btn{width:100%}
+  .tipo-toggle{width:100%}
+  .ciclo-toggle{width:100%;justify-content:center}
+  .ciclo-btn{flex:1;justify-content:center}
+}
 </style>
 </head>
 <body>
