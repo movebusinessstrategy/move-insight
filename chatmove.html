@@ -2930,6 +2930,19 @@ window.carregarAssinatura = function() {
     if (!d) return;
     window._assAtual = d;
 
+    // Owner: mostra apenas info mínima, esconde upgrade/ciclo/cancelar (não se aplica)
+    if (d.plano === 'owner') {
+      var info = document.getElementById('assInfo');
+      if (info) info.innerHTML = '<div style="padding:8px 0"><div style="font-size:18px;font-weight:800;color:var(--gold)">Acesso Master</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Você tem acesso administrativo total. Esta página é para gestão de assinaturas pagas.</div></div>';
+      var planosEl = document.getElementById('assPlanos');
+      if (planosEl) planosEl.parentElement.style.display = 'none';
+      var cicloEl = document.getElementById('assCiclo');
+      if (cicloEl) cicloEl.parentElement.style.display = 'none';
+      var btnCanc = document.getElementById('btnCancelarAss');
+      if (btnCanc) btnCanc.parentElement.style.display = 'none';
+      return;
+    }
+
     var info = document.getElementById('assInfo'); if (!info) return;
     var venc = d.proximoVencimento ? new Date(d.proximoVencimento).toLocaleDateString('pt-BR') : '—';
     var statusLabel = d.status === 'authorized' ? '<span style="color:var(--green);font-weight:700">Ativa</span>'
