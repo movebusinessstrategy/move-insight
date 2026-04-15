@@ -145,43 +145,56 @@ function garantirDiretorio(dirPath) {
   }
 }
 
-function detectarChromeNoMac() {
-  console.log("🔍 Procurando Chrome no Mac M4...");
-  const candidatos = [
-    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
-    "/Applications/Chromium.app/Contents/MacOS/Chromium",
-    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/google-chrome",
-    "/usr/bin/chromium-browser",
-    "/usr/local/bin/chrome",
-  ];
+function detectarChrome() {
+  const isLinux = process.platform === "linux";
+  console.log(isLinux ? "🔍 Procurando Chrome/Chromium no Linux..." : "🔍 Procurando Chrome no Mac...");
+  const candidatos = isLinux
+    ? [
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium",
+        "/usr/local/bin/chrome",
+      ]
+    : [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+      ];
   for (const candidato of candidatos) {
     if (caminhoExiste(candidato)) {
       console.log(`✅ Chrome encontrado: ${candidato}`);
       return candidato;
     }
   }
-  console.log("⚠️ Chrome não encontrado nos caminhos padrão");
+  console.log("⚠️ Chrome não encontrado nos caminhos padrão (usará Chromium bundled do Puppeteer)");
   return null;
 }
+// compatibilidade: função antiga
+const detectarChromeNoMac = detectarChrome;
 
-// ── PUPPETEER — flags limpas para Mac M4 + Chrome moderno ────────────────────
+// ── PUPPETEER — flags de Chrome, com headless auto ──────────────────────────
 function criarPuppeteerBase(chromePath) {
+  // Linux sem $DISPLAY (servidor VPS) precisa obrigatoriamente de headless.
+  // Permite forçar headless via HEADLESS=1.
+  const isLinuxServer = process.platform === "linux" && !process.env.DISPLAY;
+  const forceHeadless = process.env.HEADLESS === "1" || isLinuxServer;
+  const args = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--lang=pt-BR",
+  ];
+  if (!forceHeadless) args.push("--start-maximized");
   const puppeteer = {
-    headless: false,
-    defaultViewport: null,
+    headless: forceHeadless ? "new" : false,
+    defaultViewport: forceHeadless ? { width: 1280, height: 800 } : null,
     ignoreHTTPSErrors: true,
-    timeout: 60000,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--start-maximized",
-      "--lang=pt-BR",
-    ],
+    timeout: 120000,
+    args,
   };
   if (chromePath) {
     puppeteer.executablePath = chromePath;
