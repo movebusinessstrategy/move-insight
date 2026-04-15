@@ -200,11 +200,20 @@ function render(){
           ?'<button class="act-btn danger" onclick="suspender(\''+u.id+'\')">Suspender</button>'
           :'<button class="act-btn" onclick="ativar(\''+u.id+'\')">Ativar</button>')+
         '<button class="act-btn" onclick="trocarPlano(\''+u.id+'\'\,\''+u.plano+'\')">Plano</button>'+
+        '<button class="act-btn danger" onclick="excluir(\''+u.id+'\'\,\''+u.email.replace(/'/g,"\\'")+'\')">Excluir</button>'+
       '</div></td></tr>';
   }).join('');
 }
 async function ativar(id){await api('/api/admin/usuarios/'+id+'/ativar','POST');loadUsers();}
 async function suspender(id){if(!confirm('Suspender?'))return;await api('/api/admin/usuarios/'+id+'/suspender','POST');loadUsers();}
+async function excluir(id,email){
+  var digitado=prompt('Esta ação é IRREVERSÍVEL.\n\nSerão apagados: conta, sessões WhatsApp, listas, histórico e assinatura (cancelada no Mercado Pago).\n\nPara confirmar, digite o e-mail do usuário ('+email+'):');
+  if(!digitado)return;
+  if(digitado.trim().toLowerCase()!==email.toLowerCase()){alert('E-mail não confere. Exclusão cancelada.');return;}
+  var r=await api('/api/admin/usuarios/'+id,'DELETE');
+  if(r&&r.erro){alert('Erro: '+r.erro);return;}
+  loadUsers();
+}
 async function trocarPlano(id,atual){
   var planos=['basico','premium','pro','owner'];
   var opts=planos.map(function(p){return '<option value="'+p+'"'+(p===atual?' selected':'')+'>'+p.charAt(0).toUpperCase()+p.slice(1)+'</option>';}).join('');

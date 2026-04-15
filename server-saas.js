@@ -138,21 +138,113 @@ function precoDo(plano, ciclo) {
   return ciclo === "anual" ? p.precoAnual : p.precoMensal;
 }
 
+// ── Validadores CPF/CNPJ/e-mail ──────────────────────────────────────────────
+function soDigitos(s) { return String(s || "").replace(/\D/g, ""); }
+function validarCPF(cpf) {
+  cpf = soDigitos(cpf);
+  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += +cpf[i] * (10 - i);
+  let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0;
+  if (d1 !== +cpf[9]) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += +cpf[i] * (11 - i);
+  let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0;
+  return d2 === +cpf[10];
+}
+function validarCNPJ(cnpj) {
+  cnpj = soDigitos(cnpj);
+  if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
+  const p1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+  const p2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+  let s = 0;
+  for (let i = 0; i < 12; i++) s += +cnpj[i] * p1[i];
+  let d1 = s % 11; d1 = d1 < 2 ? 0 : 11 - d1;
+  if (d1 !== +cnpj[12]) return false;
+  s = 0;
+  for (let i = 0; i < 13; i++) s += +cnpj[i] * p2[i];
+  let d2 = s % 11; d2 = d2 < 2 ? 0 : 11 - d2;
+  return d2 === +cnpj[13];
+}
+function validarEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(email || "")); }
+function validarMaiorIdade(dataNasc) {
+  const d = new Date(dataNasc); if (isNaN(d)) return false;
+  const hoje = new Date();
+  const idade = hoje.getFullYear() - d.getFullYear() - (hoje < new Date(hoje.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+  return idade >= 18 && idade < 120;
+}
+
+// Normaliza e valida dados de cadastro (PF ou PJ). Retorna {ok, erro, dados}.
+function validarCadastroCompleto(body) {
+  const tipo = body.tipoPessoa === "pj" ? "pj" : "pf";
+  const e = [];
+  const nome = String(body.nome || "").trim();
+  if (nome.length < 3) e.push("Nome completo obrigatório");
+  const dataNasc = String(body.dataNascimento || "").trim();
+  if (!validarMaiorIdade(dataNasc)) e.push("Data de nascimento inválida ou menor de 18 anos");
+  const cpf = soDigitos(body.cpf);
+  if (!validarCPF(cpf)) e.push("CPF inválido");
+  const whatsapp = soDigitos(body.whatsapp);
+  if (whatsapp.length < 10 || whatsapp.length > 11) e.push("WhatsApp inválido");
+  const cep = soDigitos(body.cep);
+  if (cep.length !== 8) e.push("CEP inválido");
+  const logradouro = String(body.logradouro || "").trim();
+  if (!logradouro) e.push("Logradouro obrigatório");
+  const numero = String(body.numero || "").trim();
+  if (!numero) e.push("Número obrigatório");
+  const bairro = String(body.bairro || "").trim();
+  if (!bairro) e.push("Bairro obrigatório");
+  const cidade = String(body.cidade || "").trim();
+  if (!cidade) e.push("Cidade obrigatória");
+  const estado = String(body.estado || "").trim().toUpperCase();
+  if (estado.length !== 2) e.push("Estado inválido");
+  let dadosPJ = null;
+  if (tipo === "pj") {
+    const cnpj = soDigitos(body.cnpj);
+    if (!validarCNPJ(cnpj)) e.push("CNPJ inválido");
+    const razaoSocial = String(body.razaoSocial || "").trim();
+    if (razaoSocial.length < 2) e.push("Razão social obrigatória");
+    const respNome = String(body.responsavelNome || "").trim();
+    if (respNome.length < 3) e.push("Nome do responsável obrigatório");
+    const respTel = soDigitos(body.responsavelTelefone);
+    if (respTel.length < 10) e.push("Telefone do responsável inválido");
+    dadosPJ = { cnpj, razaoSocial, nomeFantasia: String(body.nomeFantasia || "").trim(), responsavelNome: respNome, responsavelTelefone: respTel };
+  }
+  if (e.length) return { ok: false, erro: e.join(" · ") };
+  return {
+    ok: true,
+    dados: {
+      tipoPessoa: tipo,
+      nome, dataNascimento: dataNasc, cpf, whatsapp,
+      endereco: { cep, logradouro, numero, complemento: String(body.complemento || "").trim(), bairro, cidade, estado },
+      ...(dadosPJ || {}),
+      termosAceitosEm: new Date().toISOString()
+    }
+  };
+}
+
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 app.post("/api/auth/registro", (req, res) => {
-  const { nome, email, senha, plano, ciclo } = req.body;
-  if (!nome || !email || !senha) return res.status(400).json({ erro: "Preencha todos os campos" });
+  const { email, senha, plano, ciclo, termosAceitos } = req.body;
+  if (!validarEmail(email)) return res.status(400).json({ erro: "E-mail inválido" });
+  if (!senha || senha.length < 6) return res.status(400).json({ erro: "Senha deve ter ao menos 6 caracteres" });
   if (!PLANOS[plano]) return res.status(400).json({ erro: "Plano inválido" });
+  if (!termosAceitos) return res.status(400).json({ erro: "É necessário aceitar os Termos de Uso e Política de Privacidade" });
   const cicloNorm = ciclo === "anual" ? "anual" : "mensal";
   if (lerUsuarioPorEmail(email)) return res.status(400).json({ erro: "E-mail já cadastrado" });
 
+  const v = validarCadastroCompleto(req.body);
+  if (!v.ok) return res.status(400).json({ erro: v.erro });
+
   const id = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
   const user = {
-    id, nome: nome.trim(), email: email.toLowerCase().trim(),
+    id, email: email.toLowerCase().trim(),
     senha: hashPassword(senha), plano, ciclo: cicloNorm, ativo: false,
     admin: false, criadoEm: new Date().toISOString(),
     enviosHoje: 0, ultimoEnvioData: null,
-    assinaturaId: null, proximoVencimento: null
+    assinaturaId: null, proximoVencimento: null,
+    cadastroCompleto: true,
+    ...v.dados
   };
   const users = lerUsuarios();
   users.push(user);
@@ -170,9 +262,78 @@ app.post("/api/auth/login", (req, res) => {
   res.json({ ok: true, token, user: { id: user.id, nome: user.nome, email: user.email, plano: user.plano, admin: user.admin } });
 });
 
+// Config pública (valores seguros de expor no frontend)
+app.get("/api/config/public", (req, res) => {
+  res.json({ googleClientId: process.env.GOOGLE_CLIENT_ID || null });
+});
+
 app.get("/api/auth/me", authMiddleware, (req, res) => {
   const { senha, ...safe } = req.user;
   res.json({ ...safe, plano_info: PLANOS[req.user.plano] || PLANOS.owner });
+});
+
+// Login via Google — valida credential (ID Token) contra o Google e cria/loga o usuário
+app.post("/api/auth/google", async (req, res) => {
+  const { credential, plano, ciclo } = req.body || {};
+  if (!credential) return res.status(400).json({ erro: "Token Google ausente" });
+  const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  if (!GOOGLE_CLIENT_ID) return res.status(500).json({ erro: "Login Google não configurado no servidor" });
+
+  // Valida o JWT do Google via tokeninfo (endpoint oficial, não exige lib)
+  let payload;
+  try {
+    const resp = await fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(credential));
+    payload = await resp.json();
+    if (!resp.ok || payload.error) throw new Error(payload.error_description || payload.error || "Token inválido");
+    if (payload.aud !== GOOGLE_CLIENT_ID) throw new Error("Audience mismatch");
+    if (payload.iss !== "https://accounts.google.com" && payload.iss !== "accounts.google.com") throw new Error("Issuer inválido");
+    if (+payload.exp * 1000 < Date.now()) throw new Error("Token expirado");
+    if (!payload.email || !payload.email_verified || payload.email_verified === "false") throw new Error("E-mail não verificado");
+  } catch (e) {
+    console.error("Google auth:", e.message);
+    return res.status(401).json({ erro: "Falha ao validar conta Google" });
+  }
+
+  const email = String(payload.email).toLowerCase();
+  const googleId = payload.sub;
+  const nomeGoogle = payload.name || payload.given_name || email.split("@")[0];
+
+  let user = lerUsuarioPorEmail(email);
+  if (user) {
+    if (!user.googleId) atualizarUsuario(user.id, { googleId });
+    if (!user.ativo && !user.admin) return res.status(403).json({ erro: "Conta pendente de pagamento", pendente: true });
+    const token = jwtSign({ userId: user.id, exp: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+    return res.json({ ok: true, token, user: { id: user.id, nome: user.nome, email: user.email, plano: user.plano, admin: user.admin }, cadastroCompleto: user.cadastroCompleto !== false });
+  }
+
+  // Novo usuário via Google: cria conta parcial (cadastroCompleto=false, ativo=false)
+  if (!PLANOS[plano]) return res.status(400).json({ erro: "Plano não especificado para novo cadastro" });
+  const cicloNorm = ciclo === "anual" ? "anual" : "mensal";
+  const id = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+  user = {
+    id, email, nome: nomeGoogle, googleId,
+    senha: null, plano, ciclo: cicloNorm, ativo: false,
+    admin: false, criadoEm: new Date().toISOString(),
+    enviosHoje: 0, ultimoEnvioData: null,
+    assinaturaId: null, proximoVencimento: null,
+    cadastroCompleto: false
+  };
+  const users = lerUsuarios();
+  users.push(user);
+  salvarUsuarios(users);
+  const token = jwtSign({ userId: id, exp: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+  res.json({ ok: true, token, user: { id, nome: user.nome, email, plano, admin: false }, cadastroCompleto: false });
+});
+
+// Completar cadastro após login via Google (usuário logado mas cadastroCompleto=false)
+app.post("/api/auth/completar-cadastro", authMiddleware, (req, res) => {
+  const u = req.user;
+  if (u.cadastroCompleto) return res.status(400).json({ erro: "Cadastro já está completo" });
+  if (!req.body.termosAceitos) return res.status(400).json({ erro: "É necessário aceitar os Termos" });
+  const v = validarCadastroCompleto(req.body);
+  if (!v.ok) return res.status(400).json({ erro: v.erro });
+  atualizarUsuario(u.id, { ...v.dados, cadastroCompleto: true });
+  res.json({ ok: true });
 });
 
 // ── MERCADO PAGO ──────────────────────────────────────────────────────────────
@@ -835,6 +996,25 @@ app.post("/api/admin/usuarios/:id/plano", adminMiddleware, (req, res) => {
   const { plano } = req.body;
   if (!PLANOS[plano]) return res.status(400).json({ erro: "Plano inválido" });
   atualizarUsuario(req.params.id, { plano, ativo: true });
+  res.json({ ok: true });
+});
+app.delete("/api/admin/usuarios/:id", adminMiddleware, async (req, res) => {
+  const id = req.params.id;
+  const users = lerUsuarios();
+  const alvo = users.find(u => u.id === id);
+  if (!alvo) return res.status(404).json({ erro: "Usuário não encontrado" });
+  if (alvo.id === req.userId) return res.status(400).json({ erro: "Você não pode excluir sua própria conta" });
+  // Cancela preapproval no MP (se houver)
+  if (alvo.assinaturaId && process.env.MP_ACCESS_TOKEN) {
+    try { await mpFetch(`/preapproval/${alvo.assinaturaId}`, { method: "PUT", body: JSON.stringify({ status: "cancelled" }) }); }
+    catch (e) { console.warn("Cancelar preapproval ao excluir:", e.message); }
+  }
+  // Remove usuário do users.json
+  salvarUsuarios(users.filter(u => u.id !== id));
+  // Remove pasta de dados do usuário (sessões WhatsApp, listas, histórico, etc.)
+  const dir = userDir(id);
+  if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
+  console.log(`🗑️  Usuário excluído · id=${id} email=${alvo.email}`);
   res.json({ ok: true });
 });
 app.get("/api/admin/stats", adminMiddleware, (req, res) => {

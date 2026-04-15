@@ -37,6 +37,11 @@ if (window._authToken) {
     })
     .then(function(data) {
       if (!data) return;
+      // Se cadastro incompleto (veio via Google), força completar antes de usar o app
+      if (data.cadastroCompleto === false) {
+        window.location.replace('/registro.html?completar=1');
+        return;
+      }
       window._authUser   = data;
       window._planoAtual = data.plano || 'basico';
       localStorage.setItem('cm_user', JSON.stringify({
