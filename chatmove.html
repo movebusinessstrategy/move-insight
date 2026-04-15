@@ -2386,9 +2386,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     ws.onmessage = function(ev) {
       var d = JSON.parse(ev.data);
-      if (d.tipo === 'qr')         { mostrarQRConexao(d.data); return; }
-      if (d.tipo === 'pairing_code'){ mostrarPairingCode(d.data); return; }
-    if (d.tipo === 'autenticado'){ mostrarConectado(d.contaNome); return; }
+      if (d.tipo === 'qr')         { if (eventoDaContaEmConexao(d.contaId)) mostrarQRConexao(d.data); return; }
+      if (d.tipo === 'pairing_code'){ if (eventoDaContaEmConexao(d.contaId)) mostrarPairingCode(d.data); return; }
+    if (d.tipo === 'autenticado'){ if (eventoDaContaEmConexao(d.contaId)) mostrarConectado(d.contaNome); return; }
       if (d.tipo === 'total')      { window._S.mon.total = d.count;  updateMon(); return; }
       if (d.tipo === 'enviado')    { window._S.mon.sent  = d.total;  updateMon(); return; }
       if (d.tipo === 'erro_envio') { window._S.mon.fail  = d.total;  updateMon(); return; }
@@ -2513,6 +2513,14 @@ document.addEventListener('click', function() {
 });
 
 // ── Conectar conta direto de p8 ───────────────────────────────────────────────
+// Helper: só aceita evento de conexão se for da conta que está sendo conectada agora
+window.eventoDaContaEmConexao = function(eventoContaId) {
+  // null/undefined = conta padrão. Normaliza ambos p/ null pra comparar.
+  var esperada = window._contaEmConexao || null;
+  var recebida = eventoContaId || null;
+  return esperada === recebida;
+};
+
 window.conectarConta = function(contaId, contaNome) {
   var panel = document.getElementById('contaConnPanel');
   var nomeEl = document.getElementById('contaConnNome');
@@ -2531,6 +2539,7 @@ window.conectarConta = function(contaId, contaNome) {
   window._contaConnId = contaId;
   window._contaConnNome = contaNome;
   window._connMode = 'p8'; // modo: qr vai para o painel de p8
+  window._contaEmConexao = contaId; // identifica qual conta está sendo conectada
 
   post('/api/conectar', { contaId: contaId }).then(function(r) {
     if (!r || !r.ok) {
@@ -2553,6 +2562,8 @@ window.fecharConnPanel = function() {
 // ─────────────────────────────────────────────────────────────────────────────
 window.conectarWhatsApp = function() {
   var contaId = getContaSelecionada('contaSelector') || null;
+  window._contaEmConexao = contaId;
+  window._connMode = 'p5';
 
   // Mostra estado de carregamento
   var idle = document.getElementById('stateIdle');

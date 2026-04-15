@@ -898,10 +898,11 @@ app.post("/api/imagem", authMiddleware, (req, res) => {
 });
 
 // ── PROCESSOS ativos por userId ───────────────────────────────────────────────
-const processos   = {}; // userId → processo
+const processos   = {}; // userId → processo de disparo
 const testes      = {}; // userId → processo de teste
 const campanhas   = {}; // userId → dados da campanha
 const wsClientes  = {}; // userId → Set<ws>
+const conexoes    = {}; // userId → { proc, contaId, contaNome } — worker de conexão WhatsApp
 
 app.post("/api/iniciar", authMiddleware, async (req, res) => {
   const uid = req.userId;
@@ -1005,8 +1006,17 @@ app.post("/api/conectar", authMiddleware, (req, res) => {
     if (digits.length < 10 || digits.length > 15) return res.status(400).json({ erro: "Número inválido. Inclua DDI+DDD+número (ex: 5511999998888)" });
     env.PAIR_WITH_NUMBER = digits;
   }
+  // Mata conexão anterior do mesmo usuário (se houver) — evita workers duplicados
+  if (conexoes[uid] && conexoes[uid].proc) {
+    try { conexoes[uid].proc.kill("SIGTERM"); } catch(_) {}
+    console.log(`[conectar] matou worker anterior pid=${conexoes[uid].proc.pid} uid=${uid}`);
+    delete conexoes[uid];
+  }
   const proc = spawn("node", [path.join(ROOT, "disparador2.js")], { cwd: ROOT, env });
-  console.log(`[conectar] spawn pid=${proc.pid} uid=${uid} conta=${conta?.id||'default'}${phone?' phone=***':''}`);
+  const cId = conta?.id || null;
+  const cNome = conta?.nome || "Padrão";
+  conexoes[uid] = { proc, contaId: cId, contaNome: cNome };
+  console.log(`[conectar] spawn pid=${proc.pid} uid=${uid} conta=${cId||'default'}${phone?' phone=***':''}`);
   let buf = "";
   proc.stdout.on("data", d => {
     const text = d.toString();
@@ -1014,15 +1024,21 @@ app.post("/api/conectar", authMiddleware, (req, res) => {
     buf += text;
     const lines = buf.split("\n"); buf = lines.pop();
     for (const l of lines) {
-      if (l.startsWith("CHATMOVE_QR:"))     broadcastUser(uid, { tipo: "qr", data: l.replace("CHATMOVE_QR:","").trim() });
-      if (l.startsWith("CHATMOVE_CODE:"))   broadcastUser(uid, { tipo: "pairing_code", data: l.replace("CHATMOVE_CODE:","").trim() });
+      // Só despacha eventos se este worker ainda é o ativo (evita eventos
+      // tardios de worker antigo "marcarem" tela da nova conta)
+      if (conexoes[uid]?.proc !== proc) continue;
+      if (l.startsWith("CHATMOVE_QR:"))     broadcastUser(uid, { tipo: "qr", data: l.replace("CHATMOVE_QR:","").trim(), contaId: cId, contaNome: cNome });
+      if (l.startsWith("CHATMOVE_CODE:"))   broadcastUser(uid, { tipo: "pairing_code", data: l.replace("CHATMOVE_CODE:","").trim(), contaId: cId, contaNome: cNome });
       if (l.startsWith("CHATMOVE_EVENT:")) {
-        try { const ev = JSON.parse(l.replace("CHATMOVE_EVENT:","").trim()); if (ev.tipo==="autenticado") broadcastUser(uid, { tipo: "autenticado", contaNome: conta?.nome||"Padrão" }); } catch{}
+        try { const ev = JSON.parse(l.replace("CHATMOVE_EVENT:","").trim()); if (ev.tipo==="autenticado") broadcastUser(uid, { tipo: "autenticado", contaId: cId, contaNome: cNome }); } catch{}
       }
     }
   });
   proc.stderr.on("data", d => process.stderr.write(`[worker ${proc.pid} ERR] ${d}`));
-  proc.on("close", code => console.log(`[conectar] worker pid=${proc.pid} closed code=${code}`));
+  proc.on("close", code => {
+    console.log(`[conectar] worker pid=${proc.pid} closed code=${code}`);
+    if (conexoes[uid]?.proc === proc) delete conexoes[uid];
+  });
   proc.on("error", err => console.error(`[conectar] spawn error pid=${proc.pid}:`, err.message));
   res.json({ ok: true });
 });
