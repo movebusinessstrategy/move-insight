@@ -1006,9 +1006,12 @@ app.post("/api/conectar", authMiddleware, (req, res) => {
     env.PAIR_WITH_NUMBER = digits;
   }
   const proc = spawn("node", [path.join(ROOT, "disparador2.js")], { cwd: ROOT, env });
+  console.log(`[conectar] spawn pid=${proc.pid} uid=${uid} conta=${conta?.id||'default'}${phone?' phone=***':''}`);
   let buf = "";
   proc.stdout.on("data", d => {
-    buf += d.toString();
+    const text = d.toString();
+    process.stdout.write(`[worker ${proc.pid}] ${text}`);
+    buf += text;
     const lines = buf.split("\n"); buf = lines.pop();
     for (const l of lines) {
       if (l.startsWith("CHATMOVE_QR:"))     broadcastUser(uid, { tipo: "qr", data: l.replace("CHATMOVE_QR:","").trim() });
@@ -1018,7 +1021,9 @@ app.post("/api/conectar", authMiddleware, (req, res) => {
       }
     }
   });
-  proc.on("close", () => {});
+  proc.stderr.on("data", d => process.stderr.write(`[worker ${proc.pid} ERR] ${d}`));
+  proc.on("close", code => console.log(`[conectar] worker pid=${proc.pid} closed code=${code}`));
+  proc.on("error", err => console.error(`[conectar] spawn error pid=${proc.pid}:`, err.message));
   res.json({ ok: true });
 });
 
