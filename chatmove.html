@@ -1064,48 +1064,48 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
       <div class="nav-section">Campanha</div>
 
-      <div class="step" onclick="goTo(1)" data-s="1" data-tooltip="Mensagem · texto que vai pros contatos">
+      <div class="step" onclick="goTo(5)" data-s="5" data-order="1" data-tooltip="Conexão · escolher a conta WhatsApp">
         <div class="step-icon-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
         </div>
-        <div class="step-info"><div class="step-name">Mensagem</div><div class="step-sub">Redigir mensagem</div></div>
+        <div class="step-info"><div class="step-name">Conexão</div><div class="step-sub">Conta WhatsApp</div></div>
       </div>
 
-      <div class="step" onclick="goTo(2)" data-s="2" data-tooltip="Mídia · imagem ou PDF opcional">
-        <div class="step-icon-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="step-info"><div class="step-name">Mídia</div><div class="step-sub">Anexar mídia</div></div>
-      </div>
-
-      <div class="step" onclick="goTo(3)" data-s="3" data-tooltip="Contatos · importe sua lista">
+      <div class="step" onclick="goTo(3)" data-s="3" data-order="2" data-tooltip="Contatos · importe sua lista">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <div class="step-info"><div class="step-name">Contatos</div><div class="step-sub">Lista de contatos</div></div>
+        <div class="step-info"><div class="step-name">Contatos</div><div class="step-sub">Lista de envio</div></div>
+      </div>
+
+      <div class="step" onclick="goTo(1)" data-s="1" data-order="3" data-tooltip="Mensagem · texto que vai pros contatos">
+        <div class="step-icon-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="step-info"><div class="step-name">Mensagem</div><div class="step-sub">Texto da campanha</div></div>
+      </div>
+
+      <div class="step" onclick="goTo(2)" data-s="2" data-order="4" data-tooltip="Mídia · imagem ou PDF opcional">
+        <div class="step-icon-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="step-info"><div class="step-name">Mídia</div><div class="step-sub">Imagem ou PDF</div></div>
       </div>
 
       <div class="nav-section">Disparo</div>
 
-      <div class="step" onclick="goTo(4)" data-s="4" data-tooltip="Configurações · velocidade e pausas">
+      <div class="step" onclick="goTo(4)" data-s="4" data-order="5" data-tooltip="Configurações · velocidade e pausas">
         <div class="step-icon-wrap">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
         </div>
-        <div class="step-info"><div class="step-name">Configurações</div><div class="step-sub">Velocidade de envio</div></div>
+        <div class="step-info"><div class="step-name">Configurações</div><div class="step-sub">Velocidade e pausas</div></div>
       </div>
 
-      <div class="step" onclick="goTo(5)" data-s="5" data-tooltip="Conexão · escolher a conta WhatsApp">
+      <div class="step" onclick="goTo(6)" data-s="6" data-order="6" data-tooltip="Monitor · iniciar e acompanhar o envio">
         <div class="step-icon-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         </div>
-        <div class="step-info"><div class="step-name">Conexão</div><div class="step-sub">Autenticação</div></div>
-      </div>
-
-      <div class="step" onclick="goTo(6)" data-s="6" data-tooltip="Monitor · acompanhar o envio ao vivo">
-        <div class="step-icon-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <div class="step-info"><div class="step-name">Monitor</div><div class="step-sub">Acompanhar envio</div></div>
+        <div class="step-info"><div class="step-name">Monitor</div><div class="step-sub">Disparar e acompanhar</div></div>
       </div>
 
       <div class="nav-section">Gestão</div>
@@ -1199,10 +1199,10 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
       <!-- CTAs principais -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px">
-        <button class="home-cta" onclick="goTo(1)">
-          <div class="home-cta-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <button class="home-cta" onclick="goTo(5)">
+          <div class="home-cta-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
           <div class="home-cta-title">Nova campanha</div>
-          <div class="home-cta-desc">Monte mensagem, escolha lista e dispare</div>
+          <div class="home-cta-desc">Conecte, escolha lista e dispare</div>
         </button>
         <button class="home-cta" onclick="goTo(3)">
           <div class="home-cta-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
@@ -1225,7 +1225,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
     <!-- ── 01 MENSAGEM ── -->
     <div class="page" id="p1">
-      <div class="pip-bar"><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+      <div class="pip-bar"><span class="pip"></span><span class="pip"></span><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
       <div class="page-header">
         <div class="ph-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -1280,14 +1280,15 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
         <div class="prev-box" id="prev"></div>
       </div>
 
-      <div class="btn-row" style="justify-content:flex-end">
-        <button class="btn btn-gold" onclick="goTo(2)">Continuar</button>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="goTo(3)">← Voltar</button>
+        <button class="btn btn-gold" onclick="goTo(2)">Continuar →</button>
       </div>
     </div>
 
     <!-- ── 02 MÍDIA ── -->
     <div class="page" id="p2">
-      <div class="pip-bar"><span class="pip"></span><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+      <div class="pip-bar"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip  on"></span><span class="pip"></span><span class="pip"></span></div>
       <div class="page-header">
         <div class="ph-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -1341,14 +1342,14 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goTo(1)">Voltar</button>
-        <button class="btn btn-gold" onclick="goTo(3)">Continuar</button>
+        <button class="btn btn-ghost" onclick="goTo(1)">← Voltar</button>
+        <button class="btn btn-gold" onclick="goTo(4)">Continuar →</button>
       </div>
     </div>
 
     <!-- ── 03 CONTATOS ── -->
     <div class="page" id="p3">
-      <div class="pip-bar"><span class="pip"></span><span class="pip"></span><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+      <div class="pip-bar"><span class="pip"></span><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
       <div class="page-header">
         <div class="ph-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1518,14 +1519,14 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goTo(2)">Voltar</button>
-        <button class="btn btn-gold" onclick="goTo(4)">Continuar</button>
+        <button class="btn btn-ghost" onclick="goTo(5)">← Voltar</button>
+        <button class="btn btn-gold" onclick="goTo(1)">Continuar →</button>
       </div>
     </div>
 
     <!-- ── 04 CONFIG ── -->
     <div class="page" id="p4">
-      <div class="pip-bar"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip  on"></span><span class="pip"></span><span class="pip"></span></div>
+      <div class="pip-bar"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip  on"></span><span class="pip"></span></div>
       <div class="page-header">
         <div class="ph-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -1588,14 +1589,14 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goTo(3)">Voltar</button>
-        <button class="btn btn-gold" onclick="salvarEIr()">Continuar</button>
+        <button class="btn btn-ghost" onclick="goTo(2)">← Voltar</button>
+        <button class="btn btn-gold" onclick="salvarEIr()">Continuar →</button>
       </div>
     </div>
 
     <!-- ── 05 CONEXÃO ── -->
     <div class="page" id="p5">
-      <div class="pip-bar"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip  on"></span><span class="pip"></span></div>
+      <div class="pip-bar"><span class="pip  on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
       <div class="page-header">
         <div class="ph-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
@@ -1663,30 +1664,24 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
             </div>
 
             <!-- Teste de mensagem (aparece só depois de conectar) -->
-            <div class="fg" style="margin-bottom:18px">
-              <label>Testar antes de enviar</label>
+            <div class="fg" style="margin-bottom:0">
+              <label>Testar antes de enviar <span style="color:var(--text3);text-transform:none;letter-spacing:0;font-weight:400">opcional</span></label>
               <div style="display:flex;gap:8px">
                 <input type="text" id="numTeste" placeholder="Seu número (11 9 0000-0000)">
                 <button class="btn btn-ghost" style="height:44px;font-size:11px;white-space:nowrap;flex-shrink:0" onclick="enviarTeste()">Enviar teste</button>
               </div>
-              <div class="hint">Confirme como a mensagem vai aparecer antes de disparar para toda a lista.</div>
+              <div class="hint">Envia a mensagem só pro número de teste. O disparo pra lista toda é feito no Monitor.</div>
             </div>
-
-            <!-- Botão principal: Iniciar Disparo -->
-            <button class="btn btn-gold" style="width:100%;height:48px;font-size:13px" onclick="iniciarDisparo()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Iniciar Disparo
-            </button>
 
           </div>
         </div>
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-ghost" onclick="goTo(4)">Voltar</button>
+        <div></div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-ghost" onclick="resetProgress()" style="font-size:11px">Resetar histórico</button>
-          <button class="btn btn-outline" id="monBtn" onclick="goTo(6)" style="display:none">Ver monitor</button>
+          <button class="btn btn-gold" onclick="goTo(3)">Continuar →</button>
         </div>
       </div>
     </div>
@@ -1700,10 +1695,28 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
         </div>
         <div class="ph-text">
           <div class="ph-title">Monitor</div>
+          <div class="ph-desc">Inicie o disparo e acompanhe em tempo real.</div>
         </div>
         <div id="runBadge" style="display:none;margin-left:auto">
           <div class="run-badge"><div class="run-dot"></div>Em andamento</div>
         </div>
+      </div>
+
+      <!-- Botão principal: Iniciar disparo (só visível quando idle) -->
+      <div class="card" id="startCampCard">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Pronto para disparar?</div></div>
+        <div class="sum-list" style="margin-bottom:14px">
+          <div class="sum-row"><div class="sum-key">Mensagem</div><div class="sum-val gold" id="sumMsgM"> </div></div>
+          <div class="sum-row"><div class="sum-key">Mídia</div><div class="sum-val" id="sumMdM"> </div></div>
+          <div class="sum-row"><div class="sum-key">Contatos válidos</div><div class="sum-val ok" id="sumCtM"> </div></div>
+          <div class="sum-row"><div class="sum-key">Conta WhatsApp</div><div class="sum-val" id="sumCnM"> </div></div>
+          <div class="sum-row"><div class="sum-key">Intervalo</div><div class="sum-val" id="sumDlM"> </div></div>
+        </div>
+        <div id="startCampAviso" style="display:none;padding:10px 14px;background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);border-radius:10px;margin-bottom:12px;font-size:12px;color:var(--red);line-height:1.5"></div>
+        <button class="btn btn-gold" id="btnStartCamp" style="width:100%;height:52px;font-size:14px" onclick="iniciarDisparo()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Iniciar Disparo
+        </button>
       </div>
 
       <div class="stats-row">
@@ -1758,7 +1771,7 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
         </div>
       </div>
 
-      <div class="btn-row"><button class="btn btn-ghost" onclick="goTo(5)">Voltar</button></div>
+      <div class="btn-row"><button class="btn btn-ghost" onclick="goTo(4)">← Voltar</button></div>
     </div>
 
 
@@ -2121,18 +2134,42 @@ window.salvarEIr  = function() {
       pausarACada: (document.getElementById('rBatch') || {}).value || 40,
       duracaoPausa:(document.getElementById('rPause') || {}).value || 10
     };
-    post('/api/config', cfg).then(function() { toast('Configurações salvas', 'ok'); window.goTo(5); });
+    post('/api/config', cfg).then(function() { toast('Configurações salvas', 'ok'); window.goTo(6); });
   });
 };
 window.buildSum   = function() {
   var v = window._S.contacts.filter(function(c) { return c.st === 'ok'; }).length;
   var ta = document.getElementById('msgTxt');
   var t  = function(id, val) { var e = document.getElementById(id); if (e) e.textContent = val; };
-  t('sumMsg', (ta && ta.value.length > 0) ? 'Pronta' : ' ');
-  t('sumMd',  window._S.mediaNome || 'Sem mídia');
-  t('sumCt',  v + ' contatos');
-  t('sumDl',  ((document.getElementById('rMin') || {}).value || 2) + 's – ' + ((document.getElementById('rMax') || {}).value || 5) + 's');
+  var msgOk = ta && ta.value.length > 0;
+  var msgVal = msgOk ? 'Pronta' : 'Vazia';
+  var mdVal = window._S.mediaNome || 'Sem mídia';
+  var ctVal = v + ' contatos';
+  var dlVal = ((document.getElementById('rMin') || {}).value || 2) + 's – ' + ((document.getElementById('rMax') || {}).value || 5) + 's';
+  // Painel p5 (legado)
+  t('sumMsg', msgVal); t('sumMd', mdVal); t('sumCt', ctVal); t('sumDl', dlVal);
+  // Painel p6 (Monitor)
+  t('sumMsgM', msgVal); t('sumMdM', mdVal); t('sumCtM', ctVal); t('sumDlM', dlVal);
+  var contaR = document.querySelector('input[name="contaSelector"]:checked');
+  var contaNome = contaR ? (contaR.closest('label').querySelector('span')?.textContent || 'Padrão') : 'Padrão';
+  t('sumCnM', contaNome);
+  // Valida e define aviso + disabled do botão
+  var avs = [];
+  if (!msgOk) avs.push('Escreva a mensagem em Mensagem');
+  if (!v) avs.push('Importe contatos em Contatos');
+  var aviso = document.getElementById('startCampAviso');
+  var btn = document.getElementById('btnStartCamp');
+  if (aviso) { aviso.textContent = avs.join(' · '); aviso.style.display = avs.length ? '' : 'none'; }
+  if (btn) btn.disabled = avs.length > 0;
 };
+
+window.atualizarEstadoStartCamp = function() {
+  var runBadge = document.getElementById('runBadge');
+  var startCard = document.getElementById('startCampCard');
+  var rodando = runBadge && runBadge.style.display && runBadge.style.display !== 'none';
+  if (startCard) startCard.style.display = rodando ? 'none' : '';
+};
+
 window.iniciarDisparo = function() {
   var valid = window._S.contacts.filter(function(c) { return c.st === 'ok'; });
   if (!valid.length) { toast('Nenhum contato válido', 'erro'); return; }
@@ -3168,15 +3205,19 @@ window.excluirAgendamento = function(id) {
 // ── goTo override para carregar dados ao navegar ──────────────────────────────
 window.goTo = function(n) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  var destino = document.querySelector('.step[data-s="' + n + '"]');
+  var ordemAtual = destino ? +(destino.dataset.order || 0) : 0;
   document.querySelectorAll('.step').forEach(function(s){
     s.classList.remove('active');
-    // Só marca 'done' nas etapas de campanha/disparo (1-6)
-    if (n <= 6) s.classList.toggle('done', +s.dataset.s < n);
+    // Marca etapas anteriores (por ordem, não por data-s) como 'done'
+    var o = +(s.dataset.order || 0);
+    if (n <= 6 && ordemAtual > 0 && o > 0) s.classList.toggle('done', o < ordemAtual);
     else s.classList.remove('done');
   });
   var pg = document.getElementById('p' + n); if (pg) pg.classList.add('active');
-  var st = document.querySelector('.step[data-s="' + n + '"]'); if (st) st.classList.add('active');
+  if (destino) destino.classList.add('active');
   if (n === 5) window.buildSum && window.buildSum();
+  if (n === 6) { window.buildSum && window.buildSum(); atualizarEstadoStartCamp(); }
   window.scrollTo(0, 0);
   // Carregar dados das páginas de gestão
   if(n===5) carregarContas();
@@ -3205,7 +3246,7 @@ window.carregarHome = function() {
       { key: 'whatsapp', label: 'Conectar seu WhatsApp', goTo: 5 },
       { key: 'lista',    label: 'Importar sua primeira lista de contatos', goTo: 3 },
       { key: 'mensagem', label: 'Escrever a mensagem', goTo: 1 },
-      { key: 'disparo',  label: 'Enviar sua primeira campanha', goTo: 5 }
+      { key: 'disparo',  label: 'Enviar sua primeira campanha', goTo: 6 }
     ];
     var feitos = items.filter(function(i){ return d.checklist[i.key]; }).length;
     var box = document.getElementById('homeChecklist');
