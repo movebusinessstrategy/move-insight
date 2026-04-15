@@ -27,9 +27,13 @@ body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var
 .nav-item.active{background:var(--gold-bg);border-color:rgba(198,169,107,.2);color:var(--text);font-weight:600}
 .nav-item svg{width:15px;height:15px;flex-shrink:0;color:var(--text3)}
 .nav-item.active svg,.nav-item:hover svg{color:var(--gold)}
-.sb-foot{padding:12px;border-top:1px solid var(--border)}
+.sb-foot{padding:12px;border-top:1px solid var(--border);flex-shrink:0}
 .sb-foot a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;font-size:12px;color:var(--text3);text-decoration:none;transition:all var(--ease)}
 .sb-foot a:hover{color:var(--text2);background:var(--gold-bg2)}
+.sb-social{display:flex;align-items:center;justify-content:center;gap:14px;padding:10px 0 4px;margin-top:8px;border-top:1px solid var(--border)}
+.sb-social a{width:28px;height:28px;padding:0;justify-content:center;color:var(--text3)}
+.sb-social a:hover{color:var(--gold);background:var(--gold-bg)}
+.sb-social .grupo{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
 
 /* Main */
 .main{flex:1;padding:44px 52px;overflow-y:auto}
@@ -100,6 +104,15 @@ tbody tr:hover td{background:var(--gold-bg2)}
     <div class="sb-foot">
       <a href="/painel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ir ao ChatMOVE</a>
       <a href="#" onclick="sair()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sair</a>
+      <div class="sb-social">
+        <span class="grupo">Grupo MOVE</span>
+        <a href="https://www.movebusiness.com.br" target="_blank" rel="noopener" title="www.movebusiness.com.br">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </a>
+        <a href="https://instagram.com/move.strategy" target="_blank" rel="noopener" title="@move.strategy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
+      </div>
     </div>
   </aside>
 

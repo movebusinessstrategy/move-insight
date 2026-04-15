@@ -236,7 +236,11 @@ body {
 .step-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
 
 /* ── FOOTER ── */
-.sb-foot { padding: 12px; border-top: 1px solid var(--border); }
+.sb-foot { padding: 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.sb-social { display:flex; align-items:center; justify-content:center; gap:14px; padding:10px 0 4px; margin-top:8px; border-top:1px solid var(--border); }
+.sb-social a { display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; color:var(--text3); transition:all var(--ease); text-decoration:none; }
+.sb-social a:hover { color:var(--gold); background:var(--gold-bg); }
+.sb-social .grupo { font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--text3); }
 
 .status-row {
   display: flex;
@@ -1007,6 +1011,16 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
           <div class="s-name" id="gLbl">Desconectado</div>
           <div class="s-detail" id="gSub">Inativo</div>
         </div>
+      </div>
+      <!-- Grupo MOVE: site e Instagram -->
+      <div class="sb-social">
+        <span class="grupo">Grupo MOVE</span>
+        <a href="https://www.movebusiness.com.br" target="_blank" rel="noopener" title="www.movebusiness.com.br">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </a>
+        <a href="https://instagram.com/move.strategy" target="_blank" rel="noopener" title="@move.strategy">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+        </a>
       </div>
     </div>
   </aside>
