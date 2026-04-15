@@ -951,18 +951,23 @@ function iniciarTesteHandlers(uid, proc) {
 
 app.post("/api/conectar", authMiddleware, (req, res) => {
   const uid = req.userId;
-  const { contaId } = req.body;
+  const { contaId, phone } = req.body;
   const conta   = contaId ? lerUser(uid, "contas.json", []).find(c => c.id === contaId) : null;
   const authDir = path.join(userDir(uid), conta ? ".wwebjs_auth_" + conta.id : ".wwebjs_auth");
-  const proc = spawn("node", [path.join(ROOT, "disparador2.js")], {
-    cwd: ROOT, env: { ...process.env, AUTH_DIR_OVERRIDE: authDir, CONNECT_ONLY: "true" }
-  });
+  const env = { ...process.env, AUTH_DIR_OVERRIDE: authDir, CONNECT_ONLY: "true" };
+  if (phone) {
+    const digits = String(phone).replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15) return res.status(400).json({ erro: "Número inválido. Inclua DDI+DDD+número (ex: 5511999998888)" });
+    env.PAIR_WITH_NUMBER = digits;
+  }
+  const proc = spawn("node", [path.join(ROOT, "disparador2.js")], { cwd: ROOT, env });
   let buf = "";
   proc.stdout.on("data", d => {
     buf += d.toString();
     const lines = buf.split("\n"); buf = lines.pop();
     for (const l of lines) {
       if (l.startsWith("CHATMOVE_QR:"))     broadcastUser(uid, { tipo: "qr", data: l.replace("CHATMOVE_QR:","").trim() });
+      if (l.startsWith("CHATMOVE_CODE:"))   broadcastUser(uid, { tipo: "pairing_code", data: l.replace("CHATMOVE_CODE:","").trim() });
       if (l.startsWith("CHATMOVE_EVENT:")) {
         try { const ev = JSON.parse(l.replace("CHATMOVE_EVENT:","").trim()); if (ev.tipo==="autenticado") broadcastUser(uid, { tipo: "autenticado", contaNome: conta?.nome||"Padrão" }); } catch{}
       }

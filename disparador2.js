@@ -214,7 +214,18 @@ function criarClientConfig(chromePath) {
 }
 
 function registrarEventosCliente(client) {
-  client.on("qr", (qr) => {
+  client.on("qr", async (qr) => {
+    const phone = process.env.PAIR_WITH_NUMBER;
+    if (phone) {
+      try {
+        const code = await client.requestPairingCode(phone);
+        log("🔢 Pairing code gerado para " + phone + ": " + code);
+        console.log("CHATMOVE_CODE:" + code);
+        return;
+      } catch (e) {
+        log("⚠️  Falha ao gerar pairing code: " + (e?.message || e) + ". Usando QR Code como fallback.");
+      }
+    }
     log("🔳 QR Code recebido!");
     console.log("CHATMOVE_QR:" + qr);
     getQrTerminal().generate(qr, { small: true });

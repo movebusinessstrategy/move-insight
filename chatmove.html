@@ -2220,6 +2220,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ws.onmessage = function(ev) {
       var d = JSON.parse(ev.data);
       if (d.tipo === 'qr')         { mostrarQRConexao(d.data); return; }
+      if (d.tipo === 'pairing_code'){ mostrarPairingCode(d.data); return; }
     if (d.tipo === 'autenticado'){ mostrarConectado(d.contaNome); return; }
       if (d.tipo === 'total')      { window._S.mon.total = d.count;  updateMon(); return; }
       if (d.tipo === 'enviado')    { window._S.mon.sent  = d.total;  updateMon(); return; }
@@ -2399,24 +2400,77 @@ window.conectarWhatsApp = function() {
   });
 };
 
+function linkPeloNumeroHTML() {
+  return '<div style="margin-top:14px;text-align:center">' +
+    '<button class="btn btn-ghost" style="height:34px;font-size:11px;padding:0 14px" onclick="conectarPeloNumero()">📱 Conectar pelo número de telefone</button>' +
+    '<div class="hint" style="margin-top:6px;font-size:10px">Use quando o WhatsApp estiver no mesmo celular que você usa para acessar o painel.</div>' +
+    '</div>';
+}
+
 function mostrarQRConexao(qrData) {
   if (window._connMode === 'p8') {
-    // QR no painel de p8
     var area = document.getElementById('contaConnArea');
     if (!area) return;
-    area.innerHTML = '<div class="qr-wrap"><div class="qr-title">Escaneie o QR Code</div><div class="qr-desc">WhatsApp → Dispositivos vinculados → Vincular dispositivo</div><div class="qr-box" id="qrContainerConta"></div></div>';
+    area.innerHTML = '<div class="qr-wrap"><div class="qr-title">Escaneie o QR Code</div><div class="qr-desc">WhatsApp → Dispositivos vinculados → Vincular dispositivo</div><div class="qr-box" id="qrContainerConta"></div></div>' + linkPeloNumeroHTML();
     try { new QRCode(document.getElementById('qrContainerConta'), { text: qrData, width: 160, height: 160, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M }); } catch(e) {}
     return;
   }
-  // QR em p5
   var idle = document.getElementById('stateIdle'); if (idle) idle.style.display = 'none';
   var ready = document.getElementById('stateReady'); if (ready) ready.style.display = 'none';
   var qrDiv = document.getElementById('stateQR');
   if (!qrDiv) return;
   qrDiv.style.display = '';
-  qrDiv.innerHTML = '<div class="qr-wrap"><div class="qr-title">Escaneie o QR Code</div><div class="qr-desc">WhatsApp → Dispositivos vinculados → Vincular dispositivo</div><div class="qr-box" id="qrContainerConn"></div></div>';
+  qrDiv.innerHTML = '<div class="qr-wrap"><div class="qr-title">Escaneie o QR Code</div><div class="qr-desc">WhatsApp → Dispositivos vinculados → Vincular dispositivo</div><div class="qr-box" id="qrContainerConn"></div></div>' + linkPeloNumeroHTML();
   try { new QRCode(document.getElementById('qrContainerConn'), { text: qrData, width: 180, height: 180, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M }); } catch(e) {}
 }
+
+function renderPairingCode(code) {
+  var formatado = code.replace(/^(.{4})/, '$1-');
+  return '<div style="text-align:center;padding:20px 0">' +
+    '<div style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Código de pareamento</div>' +
+    '<div style="display:inline-block;font-family:\'SF Mono\',Consolas,monospace;font-size:28px;font-weight:800;letter-spacing:.18em;color:var(--gold);background:var(--gold-bg);border:1px solid rgba(198,169,107,.3);border-radius:14px;padding:14px 24px">' + formatado + '</div>' +
+    '<div style="margin-top:18px;font-size:12px;color:var(--text2);line-height:1.7;text-align:left;max-width:340px;margin-left:auto;margin-right:auto;padding:14px 18px;background:var(--bg2);border:1px solid var(--border);border-radius:11px">' +
+      '<strong style="color:var(--text)">No seu celular:</strong><br>' +
+      '1. Abra o WhatsApp<br>' +
+      '2. Menu (⋮) → <strong>Dispositivos conectados</strong><br>' +
+      '3. <strong>Conectar um dispositivo</strong><br>' +
+      '4. Toque em <strong>"Conectar com número de telefone"</strong><br>' +
+      '5. Digite o código acima' +
+    '</div>' +
+    '<div class="hint" style="margin-top:14px;font-size:10px">O código expira em alguns minutos. Se não funcionar, gere outro ou use o QR Code.</div>' +
+    '</div>';
+}
+
+function mostrarPairingCode(code) {
+  if (window._connMode === 'p8') {
+    var area = document.getElementById('contaConnArea');
+    if (area) area.innerHTML = renderPairingCode(code);
+    return;
+  }
+  var idle = document.getElementById('stateIdle'); if (idle) idle.style.display = 'none';
+  var ready = document.getElementById('stateReady'); if (ready) ready.style.display = 'none';
+  var qrDiv = document.getElementById('stateQR');
+  if (qrDiv) { qrDiv.style.display = ''; qrDiv.innerHTML = renderPairingCode(code); }
+}
+
+window.conectarPeloNumero = function() {
+  var phone = prompt('Digite seu número de WhatsApp com DDI e DDD (só dígitos, sem espaços):\n\nExemplo: 5511999998888\n(55 = Brasil, 11 = DDD, 999998888 = número)');
+  if (!phone) return;
+  var digits = String(phone).replace(/\D/g, '');
+  if (digits.length < 10 || digits.length > 15) { toast('Número inválido', 'erro'); return; }
+  // Mostra loading
+  var alvo = window._connMode === 'p8' ? document.getElementById('contaConnArea') : document.getElementById('stateQR');
+  if (alvo) alvo.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Gerando código de pareamento...</div>';
+  // Para conexão anterior (se houver) e reinicia com phone
+  post('/api/parar', {}).then(function() {
+    var contaId = window._contaConnId || getContaSelecionada('contaSelector') || null;
+    post('/api/conectar', { contaId: contaId, phone: digits }).then(function(r) {
+      if (!r || !r.ok) {
+        if (alvo) alvo.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red)">' + ((r && r.erro) || 'Erro ao gerar código') + '</div>';
+      }
+    });
+  });
+};
 
 function mostrarConectado(contaNome) {
   if (window._connMode === 'p8') {
