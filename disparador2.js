@@ -177,16 +177,18 @@ const detectarChromeNoMac = detectarChrome;
 
 // ── PUPPETEER — flags de Chrome, com headless auto ──────────────────────────
 function criarPuppeteerBase(chromePath) {
-  // Linux sem $DISPLAY (servidor VPS) precisa obrigatoriamente de headless.
-  // Permite forçar headless via HEADLESS=1.
   const isLinuxServer = process.platform === "linux" && !process.env.DISPLAY;
   const forceHeadless = process.env.HEADLESS === "1" || isLinuxServer;
+  // Perfil dedicado por sessão — impede que contas diferentes compartilhem
+  // localStorage/IndexedDB do Chromium (causa do bug "2ª conta ja conectada")
+  const userDataDir = path.join(AUTH_DIR, ".chromium-profile");
   const args = [
     "--no-sandbox",
     "--disable-setuid-sandbox",
     "--disable-dev-shm-usage",
     "--disable-gpu",
     "--lang=pt-BR",
+    `--user-data-dir=${userDataDir}`,
   ];
   if (!forceHeadless) args.push("--start-maximized");
   const puppeteer = {
@@ -194,6 +196,7 @@ function criarPuppeteerBase(chromePath) {
     defaultViewport: forceHeadless ? { width: 1280, height: 800 } : null,
     ignoreHTTPSErrors: true,
     timeout: 120000,
+    userDataDir,
     args,
   };
   if (chromePath) {
