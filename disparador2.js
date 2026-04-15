@@ -239,6 +239,15 @@ function criarClientConfig(chromePath) {
 }
 
 function registrarEventosCliente(client) {
+  // DEBUG: loga TODOS os eventos pra diagnosticar o fluxo de conexão
+  const eventosDebug = ["qr","authenticated","ready","auth_failure","loading_screen","change_state","disconnected","remote_session_saved"];
+  eventosDebug.forEach(ev => {
+    client.on(ev, (...args) => {
+      const preview = args.map(a => typeof a === "string" ? a.slice(0, 60) : JSON.stringify(a).slice(0, 80)).join(" | ");
+      log(`🧪 EVENTO[${ev}] ${preview}`);
+    });
+  });
+
   client.on("qr", async (qr) => {
     const phone = process.env.PAIR_WITH_NUMBER;
     if (phone) {
