@@ -269,13 +269,14 @@ label.sel-opt:has(> input:checked) {
 }
 .cm-sel-btn:hover { border-color:var(--border2); }
 .cm-sel.open .cm-sel-btn { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-bg); }
+.cm-sel.open { z-index:200; }
 .cm-sel-btn .cm-arrow { margin-left:auto; font-size:10px; color:var(--text3); transition:transform var(--ease); }
 .cm-sel.open .cm-arrow { transform:rotate(180deg); }
 .cm-sel-btn .cm-placeholder { color:var(--text3); }
 .cm-sel-opts {
   display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
   background:var(--surface); border:1px solid var(--border2); border-radius:11px;
-  box-shadow:var(--sh); z-index:30; max-height:220px; overflow-y:auto;
+  box-shadow:var(--sh); z-index:300; max-height:220px; overflow-y:auto;
   scrollbar-width:thin; animation:fadeUp .15s ease both;
 }
 .cm-sel.open .cm-sel-opts { display:block; }
