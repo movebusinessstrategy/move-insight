@@ -779,6 +779,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   gap: 1px;
   padding: 8px;
   max-height: 200px;
+  overflow-y: auto;
 }
 .emoji-grid::-webkit-scrollbar { width: 3px; }
 .emoji-grid::-webkit-scrollbar-thumb { background: var(--border3); border-radius: 999px; }
@@ -1878,7 +1879,13 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
               <div class="emoji-grid" id="agEmojiGrid"></div>
             </div>
           </div>
-          <div class="hint">Use *negrito*, _itálico_, ~tachado~ · Variáveis: {nome} {telefone} {data} {hora}</div>
+          <div class="hint">Use *negrito*, _itálico_, ~tachado~</div>
+          <div class="chips" style="margin-top:6px">
+            <span class="chip" onclick="insAg('{nome}')">+ nome</span>
+            <span class="chip" onclick="insAg('{telefone}')">+ telefone</span>
+            <span class="chip" onclick="insAg('{data}')">+ data</span>
+            <span class="chip" onclick="insAg('{hora}')">+ hora</span>
+          </div>
         </div>
 
         <!-- Lista de contatos -->
@@ -2056,6 +2063,14 @@ window.ins = function(v) {
   ta.selectionStart = ta.selectionEnd = s + v.length;
   ta.focus();
   window.refreshPrev();
+};
+window.insAg = function(v) {
+  var ta = document.getElementById('agMensagem');
+  if (!ta) return;
+  var s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = ta.value.slice(0, s) + v + ta.value.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + v.length;
+  ta.focus();
 };
 
 // NAVEGAÇÃO
@@ -2812,16 +2827,15 @@ function carregarContas() {
         }).join('');
     }
     ['contaSelector','agContaSelector'].forEach(function(id) {
-      var sel = document.getElementById(id); if (!sel) return;
-      var h = '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
-        '<input type="radio" name="' + id + '" value="" ' + (!_contaAtiva ? 'checked' : '') + ' style="accent-color:var(--gold)"><span style="font-size:13px;font-weight:500">Padrão (conta atual)</span></label>';
+      var container = document.getElementById(id); if (!container) return;
+      var conectadas = contas.filter(function(c){ return c.conectado; });
+      var opts = '<option value="" disabled selected>Selecione uma conta</option>';
       contas.forEach(function(c) {
-        h += '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
-          '<input type="radio" name="' + id + '" value="' + c.id + '" ' + (_contaAtiva===c.id?'checked':'') + ' style="accent-color:var(--gold)">' +
-          '<span style="font-size:13px;font-weight:500">' + c.nome + '</span>' +
-          (c.numero ? '<span style="font-size:11px;color:var(--text3)">' + c.numero + '</span>' : '') + '</label>';
+        var status = c.conectado ? ' ✓ conectado' : ' (não conectado)';
+        opts += '<option value="' + c.id + '"' + (_contaAtiva===c.id?' selected':'') + '>' + c.nome + (c.numero?' · '+c.numero:'') + status + '</option>';
       });
-      sel.innerHTML = h;
+      if (!contas.length) opts = '<option value="" disabled selected>Nenhuma conta — adicione em Contas</option>';
+      container.innerHTML = '<select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;cursor:pointer">' + opts + '</select>';
     });
     return contas;
   }).catch(function(){ return []; });
@@ -2847,8 +2861,10 @@ window.desconectarConta = function(id) {
 };
 
 function getContaSelecionada(nome) {
-  var r = document.querySelector('input[name="'+nome+'"]:checked');
-  return r ? r.value : '';
+  var el = document.getElementById(nome);
+  if (!el) return '';
+  var sel = el.tagName === 'SELECT' ? el : el.querySelector('select');
+  return sel ? (sel.value || '') : '';
 }
 
 // ── Override iniciarDisparo com nome + conta ──────────────────────────────────
@@ -3061,33 +3077,29 @@ function agRenderGrid(cat) {
 function carregarListasAgendamento() {
   return authFetch('/api/listas').then(function(listas) {
     listas = listas || [];
-    var sel = document.getElementById('agListaSelector'); if (!sel) return;
+    var container = document.getElementById('agListaSelector'); if (!container) return;
     if (!listas.length) {
-      sel.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Nenhuma lista salva. Importe contatos e salve com um nome na seção Contatos.</div>';
+      container.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Nenhuma lista salva. Importe contatos na seção Contatos.</div>';
       return;
     }
-    sel.innerHTML = listas.map(function(l) {
-      return '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
-        '<input type="radio" name="agLista" value="' + l.id + '" style="accent-color:var(--gold)" onchange="_agListaId=this.value">' +
-        '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">' + l.nome + '</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + l.total + ' contatos</div></div>' +
-        '</label>';
-    }).join('');
+    var opts = '<option value="" disabled selected>Selecione uma lista</option>';
+    listas.forEach(function(l) {
+      opts += '<option value="' + l.id + '">' + l.nome + ' (' + l.total + ' contatos)</option>';
+    });
+    container.innerHTML = '<select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;cursor:pointer" onchange="_agListaId=this.value">' + opts + '</select>';
   });
 }
 function carregarContasAgendamento() {
   return authFetch('/api/contas').then(function(contas) {
     contas = contas || [];
-    var sel = document.getElementById('agContaSelector'); if (!sel) return;
-    var h = '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
-      '<input type="radio" name="agConta" value="" checked style="accent-color:var(--gold)"><span style="font-size:13px;font-weight:500">Padrão (conta atual)</span></label>';
+    var container = document.getElementById('agContaSelector'); if (!container) return;
+    var opts = '<option value="" disabled selected>Selecione uma conta</option>';
     contas.forEach(function(c) {
-      h += '<label class="sel-opt" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer">' +
-        '<input type="radio" name="agConta" value="' + c.id + '" style="accent-color:var(--gold)">' +
-        '<span style="font-size:13px;font-weight:500">' + c.nome + '</span>' +
-        (c.numero ? '<span style="font-size:10px;color:var(--text3)">' + c.numero + '</span>' : '') + '</label>';
+      var status = c.conectado ? ' ✓' : ' (não conectado)';
+      opts += '<option value="' + c.id + '">' + c.nome + (c.numero ? ' · ' + c.numero : '') + status + '</option>';
     });
-    sel.innerHTML = h;
+    if (!contas.length) opts = '<option value="" disabled selected>Nenhuma conta — adicione em Contas</option>';
+    container.innerHTML = '<select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;cursor:pointer">' + opts + '</select>';
   });
 }
 function carregarSelectoresAg() {
@@ -3101,14 +3113,14 @@ window.criarAgendamento = function() {
   if (!nome.trim()) { toast('Digite um nome para o agendamento', 'erro'); return; }
   if (!msg.trim())  { toast('Escreva a mensagem', 'erro'); return; }
 
-  // Lista selecionada
-  var listaRadio = document.querySelector('input[name="agLista"]:checked');
-  if (!listaRadio) { toast('Selecione uma lista de contatos', 'erro'); return; }
-  var listaId = listaRadio.value;
+  // Lista selecionada (dropdown)
+  var listaId = getContaSelecionada('agListaSelector');
+  if (!listaId) { toast('Selecione uma lista de contatos', 'erro'); return; }
 
-  // Conta selecionada
-  var contaRadio = document.querySelector('input[name="agConta"]:checked');
-  var contaId = contaRadio ? contaRadio.value : null;
+  // Conta selecionada (dropdown)
+  var contaEl = document.getElementById('agContaSelector');
+  var contaSel = contaEl ? contaEl.querySelector('select') : null;
+  var contaId = contaSel ? contaSel.value || null : null;
 
   // Monta config
   var cfg = {
@@ -3158,8 +3170,9 @@ window.cancelarEdicaoAgendamento = function() {
   document.querySelectorAll('#agDias .chip').forEach(function(b){
     b.style.background=''; b.style.color=''; b.style.borderColor='';
   });
-  document.querySelectorAll('input[name="agLista"]').forEach(function(r){ r.checked = false; });
-  document.querySelectorAll('input[name="agConta"]').forEach(function(r){ r.checked = false; });
+  // Reseta dropdowns de lista e conta
+  var agL = document.getElementById('agListaSelector'); if (agL) { var s=agL.querySelector('select'); if(s) s.selectedIndex=0; }
+  var agC = document.getElementById('agContaSelector'); if (agC) { var s=agC.querySelector('select'); if(s) s.selectedIndex=0; }
   setAgTipo('once');
   var lbl = document.getElementById('agBtnSalvarLbl'); if (lbl) lbl.textContent = 'Salvar agendamento';
   var canc = document.getElementById('agCancelarEdicao'); if (canc) canc.style.display = 'none';
@@ -3178,13 +3191,15 @@ window.editarAgendamento = function(id) {
       if (pv) pv.innerHTML = '<div class="fp"><div style="font-size:20px;color:var(--gold)">📎</div><div><div class="fp-nm">' + (a.midiaNome || 'mídia') + '</div></div><button class="fp-del" onclick="agRmMidia()">✕</button></div>';
     } else { agRmMidia(); }
     carregarListasAgendamento().then(function(){
-      var r = document.querySelector('input[name="agLista"][value="' + a.listaId + '"]');
-      if (r) { r.checked = true; _agListaId = a.listaId; }
+      var sel = document.getElementById('agListaSelector');
+      var s = sel ? sel.querySelector('select') : null;
+      if (s) { s.value = a.listaId; _agListaId = a.listaId; }
     });
     carregarContasAgendamento().then(function(){
       if (a.contaId) {
-        var r = document.querySelector('input[name="agConta"][value="' + a.contaId + '"]');
-        if (r) r.checked = true;
+        var sel = document.getElementById('agContaSelector');
+        var s = sel ? sel.querySelector('select') : null;
+        if (s) s.value = a.contaId;
       }
     });
     setAgTipo(a.tipo || 'once');
