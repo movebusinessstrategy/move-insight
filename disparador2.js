@@ -318,8 +318,18 @@ async function main() {
   log(`💬 Mensagem: ${MENSAGEM_TEMPLATE.slice(0, 60)}...`);
 
   bootLog("Carregando Baileys");
-  const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require("@whiskeysockets/baileys");
+  const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestWaWebVersion } = require("@whiskeysockets/baileys");
   bootLog("Baileys carregado");
+
+  // Busca versão atual do protocolo WhatsApp Web (evita erro 405)
+  let waVersion;
+  try {
+    const vInfo = await fetchLatestWaWebVersion({});
+    waVersion = vInfo.version;
+    log(`🧭 WA Web versão: ${waVersion.join(".")}`);
+  } catch (e) {
+    log(`⚠️ Não conseguiu buscar versão WA: ${e.message}. Usando padrão.`);
+  }
 
   let tentativa = 0;
 
@@ -335,8 +345,9 @@ async function main() {
     const sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
-      browser: ["ChatMOVE", "Chrome", "120.0"],
+      browser: ["ChatMOVE", "Chrome", "22.04"],
       logger: require("pino")({ level: "silent" }),
+      ...(waVersion ? { version: waVersion } : {}),
     });
 
     sock.ev.on("creds.update", saveCreds);
