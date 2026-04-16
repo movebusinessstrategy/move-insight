@@ -254,6 +254,42 @@ label.sel-opt:has(> input:checked) {
   background: var(--gold-bg) !important;
   box-shadow: 0 0 0 2px rgba(198,169,107,.18);
 }
+/* Status dots (conexão) */
+.st-dot { width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; }
+.st-dot.on  { background:var(--green); box-shadow:0 0 6px rgba(48,209,88,.5); }
+.st-dot.off { background:var(--red); box-shadow:0 0 6px rgba(255,95,87,.35); opacity:.6; }
+
+/* Custom dropdown — substitui <select> nativo */
+.cm-sel { position:relative; user-select:none; }
+.cm-sel-btn {
+  display:flex; align-items:center; gap:10px;
+  background:var(--bg2); border:1px solid var(--border); border-radius:11px;
+  padding:12px 14px; cursor:pointer; font-size:14px; color:var(--text);
+  transition:border-color var(--ease);
+}
+.cm-sel-btn:hover { border-color:var(--border2); }
+.cm-sel.open .cm-sel-btn { border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-bg); }
+.cm-sel-btn .cm-arrow { margin-left:auto; font-size:10px; color:var(--text3); transition:transform var(--ease); }
+.cm-sel.open .cm-arrow { transform:rotate(180deg); }
+.cm-sel-btn .cm-placeholder { color:var(--text3); }
+.cm-sel-opts {
+  display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+  background:var(--surface); border:1px solid var(--border2); border-radius:11px;
+  box-shadow:var(--sh); z-index:30; max-height:220px; overflow-y:auto;
+  scrollbar-width:thin; animation:fadeUp .15s ease both;
+}
+.cm-sel.open .cm-sel-opts { display:block; }
+.cm-sel-opt {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px; cursor:pointer; font-size:13px; color:var(--text2);
+  transition:background var(--ease);
+}
+.cm-sel-opt:first-child { border-radius:11px 11px 0 0; }
+.cm-sel-opt:last-child { border-radius:0 0 11px 11px; }
+.cm-sel-opt:hover { background:var(--gold-bg); color:var(--text); }
+.cm-sel-opt.active { background:var(--gold-bg); color:var(--gold); font-weight:600; }
+.cm-sel-opt .opt-sub { font-size:11px; color:var(--text3); margin-left:auto; }
+
 /* Empty states amigáveis */
 .empty-nice { display:flex; flex-direction:column; align-items:center; gap:10px; padding:32px 20px; text-align:center; }
 .empty-nice .en-ico { width:56px; height:56px; border-radius:16px; background:var(--gold-bg); color:var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
@@ -2816,26 +2852,29 @@ function carregarContas() {
     contas = contas || [];
     var lista = document.getElementById('contasLista');
     if (lista) {
-      lista.innerHTML = !contas.length ? '<div class="empty">Nenhuma conta cadastrada.<br>Adicione uma conta acima e clique em Conectar.</div>' :
+      lista.innerHTML = !contas.length ? '<div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><div class="en-title">Nenhuma conta ainda</div><div class="en-desc">Cadastre um número no campo acima, depois clique em <strong>Conectar</strong>.</div></div>' :
         contas.map(function(c) {
-          return '<div class="trow"><div><div class="t-lbl">' + c.nome + '</div>' +
-            (c.numero ? '<div class="t-sub">' + c.numero + '</div>' : '<div class="t-sub" style="color:var(--text3)">Número será preenchido ao conectar</div>') +
-            '</div><div style="display:flex;gap:6px">' +
-            '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 12px" onclick="conectarConta(\'' + c.id + '\',\'' + c.nome + '\')">Conectar</button>' +
-            '<button class="del-btn" onclick="desconectarConta(\'' + c.id + '\')">Desconectar</button>' +
+          return '<div class="trow" style="gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">' +
+            '<span class="st-dot ' + (c.conectado ? 'on' : 'off') + '"></span>' +
+            '<div style="min-width:0"><div class="t-lbl" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + c.nome + '</div>' +
+            (c.numero ? '<div class="t-sub">' + c.numero + '</div>' : '<div class="t-sub" style="color:var(--text3)">Não conectado</div>') +
+            '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' +
+            '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 12px" onclick="conectarConta(\'' + c.id + '\',\'' + c.nome + '\')">' + (c.conectado ? 'Reconectar' : 'Conectar') + '</button>' +
+            (c.conectado ? '<button class="del-btn" onclick="desconectarConta(\'' + c.id + '\')">Desconectar</button>' : '') +
             '<button class="del-btn" onclick="excluirConta(\'' + c.id + '\')">Excluir</button></div></div>';
         }).join('');
     }
     ['contaSelector','agContaSelector'].forEach(function(id) {
       var container = document.getElementById(id); if (!container) return;
-      var conectadas = contas.filter(function(c){ return c.conectado; });
-      var opts = '<option value="" disabled selected>Selecione uma conta</option>';
-      contas.forEach(function(c) {
-        var status = c.conectado ? ' ✓ conectado' : ' (não conectado)';
-        opts += '<option value="' + c.id + '"' + (_contaAtiva===c.id?' selected':'') + '>' + c.nome + (c.numero?' · '+c.numero:'') + status + '</option>';
+      if (!contas.length) {
+        container.className = '';
+        container.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Nenhuma conta. <a style="color:var(--gold);cursor:pointer" onclick="goTo(8)">Adicionar em Contas →</a></div>';
+        return;
+      }
+      var opcoes = contas.map(function(c) {
+        return { value: c.id, label: c.nome, sub: c.numero || '', dot: c.conectado ? 'on' : 'off' };
       });
-      if (!contas.length) opts = '<option value="" disabled selected>Nenhuma conta — adicione em Contas</option>';
-      container.innerHTML = '<select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;cursor:pointer">' + opts + '</select>';
+      criarDropdown(id, opcoes, 'Selecione uma conta', _contaAtiva || '');
     });
     return contas;
   }).catch(function(){ return []; });
@@ -2863,9 +2902,52 @@ window.desconectarConta = function(id) {
 function getContaSelecionada(nome) {
   var el = document.getElementById(nome);
   if (!el) return '';
+  if (el.dataset.value !== undefined) return el.dataset.value || '';
   var sel = el.tagName === 'SELECT' ? el : el.querySelector('select');
   return sel ? (sel.value || '') : '';
 }
+
+// Custom dropdown builder
+function criarDropdown(containerId, opcoes, placeholder, valorAtual) {
+  var container = document.getElementById(containerId); if (!container) return;
+  var selecionado = opcoes.find(function(o){ return o.value === valorAtual; });
+  var btnHtml = selecionado
+    ? '<span class="st-dot ' + (selecionado.dot || '') + '"></span><span>' + selecionado.label + '</span>' + (selecionado.sub ? '<span class="opt-sub">' + selecionado.sub + '</span>' : '')
+    : '<span class="cm-placeholder">' + placeholder + '</span>';
+
+  container.className = 'cm-sel';
+  container.dataset.value = selecionado ? selecionado.value : '';
+  container.innerHTML =
+    '<div class="cm-sel-btn" onclick="toggleDrop(this.parentElement)">' + btnHtml + '<span class="cm-arrow">▼</span></div>' +
+    '<div class="cm-sel-opts">' +
+      opcoes.map(function(o) {
+        return '<div class="cm-sel-opt' + (o.value === valorAtual ? ' active' : '') + '" data-value="' + o.value + '" onclick="pickDrop(this)">' +
+          (o.dot !== undefined ? '<span class="st-dot ' + o.dot + '"></span>' : '') +
+          '<span>' + o.label + '</span>' +
+          (o.sub ? '<span class="opt-sub">' + o.sub + '</span>' : '') +
+          '</div>';
+      }).join('') +
+    '</div>';
+}
+window.toggleDrop = function(el) {
+  var wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.cm-sel.open').forEach(function(s){ s.classList.remove('open'); });
+  if (!wasOpen) el.classList.add('open');
+};
+window.pickDrop = function(optEl) {
+  var wrap = optEl.closest('.cm-sel');
+  var val = optEl.dataset.value;
+  wrap.dataset.value = val;
+  wrap.querySelectorAll('.cm-sel-opt').forEach(function(o){ o.classList.remove('active'); });
+  optEl.classList.add('active');
+  var btn = wrap.querySelector('.cm-sel-btn');
+  btn.innerHTML = optEl.innerHTML + '<span class="cm-arrow">▼</span>';
+  wrap.classList.remove('open');
+  if (wrap.dataset.onchange) { try { window[wrap.dataset.onchange](val); } catch(_){} }
+};
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.cm-sel')) document.querySelectorAll('.cm-sel.open').forEach(function(s){ s.classList.remove('open'); });
+});
 
 // ── Override iniciarDisparo com nome + conta ──────────────────────────────────
 var _initOrig = window.iniciarDisparo;
@@ -3079,27 +3161,32 @@ function carregarListasAgendamento() {
     listas = listas || [];
     var container = document.getElementById('agListaSelector'); if (!container) return;
     if (!listas.length) {
-      container.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Nenhuma lista salva. Importe contatos na seção Contatos.</div>';
+      container.className = '';
+      container.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Nenhuma lista. <a style="color:var(--gold);cursor:pointer" onclick="goTo(3)">Importar contatos →</a></div>';
       return;
     }
-    var opts = '<option value="" disabled selected>Selecione uma lista</option>';
-    listas.forEach(function(l) {
-      opts += '<option value="' + l.id + '">' + l.nome + ' (' + l.total + ' contatos)</option>';
+    var opcoes = listas.map(function(l) {
+      return { value: l.id, label: l.nome, sub: l.total + ' contatos' };
     });
-    container.innerHTML = '<select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;cursor:pointer" onchange="_agListaId=this.value">' + opts + '</select>';
+    container.dataset.onchange = '_agListaOnChange';
+    criarDropdown('agListaSelector', opcoes, 'Selecione uma lista', _agListaId || '');
   });
 }
+window._agListaOnChange = function(val) { _agListaId = val; };
+
 function carregarContasAgendamento() {
   return authFetch('/api/contas').then(function(contas) {
     contas = contas || [];
     var container = document.getElementById('agContaSelector'); if (!container) return;
-    var opts = '<option value="" disabled selected>Selecione uma conta</option>';
-    contas.forEach(function(c) {
-      var status = c.conectado ? ' ✓' : ' (não conectado)';
-      opts += '<option value="' + c.id + '">' + c.nome + (c.numero ? ' · ' + c.numero : '') + status + '</option>';
+    if (!contas.length) {
+      container.className = '';
+      container.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text3)">Nenhuma conta. <a style="color:var(--gold);cursor:pointer" onclick="goTo(8)">Adicionar →</a></div>';
+      return;
+    }
+    var opcoes = contas.map(function(c) {
+      return { value: c.id, label: c.nome, sub: c.numero || '', dot: c.conectado ? 'on' : 'off' };
     });
-    if (!contas.length) opts = '<option value="" disabled selected>Nenhuma conta — adicione em Contas</option>';
-    container.innerHTML = '<select style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;cursor:pointer">' + opts + '</select>';
+    criarDropdown('agContaSelector', opcoes, 'Selecione uma conta', '');
   });
 }
 function carregarSelectoresAg() {
@@ -3113,14 +3200,13 @@ window.criarAgendamento = function() {
   if (!nome.trim()) { toast('Digite um nome para o agendamento', 'erro'); return; }
   if (!msg.trim())  { toast('Escreva a mensagem', 'erro'); return; }
 
-  // Lista selecionada (dropdown)
+  // Lista selecionada (custom dropdown)
   var listaId = getContaSelecionada('agListaSelector');
   if (!listaId) { toast('Selecione uma lista de contatos', 'erro'); return; }
 
-  // Conta selecionada (dropdown)
+  // Conta selecionada (custom dropdown)
   var contaEl = document.getElementById('agContaSelector');
-  var contaSel = contaEl ? contaEl.querySelector('select') : null;
-  var contaId = contaSel ? contaSel.value || null : null;
+  var contaId = contaEl ? (contaEl.dataset.value || null) : null;
 
   // Monta config
   var cfg = {
@@ -3190,18 +3276,10 @@ window.editarAgendamento = function(id) {
       var pv = document.getElementById('agMidiaPv');
       if (pv) pv.innerHTML = '<div class="fp"><div style="font-size:20px;color:var(--gold)">📎</div><div><div class="fp-nm">' + (a.midiaNome || 'mídia') + '</div></div><button class="fp-del" onclick="agRmMidia()">✕</button></div>';
     } else { agRmMidia(); }
-    carregarListasAgendamento().then(function(){
-      var sel = document.getElementById('agListaSelector');
-      var s = sel ? sel.querySelector('select') : null;
-      if (s) { s.value = a.listaId; _agListaId = a.listaId; }
-    });
-    carregarContasAgendamento().then(function(){
-      if (a.contaId) {
-        var sel = document.getElementById('agContaSelector');
-        var s = sel ? sel.querySelector('select') : null;
-        if (s) s.value = a.contaId;
-      }
-    });
+    _agListaId = a.listaId || null;
+    _contaAtiva = a.contaId || null;
+    carregarListasAgendamento();
+    carregarContasAgendamento();
     setAgTipo(a.tipo || 'once');
     if (a.tipo === 'once' && a.dataHora) {
       var d = new Date(a.dataHora);
