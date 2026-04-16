@@ -1817,7 +1817,7 @@ Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:
           <button class="btn btn-ghost" style="height:28px;font-size:10px;margin-left:auto" onclick="fecharConnPanel()">Cancelar</button>
         </div>
         <div id="contaConnArea">
-          <div style="text-align:center;padding:24px;color:var(--text3)">Abrindo o Chrome...</div>
+          <div style="text-align:center;padding:24px;color:var(--text3)">Conectando ao WhatsApp...</div>
         </div>
         <div id="contaConnOk" style="display:none;padding:12px 0">
           <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.2);border-radius:11px">
@@ -2180,7 +2180,7 @@ window.iniciarDisparo = function() {
   if (!valid.length) { toast('Nenhum contato válido', 'erro'); return; }
   window._S.mon = { total: 0, sent: 0, fail: 0, skip: 0 };
   var ca = document.getElementById('connArea');
-  if (ca) ca.innerHTML = '<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">Abrindo o Chrome...</div></div>';
+  if (ca) ca.innerHTML = '<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">Conectando ao WhatsApp...</div></div>';
   var mb = document.getElementById('monBtn'); if (mb) mb.style.display = 'block';
   var er = document.getElementById('exportRow'); if (er) er.style.display = 'none';
   post('/api/iniciar', {}).then(function(r) {
@@ -2529,7 +2529,7 @@ window.conectarConta = function(contaId, contaNome) {
 
   if (panel) panel.style.display = '';
   if (nomeEl) nomeEl.textContent = contaNome;
-  if (area) area.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Abrindo o Chrome...</div>';
+  if (area) area.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">Conectando ao WhatsApp...</div>';
   if (ok) ok.style.display = 'none';
 
   // Scroll para o painel
@@ -2599,7 +2599,7 @@ window.conectarWhatsApp = function() {
 
   // Mostra estado de carregamento
   var idle = document.getElementById('stateIdle');
-  if (idle) idle.innerHTML = '<div class="conn-center"><div class="cc-desc" style="margin-bottom:0">Abrindo o Chrome...</div></div>';
+  if (idle) idle.innerHTML = '<div class="conn-center"><div class="cc-desc" style="margin-bottom:0">Conectando ao WhatsApp...</div></div>';
 
   post('/api/conectar', { contaId: contaId }).then(function(r) {
     if (!r || !r.ok) {
