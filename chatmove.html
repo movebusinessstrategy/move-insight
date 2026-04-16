@@ -275,8 +275,8 @@ label.sel-opt:has(> input:checked) {
 .cm-sel-btn .cm-placeholder { color:var(--text3); }
 .cm-sel-opts {
   display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
-  background:var(--surface); border:1px solid var(--border2); border-radius:11px;
-  box-shadow:var(--sh); z-index:300; max-height:220px; overflow-y:auto;
+  background:var(--bg); border:1px solid var(--border2); border-radius:11px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.3); z-index:300; max-height:220px; overflow-y:auto;
   scrollbar-width:thin; animation:fadeUp .15s ease both;
 }
 .cm-sel.open .cm-sel-opts { display:block; }
@@ -287,8 +287,8 @@ label.sel-opt:has(> input:checked) {
 }
 .cm-sel-opt:first-child { border-radius:11px 11px 0 0; }
 .cm-sel-opt:last-child { border-radius:0 0 11px 11px; }
-.cm-sel-opt:hover { background:var(--gold-bg); color:var(--text); }
-.cm-sel-opt.active { background:var(--gold-bg); color:var(--gold); font-weight:600; }
+.cm-sel-opt:hover { background:var(--surface2); color:var(--text); }
+.cm-sel-opt.active { background:var(--surface2); color:var(--gold); font-weight:600; }
 .cm-sel-opt .opt-sub { font-size:11px; color:var(--text3); margin-left:auto; }
 
 /* Empty states amigáveis */
