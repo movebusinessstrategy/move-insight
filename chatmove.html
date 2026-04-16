@@ -492,7 +492,7 @@ label.sel-opt:has(> input:checked)::after {
   padding: 22px;
   box-shadow: var(--sh);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* shimmer suave */
@@ -2854,13 +2854,17 @@ function carregarContas() {
     if (lista) {
       lista.innerHTML = !contas.length ? '<div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><div class="en-title">Nenhuma conta ainda</div><div class="en-desc">Cadastre um número no campo acima, depois clique em <strong>Conectar</strong>.</div></div>' :
         contas.map(function(c) {
-          return '<div class="trow" style="gap:10px"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">' +
-            '<span class="st-dot ' + (c.conectado ? 'on' : 'off') + '"></span>' +
-            '<div style="min-width:0"><div class="t-lbl" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + c.nome + '</div>' +
-            (c.numero ? '<div class="t-sub">' + c.numero + '</div>' : '<div class="t-sub" style="color:var(--text3)">Não conectado</div>') +
-            '</div></div><div style="display:flex;gap:6px;flex-shrink:0">' +
-            '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 12px" onclick="conectarConta(\'' + c.id + '\',\'' + c.nome + '\')">' + (c.conectado ? 'Reconectar' : 'Conectar') + '</button>' +
-            (c.conectado ? '<button class="del-btn" onclick="desconectarConta(\'' + c.id + '\')">Desconectar</button>' : '') +
+          var statusBadge = c.conectado
+            ? '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.25);color:var(--green)"><span class="st-dot on"></span>Conectado</span>'
+            : '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(255,95,87,.06);border:1px solid rgba(255,95,87,.15);color:var(--text3)"><span class="st-dot off"></span>Desconectado</span>';
+          return '<div class="trow" style="gap:10px;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:180px">' +
+            '<div style="min-width:0"><div class="t-lbl" style="display:flex;align-items:center;gap:8px">' + c.nome + ' ' + statusBadge + '</div>' +
+            (c.numero ? '<div class="t-sub">' + c.numero + '</div>' : '') +
+            '</div></div><div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">' +
+            (c.conectado
+              ? '<button class="btn btn-ghost" style="height:30px;font-size:10px;padding:0 10px" onclick="conectarConta(\'' + c.id + '\',\'' + c.nome + '\')">Reconectar</button>' +
+                '<button class="del-btn" onclick="desconectarConta(\'' + c.id + '\')">Desconectar</button>'
+              : '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 12px" onclick="conectarConta(\'' + c.id + '\',\'' + c.nome + '\')">Conectar</button>') +
             '<button class="del-btn" onclick="excluirConta(\'' + c.id + '\')">Excluir</button></div></div>';
         }).join('');
     }
