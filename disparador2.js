@@ -241,11 +241,38 @@ async function enviarCampanha(sock) {
       break;
     }
 
-    // Baileys usa @s.whatsapp.net
-    const jid = `${numeroE164}@s.whatsapp.net`;
+    // Verifica se o número existe no WhatsApp antes de enviar
+    let numeroFinal = numeroE164;
+    try {
+      const [existe] = await sock.onWhatsApp(numeroE164);
+      if (!existe?.exists) {
+        const numAlt = numeroAlternativo(numeroE164);
+        if (numAlt) {
+          const [existeAlt] = await sock.onWhatsApp(numAlt);
+          if (existeAlt?.exists) {
+            log(`🔄 ${contato.nome}: ${numeroE164} não existe, usando ${numAlt}`);
+            numeroFinal = numAlt;
+          } else {
+            log(`❌ ${contato.nome}: nem ${numeroE164} nem ${numAlt} existem no WhatsApp`);
+            invalidos++; progress.lastIndex = i + 1; saveProgress(progressFile);
+            emit("erro_envio", { nome: contato.nome, numero: numeroE164, erro: "Número não existe no WhatsApp" });
+            continue;
+          }
+        } else {
+          log(`❌ ${contato.nome}: ${numeroE164} não existe no WhatsApp`);
+          invalidos++; progress.lastIndex = i + 1; saveProgress(progressFile);
+          emit("erro_envio", { nome: contato.nome, numero: numeroE164, erro: "Número não existe no WhatsApp" });
+          continue;
+        }
+      }
+    } catch (e) {
+      log(`⚠️ Não conseguiu verificar ${numeroE164}: ${e?.message || e}. Tentando enviar mesmo assim.`);
+    }
+
+    const jid = `${numeroFinal}@s.whatsapp.net`;
     const mensagem = MENSAGEM_TEMPLATE
       .replace("{nome}", contato.nome)
-      .replace("{telefone}", numeroE164)
+      .replace("{telefone}", numeroFinal)
       .replace("{data}", new Date().toLocaleDateString("pt-BR"))
       .replace("{hora}", new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
 

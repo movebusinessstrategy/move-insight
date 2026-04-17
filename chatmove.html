@@ -2936,8 +2936,17 @@ function criarDropdown(containerId, opcoes, placeholder, valorAtual) {
 }
 window.toggleDrop = function(el) {
   var wasOpen = el.classList.contains('open');
-  document.querySelectorAll('.cm-sel.open').forEach(function(s){ s.classList.remove('open'); });
-  if (!wasOpen) el.classList.add('open');
+  // Fecha todos os dropdowns abertos e reseta z-index dos pais
+  document.querySelectorAll('.cm-sel.open').forEach(function(s){
+    s.classList.remove('open');
+    var p = s.closest('.fg'); if (p) p.style.zIndex = '';
+  });
+  if (!wasOpen) {
+    el.classList.add('open');
+    // Eleva o container pai pra ficar acima dos irmãos (botões, inputs etc)
+    var parent = el.closest('.fg');
+    if (parent) parent.style.zIndex = '200';
+  }
 };
 window.pickDrop = function(optEl) {
   var wrap = optEl.closest('.cm-sel');
@@ -2951,7 +2960,12 @@ window.pickDrop = function(optEl) {
   if (wrap.dataset.onchange) { try { window[wrap.dataset.onchange](val); } catch(_){} }
 };
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.cm-sel')) document.querySelectorAll('.cm-sel.open').forEach(function(s){ s.classList.remove('open'); });
+  if (!e.target.closest('.cm-sel')) {
+    document.querySelectorAll('.cm-sel.open').forEach(function(s){
+      s.classList.remove('open');
+      var p = s.closest('.fg'); if (p) p.style.zIndex = '';
+    });
+  }
 });
 
 // ── Override iniciarDisparo com nome + conta ──────────────────────────────────

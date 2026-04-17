@@ -558,8 +558,11 @@ app.get("/api/home", authMiddleware, (req, res) => {
   const totalEnviados30d = ult30.reduce((s, h) => s + (h.enviados || 0), 0);
   const campanhasMes = ult30.length;
 
-  // Checklist de onboarding
-  const temWhatsApp = contas.length > 0;
+  // Checklist de onboarding — verifica conexão real, não apenas conta criada
+  const temWhatsApp = contas.some(c => {
+    const marker = path.join(userDir(uid), ".wwebjs_auth_" + c.id, ".wa-authenticated");
+    return fs.existsSync(marker);
+  });
   const temLista = listas.length > 0;
   const temMsg = !!(cfg && cfg.mensagem && cfg.mensagem.trim().length > 0);
   const temDisparo = hist.length > 0;
