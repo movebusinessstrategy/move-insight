@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /registro
+Allow: /termos
+
+Disallow: /painel
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://chat.movebusiness.com.br/sitemap.xml
