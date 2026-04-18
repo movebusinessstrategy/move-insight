@@ -372,12 +372,29 @@ async function main() {
     const sock = makeWASocket({
       auth: state,
       printQRInTerminal: false,
-      browser: ["ChatMOVE", "Chrome", "22.04"],
+      browser: ["Ubuntu", "Chrome", "22.04.4"],
       logger: require("pino")({ level: "silent" }),
       ...(waVersion ? { version: waVersion } : {}),
     });
 
     sock.ev.on("creds.update", saveCreds);
+
+    // Pairing code — deve ser solicitado ANTES da conexão abrir, logo após criar o socket
+    if (PAIR_WITH_NUMBER && !sock.authState.creds.registered) {
+      const digits = String(PAIR_WITH_NUMBER).replace(/\D/g, "");
+      log(`🔢 Solicitando pairing code para ${digits}...`);
+      // Aguarda um momento pro socket inicializar
+      await sleep(3000);
+      try {
+        const code = await sock.requestPairingCode(digits);
+        const codeFmt = code?.replace(/(.{4})/, "$1-") || code;
+        log(`🔢 Pairing code gerado: ${codeFmt}`);
+        console.log("CHATMOVE_CODE:" + code);
+      } catch (e) {
+        log("❌ Falha ao gerar pairing code: " + (e?.message || e));
+        log("   → Fallback: QR Code será exibido.");
+      }
+    }
 
     const conectado = await new Promise((resolve) => {
       let resolvido = false;
@@ -390,23 +407,9 @@ async function main() {
       sock.ev.on("connection.update", async (update) => {
         const { connection, lastDisconnect, qr } = update;
 
-        if (qr && !qrMostrado) {
-          qrMostrado = true;
-          log("🔳 QR Code gerado!");
-          console.log("CHATMOVE_QR:" + qr);
-
-          if (PAIR_WITH_NUMBER) {
-            try {
-              const code = await sock.requestPairingCode(PAIR_WITH_NUMBER);
-              log(`🔢 Pairing code: ${code}`);
-              console.log("CHATMOVE_CODE:" + code);
-            } catch (e) {
-              log("⚠️ Falha pairing code: " + (e?.message || e));
-            }
-          }
-        }
-
-        if (qr && qrMostrado) {
+        // Só mostra QR se NÃO pediu pairing code (senão confunde a UI)
+        if (qr && !PAIR_WITH_NUMBER) {
+          if (!qrMostrado) { qrMostrado = true; log("🔳 QR Code gerado!"); }
           console.log("CHATMOVE_QR:" + qr);
         }
 
