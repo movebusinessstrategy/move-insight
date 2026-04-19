@@ -142,7 +142,52 @@
   --sh-sm:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.04);
 }
 html { scroll-behavior: smooth; }
-body { font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+body { font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative; }
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  BACKGROUND "BURACO NEGRO DE TRAÇOS": grid + vortex radial + lines  */
+/* ═══════════════════════════════════════════════════════════════════ */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(185,141,65,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(185,141,65,.06) 1px, transparent 1px);
+  background-size:52px 52px;
+  -webkit-mask-image:radial-gradient(ellipse 75% 55% at 50% 40%, #000 0%, transparent 85%);
+  mask-image:radial-gradient(ellipse 75% 55% at 50% 40%, #000 0%, transparent 85%);
+  opacity:.85;
+}
+/* Traços radiais que criam a sensação de buraco negro puxando pra dentro */
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:repeating-conic-gradient(from 0deg at 50% 40%,
+    transparent 0deg, rgba(185,141,65,.11) .25deg, transparent .6deg, transparent 12deg);
+  -webkit-mask-image:radial-gradient(circle at 50% 40%, transparent 12%, #000 40%, transparent 75%);
+  mask-image:radial-gradient(circle at 50% 40%, transparent 12%, #000 40%, transparent 75%);
+  opacity:.7;
+  animation:vortexSpin 90s linear infinite;
+}
+@keyframes vortexSpin { to { transform:rotate(360deg); } }
+/* Garante que o conteúdo fique acima do background */
+nav, section, footer { position:relative; z-index:1; }
+
+/* Transições suaves entre seções: fade gradient no topo em vez de borda sólida */
+.divider-sec { border-top:none; }
+.divider-sec::before {
+  content:''; position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:min(70%,720px); height:1px;
+  background:linear-gradient(90deg, transparent, rgba(185,141,65,.28), transparent);
+  pointer-events:none;
+}
+/* Glow orbs em cantos alternados de cada seção reforça a continuidade */
+.sec { position:relative; }
+.sec::before, .sec::after {
+  content:''; position:absolute; width:400px; height:400px; border-radius:50%;
+  background:radial-gradient(circle, rgba(185,141,65,.10), transparent 70%);
+  filter:blur(40px); pointer-events:none; z-index:-1;
+}
+.sec::before { top:-10%; left:-5%; }
+.sec::after { bottom:-10%; right:-5%; width:320px; height:320px; opacity:.7; }
 
 nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 52px; height:60px; background:rgba(242,242,247,.92); backdrop-filter:blur(24px) saturate(180%); border-bottom:1px solid var(--border); transition:background var(--ease); }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
@@ -158,7 +203,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-i
 .btn-nav-gold:hover { transform:translateY(-1px); box-shadow:0 4px 18px rgba(198,169,107,.45); }
 
 .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 24px 80px; position:relative; overflow:hidden; }
-.hero-glow { position:absolute; top:-20%; left:50%; transform:translateX(-50%); width:900px; height:700px; border-radius:50%; background:radial-gradient(ellipse,rgba(185,141,65,.12) 0%,transparent 65%); pointer-events:none; }
+.hero-glow { position:absolute; top:-15%; left:50%; transform:translateX(-50%); width:1100px; height:800px; border-radius:50%; background:radial-gradient(ellipse,rgba(185,141,65,.22) 0%,rgba(185,141,65,.08) 40%,transparent 70%); pointer-events:none; filter:blur(20px); }
 .hero-badge { display:inline-flex; align-items:center; gap:7px; background:var(--gold-bg); border:1px solid rgba(198,169,107,.18); padding:5px 14px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); margin-bottom:28px; position:relative; }
 .badge-dot { width:5px; height:5px; border-radius:50%; background:var(--gold); animation:pdot 2.5s ease-in-out infinite; }
 @keyframes pdot{0%,100%{opacity:1}50%{opacity:.3}}
@@ -296,9 +341,6 @@ footer a:hover { color:var(--text2); }
 .phone { width:300px; background:linear-gradient(140deg,#18181a,#0c0c0e); border-radius:36px; padding:10px; position:relative; transform:rotate(-4deg); animation:phoneFloat 6s ease-in-out infinite; box-shadow:0 30px 80px -20px rgba(0,0,0,.28), 0 0 0 1px rgba(185,141,65,.18), 0 0 60px -10px rgba(185,141,65,.35), 0 12px 30px -8px rgba(185,141,65,.25); }
 @keyframes phoneFloat { 0%,100%{transform:rotate(-4deg) translateY(0)} 50%{transform:rotate(-4deg) translateY(-10px)} }
 .phone::before { content:''; position:absolute; top:18px; left:50%; transform:translateX(-50%); width:90px; height:22px; background:#0c0c0e; border-radius:999px; z-index:2; }
-/* Badge dourado flutuando no phone que amarra com o contador do dashboard */
-.phone-badge { position:absolute; top:-14px; right:-18px; background:var(--gold); color:#111; padding:6px 12px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.06em; box-shadow:0 6px 18px rgba(185,141,65,.45), 0 0 0 3px rgba(255,255,255,.85); z-index:3; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
-.phone-badge .pb-dot { width:6px; height:6px; border-radius:50%; background:#111; animation:pdot 2.5s ease-in-out infinite; }
 .phone-screen { background:#efeae2; border-radius:28px; overflow:hidden; padding-top:44px; min-height:560px; font-family:-apple-system,'Segoe UI',Roboto,sans-serif; position:relative; }
 .phone-header { background:#075e54; padding:10px 14px 12px; display:flex; align-items:center; gap:10px; color:#fff; position:relative; }
 .phone-header::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold) 50%,transparent); opacity:.5; }
@@ -342,6 +384,51 @@ footer a:hover { color:var(--text2); }
   .phone-screen { min-height:480px; }
   .phone-chat { min-height:340px; }
   .hd-dash { width:100%; max-width:340px; transform:rotate(0); }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  PAINEL MOCKUP: recreação visual do Monitor do ChatMOVE em ação            */
+/* ═════════════════════════════════════════════════════════════════════════ */
+.panel-showcase { position:relative; padding:80px 24px 120px; display:flex; justify-content:center; }
+.panel-mockup { width:100%; max-width:820px; background:var(--surface); border:1px solid rgba(185,141,65,.2); border-radius:22px; box-shadow:0 40px 100px -30px rgba(0,0,0,.22), 0 12px 32px rgba(0,0,0,.08), 0 0 80px -20px rgba(185,141,65,.35); overflow:hidden; position:relative; }
+.panel-mockup::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); opacity:.6; }
+.pm-chrome { display:flex; align-items:center; gap:8px; padding:14px 18px; background:var(--surface2); border-bottom:1px solid var(--border); }
+.pm-dot { width:10px; height:10px; border-radius:50%; }
+.pm-dot.r { background:#ff5f57; } .pm-dot.y { background:#febc2e; } .pm-dot.g { background:#28c840; }
+.pm-url { margin-left:auto; font-size:11px; color:var(--text3); font-family:monospace; }
+.pm-body { padding:28px 32px; }
+.pm-head { display:flex; align-items:center; gap:14px; margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--border); }
+.pm-head-ico { width:38px; height:38px; border-radius:11px; background:var(--gold-bg); border:1px solid rgba(185,141,65,.2); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+.pm-head-t { font-size:16px; font-weight:800; letter-spacing:-.02em; }
+.pm-head-s { font-size:12px; color:var(--text3); margin-top:2px; }
+.pm-run-badge { margin-left:auto; display:inline-flex; align-items:center; gap:7px; padding:6px 13px; background:rgba(185,141,65,.1); border:1px solid rgba(185,141,65,.25); color:var(--gold); border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.04em; }
+.pm-run-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); animation:pdot 1.6s ease-in-out infinite; }
+.pm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:22px; }
+.pm-stat { background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:14px 16px; text-align:center; }
+.pm-stat-val { font-size:26px; font-weight:800; letter-spacing:-.03em; line-height:1; }
+.pm-stat-val.g { color:var(--green); } .pm-stat-val.r { color:var(--red); } .pm-stat-val.a { color:var(--gold); } .pm-stat-val.d { color:var(--text3); }
+.pm-stat-lbl { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-top:4px; }
+.pm-prog-card { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:16px 18px; margin-bottom:18px; }
+.pm-prog-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:12px; }
+.pm-prog-t { font-weight:700; color:var(--text); }
+.pm-prog-count { color:var(--gold); font-weight:800; font-variant-numeric:tabular-nums; }
+.pm-prog-bar { height:8px; background:var(--surface3); border-radius:999px; overflow:hidden; }
+.pm-prog-fill { height:100%; background:linear-gradient(90deg, var(--gold), var(--gold2)); border-radius:999px; width:0%; animation:pmProg 5s ease-out .8s forwards; box-shadow:0 0 12px rgba(185,141,65,.5); }
+@keyframes pmProg { to { width:72%; } }
+.pm-prog-foot { display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:var(--text3); }
+.pm-log { background:#101012; color:#e8e8ea; border-radius:12px; padding:16px 18px; font-family:'SF Mono','Monaco',monospace; font-size:11.5px; line-height:1.7; max-height:200px; overflow:hidden; position:relative; }
+.pm-log::after { content:''; position:absolute; bottom:0; left:0; right:0; height:50px; background:linear-gradient(to bottom, transparent, #101012); pointer-events:none; }
+.pm-log-line { display:flex; gap:10px; align-items:flex-start; opacity:0; animation:logFade .4s ease forwards; }
+.pm-log-line:nth-child(1){animation-delay:.2s} .pm-log-line:nth-child(2){animation-delay:.5s} .pm-log-line:nth-child(3){animation-delay:.9s} .pm-log-line:nth-child(4){animation-delay:1.3s} .pm-log-line:nth-child(5){animation-delay:1.7s} .pm-log-line:nth-child(6){animation-delay:2.1s} .pm-log-line:nth-child(7){animation-delay:2.5s}
+@keyframes logFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+.pm-log-time { color:#6b6b70; flex-shrink:0; }
+.pm-log-txt.ok { color:#57d670; } .pm-log-txt.dim { color:#a0a0a5; } .pm-log-txt.gold { color:#d9be86; } .pm-log-txt.err { color:#ff7a74; }
+@media(max-width:768px){
+  .panel-showcase { padding:48px 16px 80px; }
+  .pm-body { padding:20px 18px; }
+  .pm-stats { grid-template-columns:1fr 1fr; }
+  .pm-head-t { font-size:14px; }
+  .panel-mockup { border-radius:16px; }
 }
 
 /* ═════════════════════════════════════════════════════════════════════════ */
@@ -438,7 +525,6 @@ footer a:hover { color:var(--text2); }
       </svg>
     </div>
     <div class="phone">
-      <div class="phone-badge"><span class="pb-dot"></span>Msg 347 de 482</div>
       <div class="phone-screen">
         <div class="phone-header">
           <div class="phone-avatar">🍕</div>
@@ -497,6 +583,54 @@ footer a:hover { color:var(--text2); }
     <div class="step-r"><div class="step-n">04</div><div><div class="step-t">Dispare e acompanhe</div><div class="step-d">Clique em Iniciar. O sistema envia tudo e te manda o resultado no WhatsApp quando terminar.</div></div></div>
   </div>
 </div>
+</section>
+
+<!-- Mockup do Painel de Envio em ação -->
+<section class="divider-sec panel-showcase reveal" aria-label="Painel de envio em ação">
+  <div class="panel-mockup">
+    <div class="pm-chrome">
+      <div class="pm-dot r"></div><div class="pm-dot y"></div><div class="pm-dot g"></div>
+      <div class="pm-url">app.chatmove.com.br / painel / monitor</div>
+    </div>
+    <div class="pm-body">
+      <div class="pm-head">
+        <div class="pm-head-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div>
+          <div class="pm-head-t">Promoção de Sexta · Pizzaria do João</div>
+          <div class="pm-head-s">Disparando para a lista de clientes ativos</div>
+        </div>
+        <div class="pm-run-badge"><span class="pm-run-dot"></span>Em andamento</div>
+      </div>
+
+      <div class="pm-stats">
+        <div class="pm-stat"><div class="pm-stat-val a" data-count="482">0</div><div class="pm-stat-lbl">Total</div></div>
+        <div class="pm-stat"><div class="pm-stat-val g" data-count="347">0</div><div class="pm-stat-lbl">Enviados</div></div>
+        <div class="pm-stat"><div class="pm-stat-val r" data-count="8">0</div><div class="pm-stat-lbl">Falhas</div></div>
+        <div class="pm-stat"><div class="pm-stat-val d" data-count="4">0</div><div class="pm-stat-lbl">Pulados</div></div>
+      </div>
+
+      <div class="pm-prog-card">
+        <div class="pm-prog-hd">
+          <span class="pm-prog-t">Progresso</span>
+          <span class="pm-prog-count">347 / 482</span>
+        </div>
+        <div class="pm-prog-bar"><div class="pm-prog-fill"></div></div>
+        <div class="pm-prog-foot"><span>72% concluído</span><span>≈ 4 min restantes</span></div>
+      </div>
+
+      <div class="pm-log">
+        <div class="pm-log-line"><span class="pm-log-time">18:42:01</span><span class="pm-log-txt ok">✓ Enviado para Maria Silva (5543996255556)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:05</span><span class="pm-log-txt ok">✓ Enviado para Carlos Mendes (5543988447722)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:08</span><span class="pm-log-txt dim">⏸ Pausa anti-ban (10s) após 40 mensagens</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:19</span><span class="pm-log-txt ok">✓ Enviado para Ana Oliveira (5543991102233)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:23</span><span class="pm-log-txt gold">➡ Enviando para Pedro Souza (5543997558844)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:27</span><span class="pm-log-txt ok">✓ Enviado para Pedro Souza (5543997558844)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:30</span><span class="pm-log-txt gold">➡ Enviando para Juliana Rocha (5543992334455)</span></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- Stats animados + logos esteira -->
