@@ -769,7 +769,17 @@ function verificarLimite(userId) {
     return { ok: true, restantes: plano.limiteEnviosDia };
   }
   const restantes = plano.limiteEnviosDia - (user.enviosHoje || 0);
-  if (restantes <= 0) return { ok: false, erro: `Limite do plano ${plano.nome} atingido (${plano.limiteEnviosDia}/dia). Seus contatos restantes serão enviados amanhã.` };
+  if (restantes <= 0) {
+    const podeUpgrade = user.plano === "basico" || user.plano === "premium";
+    return {
+      ok: false,
+      erro: `Limite do plano ${plano.nome} atingido (${plano.limiteEnviosDia}/dia). Seus contatos restantes serão enviados amanhã.`,
+      limiteAtingido: true,
+      podeUpgrade,
+      planoAtual: user.plano,
+      limiteEnviosDia: plano.limiteEnviosDia
+    };
+  }
   return { ok: true, restantes };
 }
 function contarEnvio(userId, quantidade) {
@@ -890,6 +900,9 @@ app.post("/api/agendamentos/:id/disparar", authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/config", authMiddleware, (req, res) => {
+  res.json(lerUser(req.userId, "chatmove.config.json", {}));
+});
 app.post("/api/config", authMiddleware, (req, res) => {
   salvarUser(req.userId, "chatmove.config.json", req.body);
   res.json({ ok: true });
@@ -934,7 +947,10 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
   if (testes[uid])    return res.status(400).json({ erro: "Aguarde o teste finalizar" });
 
   const limite = verificarLimite(uid);
-  if (!limite.ok) return res.status(403).json({ erro: limite.erro });
+  if (!limite.ok) {
+    const { erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia } = limite;
+    return res.status(403).json({ erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia });
+  }
 
   const { nomeCampanha, contaId } = req.body;
   campanhas[uid] = { enviados: [], erros: [], pulados: [], total: 0, nome: nomeCampanha||"Campanha", contaId };
@@ -1281,6 +1297,7 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
         dataEnvio: iniciadoEm.toISOString(), enviados: camp.enviados.length, falhas: camp.erros.length, total: camp.total });
       salvarUser(uid, "historico.json", hist.slice(0, 100));
     }
+    try { fs.unlinkSync(userFile(uid, "progress.json")); } catch(_) {}
     broadcastUser(uid, { tipo: "concluido", codigo: code });
     broadcastUser(uid, { tipo: "log", nivel: code===0?"ok":"warn", msg: code===0?"✅ Concluído!":"⚠️ Encerrado" });
   });
@@ -1297,6 +1314,8 @@ function processarEvento(uid, ev) {
 // ── AGENDADOR ─────────────────────────────────────────────────────────────────
 function dispararAgendamento(uid, ag) {
   if (processos[uid]) return { ok: false, erro: "Disparo em andamento" };
+  const limite = verificarLimite(uid);
+  if (!limite.ok) return { ok: false, erro: limite.erro };
   if (ag.tipo === "once") {
     const all = lerUser(uid, "agendamentos.json", []);
     const i = all.findIndex(a => a.id === ag.id);
@@ -1310,7 +1329,19 @@ function dispararAgendamento(uid, ag) {
   const conta = ag.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === ag.contaId) : null;
   const authDir = path.join(userDir(uid), conta ? ".wwebjs_auth_" + conta.id : ".wwebjs_auth");
   campanhas[uid] = { enviados: [], erros: [], pulados: [], total: 0, nome: ag.nome, contaId: ag.contaId };
-  processos[uid] = spawn("node", [path.join(ROOT, "disparador2.js")], { cwd: ROOT, env: { ...process.env, AUTH_DIR_OVERRIDE: authDir, ARQUIVO_LISTA_OVERRIDE: userFile(uid, "clientes.csv"), CONFIG_OVERRIDE: userFile(uid, "chatmove.config.json"), BLACKLIST_FILE: userFile(uid, "blacklist.json") } });
+  processos[uid] = spawn("node", [path.join(ROOT, "disparador2.js")], {
+    cwd: ROOT,
+    env: {
+      ...process.env,
+      AUTH_DIR_OVERRIDE:       authDir,
+      ARQUIVO_LISTA_OVERRIDE:  userFile(uid, "clientes.csv"),
+      CONFIG_OVERRIDE:         userFile(uid, "chatmove.config.json"),
+      BLACKLIST_FILE:          userFile(uid, "blacklist.json"),
+      IMAGENS_DIR:             path.join(userDir(uid), "imagens"),
+      PROGRESS_FILE_OVERRIDE:  userFile(uid, "progress.json"),
+      LIMITE_ENVIOS_DIA:       String(limite.restantes)
+    }
+  });
   iniciarHandlers(uid, processos[uid], new Date());
   return { ok: true };
 }

@@ -1344,8 +1344,15 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
           <label class="sw"><input type="checkbox" id="swMedia" checked onchange="toggleMedia()"><span class="sw-trk"></span></label>
         </div>
         <div class="trow" id="captRow">
-          <div><div class="t-lbl">Modo Caption</div><div class="t-sub">Texto como legenda da mídia</div></div>
-          <label class="sw"><input type="checkbox" id="swCaption" checked><span class="sw-trk"></span></label>
+          <div style="flex:1;min-width:0"><div class="t-lbl">Modo Caption <span id="captBadge" style="display:inline-block;background:rgba(48,209,88,.12);border:1px solid rgba(48,209,88,.25);color:var(--green);font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px;letter-spacing:.05em">RECOMENDADO</span></div><div class="t-sub" id="captSub"><strong>1 mensagem por contato</strong> · texto vai como legenda da imagem/PDF</div></div>
+          <label class="sw"><input type="checkbox" id="swCaption" checked onchange="atualizarAvisoCaption()"><span class="sw-trk"></span></label>
+        </div>
+        <div id="avisoCaption" style="display:none;margin-top:10px;padding:14px 16px;background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.3);border-radius:11px;font-size:12px;line-height:1.55;color:var(--text2)">
+          <div style="font-weight:800;color:#ff9f0a;margin-bottom:8px;font-size:13px">⚠️ Modo Caption desligado: envia 2 mensagens por contato</div>
+          Quando o caption está <strong>desligado</strong>, o sistema envia a imagem/PDF e o texto em <strong>mensagens separadas</strong>, ou seja, cada contato recebe <strong>2 mensagens</strong> no WhatsApp em vez de 1.
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);border-radius:8px">
+            <strong style="color:var(--red)">Risco de ban aumenta:</strong> o volume real de mensagens dobra. As pausas anti-ban continuam, mas são atingidas duas vezes mais rápido. Use só se a mídia realmente não combinar com o texto como legenda.
+          </div>
         </div>
       </div>
 
@@ -2119,6 +2126,36 @@ window.toggleMedia = function() {
   on = on && on.checked;
   var mc = document.getElementById('mediaCard'); if (mc) mc.style.display = on ? '' : 'none';
   var cr = document.getElementById('captRow');   if (cr) cr.style.display = on ? '' : 'none';
+  atualizarAvisoCaption();
+};
+window.atualizarAvisoCaption = function() {
+  var swMedia = document.getElementById('swMedia');
+  var swCap = document.getElementById('swCaption');
+  var aviso = document.getElementById('avisoCaption');
+  var sub = document.getElementById('captSub');
+  var badge = document.getElementById('captBadge');
+  if (!aviso) return;
+  var midiaOn = swMedia && swMedia.checked;
+  var capOn = swCap && swCap.checked;
+  aviso.style.display = (midiaOn && !capOn) ? 'block' : 'none';
+  if (sub) {
+    sub.innerHTML = capOn
+      ? '<strong>1 mensagem por contato</strong> · texto vai como legenda da imagem/PDF'
+      : '<strong style="color:#ff9f0a">2 mensagens por contato</strong> · imagem e texto são enviados separados';
+  }
+  if (badge) {
+    if (capOn) {
+      badge.textContent = 'RECOMENDADO';
+      badge.style.background = 'rgba(48,209,88,.12)';
+      badge.style.borderColor = 'rgba(48,209,88,.25)';
+      badge.style.color = 'var(--green)';
+    } else {
+      badge.textContent = '2× MENSAGENS';
+      badge.style.background = 'rgba(255,159,10,.12)';
+      badge.style.borderColor = 'rgba(255,159,10,.3)';
+      badge.style.color = '#ff9f0a';
+    }
+  }
 };
 window.swTab = function(id, btn) {
   // Escopo: limita a manipulação ao card que contém esse tabset (evita que uma
@@ -2177,19 +2214,59 @@ window.addManual  = function() {
 };
 window.delCt      = function(i) { window._S.contacts.splice(i, 1); renderCt(); showStats(); sincronizarCSV(); };
 window.rv         = function(id, vid, suf) { var i = document.getElementById(id), v = document.getElementById(vid); if (i && v) v.textContent = i.value + suf; };
+
+// Carrega config salvo e popula mensagem, sliders e toggles
+window.carregarConfig = function() {
+  return authFetch('/api/config').then(function(cfg) {
+    if (!cfg || typeof cfg !== 'object') return;
+    // Backend armazena tempos em ms. Valores < 100 são de configs antigos (em segundos).
+    function msParaSeg(v, padrao) {
+      var n = Number(v);
+      if (!isFinite(n) || n <= 0) return padrao;
+      return n >= 100 ? Math.round(n / 1000) : Math.round(n);
+    }
+    function setSlider(id, vid, valor, suf) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.value = valor;
+      var dv = document.getElementById(vid);
+      if (dv) dv.textContent = valor + suf;
+    }
+    if (cfg.mensagem !== undefined) {
+      var ta = document.getElementById('msgTxt');
+      if (ta) ta.value = cfg.mensagem;
+    }
+    if (cfg.delayMin !== undefined)     setSlider('rMin',   'rvMin',   msParaSeg(cfg.delayMin, 2),     ' s');
+    if (cfg.delayMax !== undefined)     setSlider('rMax',   'rvMax',   msParaSeg(cfg.delayMax, 5),     ' s');
+    if (cfg.pausarACada !== undefined)  setSlider('rBatch', 'rvBatch', Math.max(1, parseInt(cfg.pausarACada, 10) || 40), ' msg');
+    if (cfg.duracaoPausa !== undefined) setSlider('rPause', 'rvPause', msParaSeg(cfg.duracaoPausa, 10), ' s');
+    if (cfg.enviarImagem !== undefined) {
+      var sm = document.getElementById('swMedia'); if (sm) sm.checked = !!cfg.enviarImagem;
+    }
+    if (cfg.modoCaption !== undefined) {
+      var sc = document.getElementById('swCaption'); if (sc) sc.checked = !!cfg.modoCaption;
+    }
+    if (typeof window.toggleMedia === 'function') window.toggleMedia();
+    if (typeof window.atualizarAvisoCaption === 'function') window.atualizarAvisoCaption();
+  }).catch(function(){});
+};
 window.salvarEIr  = function() {
   var p = Promise.resolve();
   if (window._S.mediaBase64 && window._S.mediaNome) p = post('/api/imagem', { nome: window._S.mediaNome, base64: window._S.mediaBase64 });
   p.then(function() {
+    var _int = function(id, def) {
+      var v = parseInt((document.getElementById(id) || {}).value, 10);
+      return (isNaN(v) || v <= 0) ? def : v;
+    };
     var cfg = {
       mensagem:    (document.getElementById('msgTxt') || {}).value || '',
       enviarImagem: !!(document.getElementById('swMedia') && document.getElementById('swMedia').checked && window._S.mediaBase64),
       modoCaption:  !!(document.getElementById('swCaption') && document.getElementById('swCaption').checked),
       imagemNome:  window._S.mediaNome || '',
-      delayMin:    (document.getElementById('rMin') || {}).value || 2,
-      delayMax:    (document.getElementById('rMax') || {}).value || 5,
-      pausarACada: (document.getElementById('rBatch') || {}).value || 40,
-      duracaoPausa:(document.getElementById('rPause') || {}).value || 10
+      delayMin:    _int('rMin', 2) * 1000,
+      delayMax:    _int('rMax', 5) * 1000,
+      pausarACada: _int('rBatch', 40),
+      duracaoPausa:_int('rPause', 10) * 1000
     };
     post('/api/config', cfg).then(function() { toast('Configurações salvas', 'ok'); window.goTo(6); });
   });
@@ -2458,6 +2535,17 @@ document.addEventListener('DOMContentLoaded', function() {
             div.innerHTML = '📅 <strong>Limite diário atingido.</strong> Os contatos restantes serão enviados automaticamente amanhã os que já receberam hoje serão pulados.';
             logBox.appendChild(div);
             logBox.scrollTop = logBox.scrollHeight;
+          }
+          // Se plano básico/premium, oferecer upgrade pra continuar disparando hoje
+          var plano = window._planoAtual || (window._authUser && window._authUser.plano);
+          if (plano === 'basico' || plano === 'premium') {
+            var proximoNome = plano === 'basico' ? 'Premium (500 envios/dia)' : 'Pro (1000 envios/dia)';
+            setTimeout(function(){
+              window.mostrarUpgrade(
+                'Limite diário atingido',
+                'Você usou os ' + d.enviados + ' envios do plano ' + plano.toUpperCase() + '. Faça upgrade para ' + proximoNome + ' e continue disparando hoje mesmo — sem esperar até amanhã.'
+              );
+            }, 800);
           }
         } else {
           toast('Concluído · ' + d.enviados + ' enviados · ' + d.erros + ' erros', 'ok');
@@ -2975,14 +3063,33 @@ window.iniciarDisparo = function() {
   if (!valid.length) { toast('Nenhum contato válido','erro'); return; }
   var nomeCampanha = (document.getElementById('nomeCampanha')||{}).value || ('Campanha ' + new Date().toLocaleDateString('pt-BR'));
   var contaId = getContaSelecionada('contaSelector') || null;
-  window._S.mon = {total:0,sent:0,fail:0,skip:0};
-  var er=document.getElementById('exportRow'); if(er) er.style.display='none';
-  var ca=document.getElementById('connArea');
-  if(ca) ca.innerHTML='<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">O Chrome abrirá automaticamente.</div></div>';
-  var mb=document.getElementById('monBtn'); if(mb) mb.style.display='block';
-  post('/api/iniciar',{nomeCampanha:nomeCampanha,contaId:contaId}).then(function(r){
-    if(r&&r.ok){ var rb=document.getElementById('runBadge'); if(rb) rb.style.display='block'; goTo(6); updateMon(); addLog('ok','Disparo: '+nomeCampanha+' · '+valid.length+' contatos'); }
-    else toast('Erro ao iniciar','erro');
+  authFetch('/api/contas').then(function(contas){
+    contas = contas || [];
+    var conectadas = contas.filter(function(c){ return c.conectado; });
+    if (!conectadas.length) { toast('Nenhuma conta conectada. Conecte um WhatsApp primeiro.','erro'); return; }
+    var conta = contaId ? contas.find(function(c){ return c.id===contaId; }) : conectadas[0];
+    if (!conta) { toast('Conta selecionada não encontrada','erro'); return; }
+    if (!conta.conectado) { toast('A conta "'+conta.nome+'" não está conectada.','erro'); return; }
+    var msg = 'Disparar usando a conta:\n\n📱 ' + conta.nome + (conta.numero ? ' (' + conta.numero + ')' : '') + '\n\n' + valid.length + ' contato(s) · campanha: ' + nomeCampanha + '\n\nConfirmar?';
+    if (!confirm(msg)) return;
+    window._S.mon = {total:0,sent:0,fail:0,skip:0};
+    var er=document.getElementById('exportRow'); if(er) er.style.display='none';
+    var ca=document.getElementById('connArea');
+    if(ca) ca.innerHTML='<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">O Chrome abrirá automaticamente.</div></div>';
+    var mb=document.getElementById('monBtn'); if(mb) mb.style.display='block';
+    post('/api/iniciar',{nomeCampanha:nomeCampanha,contaId:conta.id}).then(function(r){
+      if(r&&r.ok){ var rb=document.getElementById('runBadge'); if(rb) rb.style.display='block'; goTo(6); updateMon(); addLog('ok','Disparo: '+nomeCampanha+' · '+valid.length+' contatos · '+conta.nome); return; }
+      if (r && r.limiteAtingido && r.podeUpgrade) {
+        var nomePlano = (r.planoAtual||'').toUpperCase();
+        var proximoNome = r.planoAtual === 'basico' ? 'Premium (500 envios/dia)' : 'Pro (1000 envios/dia)';
+        window.mostrarUpgrade(
+          'Limite diário atingido',
+          'Você usou os ' + r.limiteEnviosDia + ' envios/dia do plano ' + nomePlano + '. Faça upgrade para ' + proximoNome + ' e continue disparando hoje mesmo.'
+        );
+        return;
+      }
+      toast(r && r.erro ? r.erro : 'Erro ao iniciar','erro');
+    });
   });
 };
 
@@ -3461,8 +3568,13 @@ window.carregarHome = function() {
 };
 
 // Carrega home ao abrir o painel
-if (document.readyState !== 'loading') setTimeout(function(){ if (localStorage.getItem('cm_token')) carregarHome(); }, 300);
-else document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if (localStorage.getItem('cm_token')) carregarHome(); }, 300); });
+function _bootPainel() {
+  if (!localStorage.getItem('cm_token')) return;
+  carregarHome();
+  if (typeof carregarConfig === 'function') carregarConfig();
+}
+if (document.readyState !== 'loading') setTimeout(_bootPainel, 300);
+else document.addEventListener('DOMContentLoaded', function(){ setTimeout(_bootPainel, 300); });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MOBILE SIDEBAR

@@ -35,10 +35,18 @@ const IMAGENS_DIR = process.env.IMAGENS_DIR || path.join(__dirname, "imagens");
 const IMAGEM_PATH = cfg.imagemNome
   ? path.join(IMAGENS_DIR, cfg.imagemNome)
   : path.join(IMAGENS_DIR, "sexta.jpg");
-const DELAY_MIN_MS = cfg.delayMin || 2000;
-const DELAY_MAX_MS = cfg.delayMax || 5000;
-const PAUSAR_A_CADA = cfg.pausarACada || 40;
-const DURACAO_PAUSA_MS = cfg.duracaoPausa || 10000;
+
+// Valores de tempo sempre em milissegundos. Se vier do config antigo (em segundos,
+// valores < 100), converte automaticamente pra ms. Protege contra string também.
+function normalizarMs(v, padrao) {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0) return padrao;
+  return n < 100 ? n * 1000 : n;
+}
+const DELAY_MIN_MS = normalizarMs(cfg.delayMin, 2000);
+const DELAY_MAX_MS = normalizarMs(cfg.delayMax, 5000);
+const PAUSAR_A_CADA = Math.max(1, parseInt(cfg.pausarACada, 10) || 40);
+const DURACAO_PAUSA_MS = normalizarMs(cfg.duracaoPausa, 10000);
 
 // ── Utilidades ───────────────────────────────────────────────────────────────
 function bootLog(msg) {
@@ -157,7 +165,7 @@ function validarMidiaAntes() {
 async function enviarComOuSemMidia(sock, jid, mensagem) {
   if (!ENVIAR_IMAGEM) {
     await sock.sendMessage(jid, { text: mensagem });
-    return;
+    return 1;
   }
   const buffer = fs.readFileSync(IMAGEM_PATH);
   const ext = path.extname(IMAGEM_PATH).toLowerCase();
@@ -165,20 +173,21 @@ async function enviarComOuSemMidia(sock, jid, mensagem) {
   if (isPdf) {
     if (MODO_CAPTION) {
       await sock.sendMessage(jid, { document: buffer, mimetype: "application/pdf", fileName: path.basename(IMAGEM_PATH), caption: mensagem });
-    } else {
-      await sock.sendMessage(jid, { document: buffer, mimetype: "application/pdf", fileName: path.basename(IMAGEM_PATH) });
-      await sleep(700);
-      await sock.sendMessage(jid, { text: mensagem });
+      return 1;
     }
-  } else {
-    if (MODO_CAPTION) {
-      await sock.sendMessage(jid, { image: buffer, caption: mensagem });
-    } else {
-      await sock.sendMessage(jid, { image: buffer });
-      await sleep(700);
-      await sock.sendMessage(jid, { text: mensagem });
-    }
+    await sock.sendMessage(jid, { document: buffer, mimetype: "application/pdf", fileName: path.basename(IMAGEM_PATH) });
+    await sleep(700);
+    await sock.sendMessage(jid, { text: mensagem });
+    return 2;
   }
+  if (MODO_CAPTION) {
+    await sock.sendMessage(jid, { image: buffer, caption: mensagem });
+    return 1;
+  }
+  await sock.sendMessage(jid, { image: buffer });
+  await sleep(700);
+  await sock.sendMessage(jid, { text: mensagem });
+  return 2;
 }
 
 // ── Campanha ─────────────────────────────────────────────────────────────────
@@ -213,7 +222,7 @@ async function enviarCampanha(sock) {
   emit("total", { count: totalReal });
   log(`📊 Total a enviar: ${totalReal}`);
 
-  let enviados = 0, invalidos = 0, pulados = 0;
+  let enviados = 0, invalidos = 0, pulados = 0, msgsReais = 0;
   const limiteHoje = LIMITE_DIA || Infinity;
 
   for (let i = startIndex; i < contatos.length; i++) {
@@ -251,16 +260,17 @@ async function enviarCampanha(sock) {
 
     try {
       log(`➡️ Enviando para ${contato.nome} (${jid})`);
-      await enviarComOuSemMidia(sock, jid, mensagem);
+      const nMsgs = await enviarComOuSemMidia(sock, jid, mensagem);
       enviados++;
+      msgsReais += nMsgs;
       progress.sent[numeroE164] = { nome: contato.nome, when: new Date().toISOString() };
       progress.lastIndex = i + 1;
       saveProgress(progressFile);
-      log(`✅ Enviado para ${contato.nome} (${numeroE164})`);
+      log(`✅ Enviado para ${contato.nome} (${numeroE164})${nMsgs>1?` [${nMsgs} msgs]`:""}`);
       emit("enviado", { nome: contato.nome, numero: numeroE164, totalEnviados: enviados });
 
-      if (PAUSAR_A_CADA > 0 && enviados % PAUSAR_A_CADA === 0) {
-        log(`⏸️ Pausa de ${Math.round(DURACAO_PAUSA_MS / 1000)}s`);
+      if (PAUSAR_A_CADA > 0 && Math.floor(msgsReais / PAUSAR_A_CADA) > Math.floor((msgsReais - nMsgs) / PAUSAR_A_CADA)) {
+        log(`⏸️ Pausa de ${Math.round(DURACAO_PAUSA_MS / 1000)}s (${msgsReais} msgs reais enviadas)`);
         await sleep(DURACAO_PAUSA_MS);
       } else {
         await sleep(delayHumano());
@@ -278,13 +288,14 @@ async function enviarCampanha(sock) {
             const msgAlt = MENSAGEM_TEMPLATE.replace("{nome}", contato.nome).replace("{telefone}", numAlt)
               .replace("{data}", new Date().toLocaleDateString("pt-BR"))
               .replace("{hora}", new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
-            await enviarComOuSemMidia(sock, jidAlt, msgAlt);
+            const nMsgs = await enviarComOuSemMidia(sock, jidAlt, msgAlt);
             enviados++;
+            msgsReais += nMsgs;
             progress.sent[numAlt] = { nome: contato.nome, when: new Date().toISOString() };
             progress.lastIndex = i + 1; saveProgress(progressFile);
-            log(`✅ Enviado via alternativo (${numAlt})`);
+            log(`✅ Enviado via alternativo (${numAlt})${nMsgs>1?` [${nMsgs} msgs]`:""}`);
             emit("enviado", { nome: contato.nome, numero: numAlt, totalEnviados: enviados });
-            if (PAUSAR_A_CADA > 0 && enviados % PAUSAR_A_CADA === 0) await sleep(DURACAO_PAUSA_MS);
+            if (PAUSAR_A_CADA > 0 && Math.floor(msgsReais / PAUSAR_A_CADA) > Math.floor((msgsReais - nMsgs) / PAUSAR_A_CADA)) await sleep(DURACAO_PAUSA_MS);
             else await sleep(delayHumano());
             continue;
           } catch (_) { log(`❌ Alternativo também falhou: ${numAlt}`); }
@@ -316,6 +327,7 @@ async function main() {
   log(`🧭 Node: ${process.version} | Plataforma: ${process.platform}`);
   log(`🧭 Auth: ${AUTH_DIR}`);
   log(`💬 Mensagem: ${MENSAGEM_TEMPLATE.slice(0, 60)}...`);
+  log(`⏱️ Delay entre envios: ${(DELAY_MIN_MS/1000).toFixed(1)}s – ${(DELAY_MAX_MS/1000).toFixed(1)}s | Pausa a cada ${PAUSAR_A_CADA} msgs por ${(DURACAO_PAUSA_MS/1000).toFixed(1)}s`);
 
   bootLog("Carregando Baileys");
   const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, fetchLatestWaWebVersion } = require("@whiskeysockets/baileys");
