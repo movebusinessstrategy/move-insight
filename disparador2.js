@@ -224,6 +224,8 @@ async function enviarCampanha(sock) {
 
   let enviados = 0, invalidos = 0, pulados = 0, msgsReais = 0;
   const limiteHoje = LIMITE_DIA || Infinity;
+  // Quantas mensagens reais cada contato consome (1 com caption, 2 sem)
+  const msgsPorContato = (ENVIAR_IMAGEM && !MODO_CAPTION) ? 2 : 1;
 
   for (let i = startIndex; i < contatos.length; i++) {
     const contato = contatos[i];
@@ -244,9 +246,11 @@ async function enviarCampanha(sock) {
       emit("pulado", { nome: contato.nome, numero: numeroE164, totalPulados: pulados });
       continue;
     }
-    if (enviados >= limiteHoje) {
-      log(`⏸️ Limite diário (${limiteHoje}) atingido.`);
-      emit("limite_atingido", { enviados, limite: limiteHoje });
+    // Limite agora conta mensagens reais, não contatos.
+    // Se o próximo contato não couber completo dentro do limite, para.
+    if (msgsReais + msgsPorContato > limiteHoje) {
+      log(`⏸️ Limite diário (${limiteHoje} msgs) atingido. ${msgsReais} msgs reais enviadas · ${enviados} contatos.`);
+      emit("limite_atingido", { enviados, msgsReais, limite: limiteHoje });
       break;
     }
 
@@ -267,7 +271,7 @@ async function enviarCampanha(sock) {
       progress.lastIndex = i + 1;
       saveProgress(progressFile);
       log(`✅ Enviado para ${contato.nome} (${numeroE164})${nMsgs>1?` [${nMsgs} msgs]`:""}`);
-      emit("enviado", { nome: contato.nome, numero: numeroE164, totalEnviados: enviados });
+      emit("enviado", { nome: contato.nome, numero: numeroE164, totalEnviados: enviados, totalMsgsReais: msgsReais });
 
       if (PAUSAR_A_CADA > 0 && Math.floor(msgsReais / PAUSAR_A_CADA) > Math.floor((msgsReais - nMsgs) / PAUSAR_A_CADA)) {
         log(`⏸️ Pausa de ${Math.round(DURACAO_PAUSA_MS / 1000)}s (${msgsReais} msgs reais enviadas)`);
@@ -294,7 +298,7 @@ async function enviarCampanha(sock) {
             progress.sent[numAlt] = { nome: contato.nome, when: new Date().toISOString() };
             progress.lastIndex = i + 1; saveProgress(progressFile);
             log(`✅ Enviado via alternativo (${numAlt})${nMsgs>1?` [${nMsgs} msgs]`:""}`);
-            emit("enviado", { nome: contato.nome, numero: numAlt, totalEnviados: enviados });
+            emit("enviado", { nome: contato.nome, numero: numAlt, totalEnviados: enviados, totalMsgsReais: msgsReais });
             if (PAUSAR_A_CADA > 0 && Math.floor(msgsReais / PAUSAR_A_CADA) > Math.floor((msgsReais - nMsgs) / PAUSAR_A_CADA)) await sleep(DURACAO_PAUSA_MS);
             else await sleep(delayHumano());
             continue;
@@ -310,9 +314,9 @@ async function enviarCampanha(sock) {
     }
   }
 
-  const limAting = enviados >= limiteHoje && limiteHoje !== Infinity;
-  log(`🏁 Finalizado. Enviados: ${enviados} | Inválidos: ${invalidos} | Pulados: ${pulados}${limAting ? " | LIMITE ATINGIDO" : ""}`);
-  emit("finalizado", { enviados, invalidos, pulados, limiteAtingido: limAting });
+  const limAting = (msgsReais + msgsPorContato > limiteHoje) && limiteHoje !== Infinity;
+  log(`🏁 Finalizado. Enviados: ${enviados} contatos (${msgsReais} msgs reais) | Inválidos: ${invalidos} | Pulados: ${pulados}${limAting ? " | LIMITE ATINGIDO" : ""}`);
+  emit("finalizado", { enviados, msgsReais, invalidos, pulados, limiteAtingido: limAting });
 }
 
 // ── Main (Baileys) ───────────────────────────────────────────────────────────

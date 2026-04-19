@@ -1312,7 +1312,10 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
     delete processos[uid];
     const camp = campanhas[uid] || {};
     if (camp.nome) {
-      contarEnvio(uid, camp.enviados.length);
+      // O limite diário conta mensagens reais (1 com caption, 2 sem). Se msgsReais
+      // não veio do worker (ex: kill antes do primeiro envio), cai no nº de contatos.
+      const consumoLimite = camp.msgsReais || camp.enviados.length;
+      contarEnvio(uid, consumoLimite);
       const hist = lerUser(uid, "historico.json", []);
       const conta = camp.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === camp.contaId) : null;
       const duracaoMin = Math.round((Date.now() - iniciadoEm.getTime()) / 60000);
@@ -1328,10 +1331,17 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
 function processarEvento(uid, ev) {
   const camp = campanhas[uid]; if (!camp) return;
   if (ev.tipo==="total")     { camp.total=ev.count; broadcastUser(uid,{tipo:"total",count:ev.count}); }
-  if (ev.tipo==="enviado")   { camp.enviados.push({nome:ev.nome,numero:ev.numero}); broadcastUser(uid,{tipo:"enviado",nome:ev.nome,numero:ev.numero,total:camp.enviados.length}); }
+  if (ev.tipo==="enviado")   {
+    camp.enviados.push({nome:ev.nome,numero:ev.numero});
+    if (typeof ev.totalMsgsReais === "number") camp.msgsReais = ev.totalMsgsReais;
+    broadcastUser(uid,{tipo:"enviado",nome:ev.nome,numero:ev.numero,total:camp.enviados.length});
+  }
   if (ev.tipo==="erro_envio"){ camp.erros.push({nome:ev.nome,numero:ev.numero,erro:ev.erro}); broadcastUser(uid,{tipo:"erro_envio",nome:ev.nome,numero:ev.numero,erro:ev.erro,total:camp.erros.length}); }
   if (ev.tipo==="pulado")    { camp.pulados.push({nome:ev.nome,numero:ev.numero}); broadcastUser(uid,{tipo:"pulado",nome:ev.nome,numero:ev.numero,total:camp.pulados?.length||0}); }
-  if (ev.tipo==="finalizado"){ broadcastUser(uid,{tipo:"finalizado",enviados:ev.enviados,erros:ev.invalidos,pulados:ev.pulados}); }
+  if (ev.tipo==="finalizado"){
+    if (typeof ev.msgsReais === "number") camp.msgsReais = ev.msgsReais;
+    broadcastUser(uid,{tipo:"finalizado",enviados:ev.enviados,erros:ev.invalidos,pulados:ev.pulados,limiteAtingido:ev.limiteAtingido});
+  }
 }
 
 // ── AGENDADOR ─────────────────────────────────────────────────────────────────

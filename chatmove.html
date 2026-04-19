@@ -1348,11 +1348,8 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
           <label class="sw"><input type="checkbox" id="swCaption" checked onchange="atualizarAvisoCaption()"><span class="sw-trk"></span></label>
         </div>
         <div id="avisoCaption" style="display:none;margin-top:10px;padding:14px 16px;background:rgba(255,159,10,.08);border:1px solid rgba(255,159,10,.3);border-radius:11px;font-size:12px;line-height:1.55;color:var(--text2)">
-          <div style="font-weight:800;color:#ff9f0a;margin-bottom:8px;font-size:13px">⚠️ Modo Caption desligado: envia 2 mensagens por contato</div>
-          Quando o caption está <strong>desligado</strong>, o sistema envia a imagem/PDF e o texto em <strong>mensagens separadas</strong>, ou seja, cada contato recebe <strong>2 mensagens</strong> no WhatsApp em vez de 1.
-          <div style="margin-top:10px;padding:10px 12px;background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);border-radius:8px">
-            <strong style="color:var(--red)">Risco de ban aumenta:</strong> o volume real de mensagens dobra. As pausas anti-ban continuam, mas são atingidas duas vezes mais rápido. Use só se a mídia realmente não combinar com o texto como legenda.
-          </div>
+          <div style="font-weight:800;color:#ff9f0a;margin-bottom:6px;font-size:13px">Modo Caption desligado: envia 2 mensagens por contato</div>
+          A imagem/PDF e o texto são enviados em <strong>mensagens separadas</strong>. Cada contato recebe 2 mensagens no WhatsApp e <strong>consome 2 do seu limite diário</strong>.
         </div>
       </div>
 
@@ -2141,7 +2138,7 @@ window.atualizarAvisoCaption = function() {
   if (sub) {
     sub.innerHTML = capOn
       ? '<strong>1 mensagem por contato</strong> · texto vai como legenda da imagem/PDF'
-      : '<strong style="color:#ff9f0a">2 mensagens por contato</strong> · imagem e texto são enviados separados';
+      : '<strong style="color:#ff9f0a">2 mensagens por contato</strong> · consome 2 do limite diário';
   }
   if (badge) {
     if (capOn) {
