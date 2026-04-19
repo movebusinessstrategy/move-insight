@@ -438,6 +438,13 @@ async function verAtividade(id, email){
   if(u.whatsapp) html += '<div style="'+box+'"><div style="'+cellLbl+'">WhatsApp</div><div style="'+cellVal+'">'+u.whatsapp+'</div></div>';
   if(r.trialFim) html += '<div style="'+box+'"><div style="'+cellLbl+'">Fim do trial</div><div style="'+cellVal+'">'+new Date(r.trialFim).toLocaleString('pt-BR')+'</div></div>';
   if(r.canceladoEm) html += '<div style="'+box+'"><div style="'+cellLbl+'">Cancelado em</div><div style="'+cellVal+';color:var(--red)">'+new Date(r.canceladoEm).toLocaleString('pt-BR')+'</div></div>';
+  // Aceite do termo de responsabilidade
+  var tr = u.termoResponsabilidade;
+  if (tr && tr.aceitoEm) {
+    html += '<div style="'+box+';grid-column:1/-1;border-color:rgba(48,209,88,.25);background:rgba(48,209,88,.04)"><div style="'+cellLbl+'">Termo de Responsabilidade (v'+(tr.versao||1)+')</div><div style="'+cellVal+'">aceito em '+new Date(tr.aceitoEm).toLocaleString('pt-BR')+' · IP '+(tr.ip||'—')+'</div>'+(tr.itens&&tr.itens.length?'<div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">Itens: '+tr.itens.join(', ')+'</div>':'')+'</div>';
+  } else {
+    html += '<div style="'+box+';grid-column:1/-1;border-color:rgba(255,159,10,.25);background:rgba(255,159,10,.04)"><div style="'+cellLbl+';color:#ff9f0a">Termo de Responsabilidade</div><div style="font-size:12px;color:var(--text2)">Ainda não aceito · usuário não consegue disparar</div></div>';
+  }
   html += '</div>';
 
   // Disparos com config usada

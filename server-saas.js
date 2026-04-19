@@ -40,6 +40,9 @@ function hashNumero(numero) {
 }
 // Guarda entry de auditoria; purga > 90 dias na gravação
 const AUDIT_RETENCAO_DIAS = 90;
+// Versão do Termo de Responsabilidade do Uso. Incrementar quando o texto mudar,
+// forçando novo aceite dos usuários existentes.
+const TERMO_USO_VERSAO = 1;
 function salvarAuditoria(userId, entry) {
   const lista = lerUser(userId, "audit.json", []);
   lista.unshift(entry);
@@ -349,7 +352,30 @@ app.get("/api/config/public", (req, res) => {
 
 app.get("/api/auth/me", authMiddleware, (req, res) => {
   const { senha, ...safe } = req.user;
-  res.json({ ...safe, plano_info: PLANOS[req.user.plano] || PLANOS.owner });
+  res.json({
+    ...safe,
+    plano_info: PLANOS[req.user.plano] || PLANOS.owner,
+    termoUsoVersaoAtual: TERMO_USO_VERSAO,
+    termoUsoPendente: !req.user.admin && (!req.user.termoResponsabilidade || req.user.termoResponsabilidade.versao < TERMO_USO_VERSAO)
+  });
+});
+
+// Aceite explícito do Termo de Responsabilidade do Uso. Registra com IP/UA/timestamp.
+app.post("/api/user/aceitar-termo-uso", authMiddleware, (req, res) => {
+  const ip = getClientIp(req);
+  const ua = getClientUa(req);
+  const agora = new Date().toISOString();
+  const aceite = { aceitoEm: agora, ip, ua, versao: TERMO_USO_VERSAO, itens: Array.isArray(req.body?.itens) ? req.body.itens : [] };
+  atualizarUsuario(req.userId, { termoResponsabilidade: aceite });
+  salvarAuditoria(req.userId, {
+    id: "aud_" + Date.now(),
+    tipo: "termo_uso_aceito",
+    em: agora, iniciadoEm: agora,
+    ip, ua,
+    versaoTermo: TERMO_USO_VERSAO,
+    itens: aceite.itens
+  });
+  res.json({ ok: true, aceitoEm: agora, versao: TERMO_USO_VERSAO });
 });
 
 // Encerra worker de conexão e dispatcher do usuário ao sair
@@ -1011,6 +1037,18 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
   const uid = req.userId;
   if (processos[uid]) return res.status(400).json({ erro: "Disparo em andamento" });
   if (testes[uid])    return res.status(400).json({ erro: "Aguarde o teste finalizar" });
+
+  // Gate: precisa ter aceito o Termo de Responsabilidade do Uso na versão atual
+  if (!req.user.admin) {
+    const tr = req.user.termoResponsabilidade;
+    if (!tr || !tr.aceitoEm || (tr.versao || 0) < TERMO_USO_VERSAO) {
+      return res.status(403).json({
+        erro: "Você precisa aceitar o Termo de Responsabilidade do Uso antes de disparar.",
+        termoPendente: true,
+        versaoAtual: TERMO_USO_VERSAO
+      });
+    }
+  }
 
   const limite = verificarLimite(uid);
   if (!limite.ok) {

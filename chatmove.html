@@ -896,6 +896,21 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   padding: 24px; opacity: 0; pointer-events: none;
   transition: opacity 200ms ease;
 }
+/* Checkbox do termo de uso: linha com check à esquerda e texto legível */
+.t-check {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:12px 14px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:10px;
+  cursor:pointer; transition:all .2s;
+  font-size:12.5px; line-height:1.55; color:var(--text2);
+}
+.t-check:hover { border-color:var(--border2); background:var(--surface3); }
+.t-check input[type="checkbox"] {
+  flex-shrink:0; margin-top:2px; width:17px; height:17px;
+  accent-color:var(--gold); cursor:pointer;
+}
+.t-check input[type="checkbox"]:checked + span { color:var(--text); }
+.t-check strong { color:var(--text); font-weight:600; }
 .upgrade-overlay.open { opacity: 1; pointer-events: all; }
 .upgrade-card {
   background: var(--surface); border: 1px solid rgba(198,169,107,.3);
@@ -1032,6 +1047,58 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
       <a href="/registro?plano=pro&upgrade=1" class="btn-upgrade gold">Fazer upgrade para Pro</a>
       <button class="btn-upgrade ghost" onclick="fecharUpgrade()">Continuar no Básico</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL TERMO DE RESPONSABILIDADE DE USO (bloqueia disparo até aceitar) -->
+<div id="termoOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);z-index:600;padding:24px;overflow-y:auto" role="dialog" aria-labelledby="termoTitle" aria-modal="true">
+  <div style="max-width:640px;margin:40px auto;background:var(--surface);border:1px solid rgba(255,159,10,.3);border-radius:18px;padding:32px 32px 28px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      <div style="flex-shrink:0;width:48px;height:48px;border-radius:13px;background:rgba(255,159,10,.14);border:1px solid rgba(255,159,10,.3);display:flex;align-items:center;justify-content:center;color:#ff9f0a">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.14em;text-transform:uppercase">Leia antes do primeiro disparo</div>
+        <div id="termoTitle" style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--text);margin-top:2px">Termo de Responsabilidade do Uso</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;line-height:1.65;color:var(--text2);margin:0 0 16px">O ChatMOVE é uma ferramenta de disparo que reduz riscos com intervalos variáveis e pausas inteligentes, mas <strong style="color:var(--text)">não garante que seu WhatsApp não será bloqueado</strong>. A Meta proíbe envio massivo em números pessoais e pode bloquear a qualquer momento. Antes de disparar, você confirma que:</p>
+
+    <div id="termoChecks" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      <label class="t-check">
+        <input type="checkbox" data-item="business">
+        <span><strong>Usarei preferencialmente WhatsApp Business.</strong> Entendo que o Business tem mais tolerância para envios em volume do que o WhatsApp pessoal.</span>
+      </label>
+      <label class="t-check">
+        <input type="checkbox" data-item="sem_restricao">
+        <span><strong>O número conectado nunca foi bloqueado, restringido ou recebeu aviso da Meta.</strong> Não vou conectar chips que já sofreram qualquer restrição.</span>
+      </label>
+      <label class="t-check">
+        <input type="checkbox" data-item="chip_maduro">
+        <span><strong>O número tem histórico de uso.</strong> Não é um chip novo (recém-comprado) sem conversas orgânicas anteriores.</span>
+      </label>
+      <label class="t-check">
+        <input type="checkbox" data-item="lista_propria">
+        <span><strong>A lista de contatos é minha e os clientes me conhecem.</strong> Não vou disparar pra lista comprada, pra números aleatórios ou pra quem nunca interagiu com o meu negócio.</span>
+      </label>
+      <label class="t-check">
+        <input type="checkbox" data-item="risco">
+        <span><strong>Aceito o risco de bloqueio.</strong> Em caso de bloqueio ou restrição, entendo que a responsabilidade é minha e que o ChatMOVE não reembolsa por chips banidos.</span>
+      </label>
+      <label class="t-check">
+        <input type="checkbox" data-item="lgpd">
+        <span><strong>Respeito a LGPD.</strong> Os contatos da minha lista deram consentimento pra receber mensagens minhas.</span>
+      </label>
+    </div>
+
+    <div style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:18px;font-size:11px;color:var(--text3);line-height:1.5">
+      Ao clicar em "Li e aceito", seu aceite ficará registrado com <strong style="color:var(--text2)">data, hora, IP e dispositivo</strong> pra fins de auditoria. Você pode reler este termo a qualquer momento em <a href="/termos" target="_blank" style="color:var(--gold)">/termos</a>.
+    </div>
+
+    <button class="btn btn-gold" id="termoAceitarBtn" onclick="aceitarTermoUso()" disabled style="opacity:.5;cursor:not-allowed">
+      Marque todos os itens pra continuar
+    </button>
   </div>
 </div>
 
@@ -1805,6 +1872,26 @@ Carlos Mendes,5543900001003" style="min-height:160px;font-size:12px;font-family:
         <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
         <div class="ph-text"><div class="ph-title">Contas</div><div class="ph-desc">Gerencie os números conectados.</div></div>
       </div>
+
+      <!-- Banner de regras de uso: aviso persistente sobre que tipo de número conectar -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(255,159,10,.08),rgba(255,159,10,.02));border-color:rgba(255,159,10,.25)">
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <div style="flex-shrink:0;width:40px;height:40px;border-radius:11px;background:rgba(255,159,10,.14);border:1px solid rgba(255,159,10,.28);display:flex;align-items:center;justify-content:center;color:#ff9f0a">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800;color:#ff9f0a;letter-spacing:-.01em;margin-bottom:6px">Antes de conectar um WhatsApp, leia:</div>
+            <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:1.5;color:var(--text2)">
+              <li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span>Prefira <strong>WhatsApp Business</strong>. Ele tem mais tolerância para envios em volume.</span></li>
+              <li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--red);font-weight:800;flex-shrink:0">✕</span><span><strong>Não conecte números que já foram bloqueados</strong> pela Meta no passado (mesmo que tenham sido desbloqueados depois).</span></li>
+              <li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--red);font-weight:800;flex-shrink:0">✕</span><span><strong>Não conecte chips novos sem histórico</strong> (1-2 semanas de uso). Disparo em chip novo tem alta chance de ban imediato.</span></li>
+              <li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--red);font-weight:800;flex-shrink:0">✕</span><span>Não use números que <strong>tiveram alguma restrição ou aviso</strong> da Meta recentemente.</span></li>
+              <li style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--text3);font-weight:800;flex-shrink:0">•</span><span>Comece devagar: dispare pra grupos menores no primeiro dia e vá escalando.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-hd"><div class="card-dot"></div><div class="card-title">Nova conta</div></div>
         <div class="add-row">
@@ -3042,11 +3129,84 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ── Termo de Responsabilidade do Uso: gate, modal e aceite ───────────────────
+window._termoPendingCallback = null;
+
+// Abre modal, libera botão só quando todos os checks estiverem marcados.
+window.abrirModalTermoUso = function(onAceito) {
+  window._termoPendingCallback = onAceito || null;
+  var ov = document.getElementById('termoOverlay');
+  if (!ov) { onAceito && onAceito(); return; }
+  // Reset dos checkboxes
+  ov.querySelectorAll('input[type="checkbox"]').forEach(function(c){ c.checked = false; });
+  var btn = document.getElementById('termoAceitarBtn');
+  btn.disabled = true; btn.style.opacity='.5'; btn.style.cursor='not-allowed';
+  btn.textContent = 'Marque todos os itens pra continuar';
+  // Listener pra habilitar/desabilitar o botão
+  var checks = ov.querySelectorAll('input[type="checkbox"]');
+  function atualizar(){
+    var todos = Array.prototype.every.call(checks, function(c){ return c.checked; });
+    btn.disabled = !todos;
+    btn.style.opacity = todos ? '1' : '.5';
+    btn.style.cursor = todos ? 'pointer' : 'not-allowed';
+    btn.textContent = todos ? 'Li e aceito · continuar pro disparo' : 'Marque todos os itens pra continuar';
+  }
+  checks.forEach(function(c){ c.onchange = atualizar; });
+  ov.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+};
+
+window.fecharModalTermoUso = function(){
+  var ov = document.getElementById('termoOverlay');
+  if (ov) ov.style.display = 'none';
+  document.body.style.overflow = '';
+  window._termoPendingCallback = null;
+};
+
+window.aceitarTermoUso = function() {
+  var ov = document.getElementById('termoOverlay');
+  var checks = ov.querySelectorAll('input[type="checkbox"]:checked');
+  if (checks.length < ov.querySelectorAll('input[type="checkbox"]').length) {
+    toast('Marque todos os itens pra continuar','erro'); return;
+  }
+  var itens = Array.prototype.map.call(checks, function(c){ return c.dataset.item; });
+  var btn = document.getElementById('termoAceitarBtn');
+  btn.disabled = true; btn.textContent = 'Registrando aceite...';
+  post('/api/user/aceitar-termo-uso', { itens: itens }).then(function(r){
+    if (r && r.ok) {
+      if (window._authUser) window._authUser.termoResponsabilidade = { aceitoEm: r.aceitoEm, versao: r.versao };
+      window._authUser && (window._authUser.termoUsoPendente = false);
+      var cb = window._termoPendingCallback;
+      fecharModalTermoUso();
+      toast('Termo aceito com sucesso','ok');
+      if (typeof cb === 'function') setTimeout(cb, 150);
+    } else {
+      btn.disabled = false; btn.textContent = 'Li e aceito · continuar pro disparo';
+      toast('Erro ao registrar aceite','erro');
+    }
+  });
+};
+
+// Fecha modal com Esc (mas não nega o gate — só fecha a UI)
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') {
+    var ov = document.getElementById('termoOverlay');
+    if (ov && ov.style.display === 'block') fecharModalTermoUso();
+  }
+});
+
 // ── Override iniciarDisparo com nome + conta ──────────────────────────────────
 var _initOrig = window.iniciarDisparo;
 window.iniciarDisparo = function() {
   var valid = window._S.contacts.filter(function(c){ return c.st==='ok'; });
   if (!valid.length) { toast('Nenhum contato válido','erro'); return; }
+
+  // Gate: se termo de uso não foi aceito, abre modal e retorna o fluxo de disparo depois
+  if (window._authUser && window._authUser.termoUsoPendente) {
+    window.abrirModalTermoUso(function(){ window.iniciarDisparo(); });
+    return;
+  }
+
   var nomeCampanha = (document.getElementById('nomeCampanha')||{}).value || ('Campanha ' + new Date().toLocaleDateString('pt-BR'));
   var contaId = getContaSelecionada('contaSelector') || null;
   authFetch('/api/contas').then(function(contas){
@@ -3065,6 +3225,12 @@ window.iniciarDisparo = function() {
     var mb=document.getElementById('monBtn'); if(mb) mb.style.display='block';
     post('/api/iniciar',{nomeCampanha:nomeCampanha,contaId:conta.id}).then(function(r){
       if(r&&r.ok){ var rb=document.getElementById('runBadge'); if(rb) rb.style.display='block'; goTo(6); updateMon(); addLog('ok','Disparo: '+nomeCampanha+' · '+valid.length+' contatos · '+conta.nome); return; }
+      // Backend disse que o termo tá pendente (fallback se o estado local estiver desatualizado)
+      if (r && r.termoPendente) {
+        if (window._authUser) window._authUser.termoUsoPendente = true;
+        window.abrirModalTermoUso(function(){ window.iniciarDisparo(); });
+        return;
+      }
       if (r && r.limiteAtingido && r.podeUpgrade) {
         var nomePlano = (r.planoAtual||'').toUpperCase();
         var proximoNome = r.planoAtual === 'basico' ? 'Premium (500 envios/dia)' : 'Pro (1000 envios/dia)';
