@@ -19,7 +19,34 @@ const ROOT   = __dirname;
 const DATA   = path.join(ROOT, "data"); // pasta raiz de dados por usuário
 if (!fs.existsSync(DATA)) fs.mkdirSync(DATA, { recursive: true });
 
+// Confia em 1 nível de proxy (Nginx) pra que req.ip devolva o IP real do cliente
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "50mb" }));
+
+// ── Helpers de auditoria ─────────────────────────────────────────────────────
+function getClientIp(req) {
+  return (req.headers["x-forwarded-for"] || "").split(",")[0].trim()
+      || req.ip
+      || req.connection?.remoteAddress
+      || "?";
+}
+function getClientUa(req) {
+  return String(req.headers["user-agent"] || "?").slice(0, 220);
+}
+// Hash SHA-256 truncado a 16 chars do número E.164 (pra log de destinatários sem guardar raw)
+function hashNumero(numero) {
+  return crypto.createHash("sha256").update(String(numero)).digest("hex").slice(0, 16);
+}
+// Guarda entry de auditoria; purga > 90 dias na gravação
+const AUDIT_RETENCAO_DIAS = 90;
+function salvarAuditoria(userId, entry) {
+  const lista = lerUser(userId, "audit.json", []);
+  lista.unshift(entry);
+  const corte = Date.now() - AUDIT_RETENCAO_DIAS * 86400000;
+  const filtrada = lista.filter(a => new Date(a.iniciadoEm || a.em || 0).getTime() >= corte);
+  salvarUser(userId, "audit.json", filtrada);
+}
 
 // ── URLs limpas ───────────────────────────────────────────────────────────────
 // Mapeia rotas amigáveis para os arquivos HTML
@@ -281,18 +308,24 @@ app.post("/api/auth/registro", (req, res) => {
   if (!v.ok) return res.status(400).json({ erro: v.erro });
 
   const id = "u_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+  const ip = getClientIp(req);
+  const ua = getClientUa(req);
+  const agora = new Date().toISOString();
   const user = {
     id, email: email.toLowerCase().trim(),
     senha: hashPassword(senha), plano, ciclo: cicloNorm, ativo: false,
-    admin: false, criadoEm: new Date().toISOString(),
+    admin: false, criadoEm: agora,
     enviosHoje: 0, ultimoEnvioData: null,
     assinaturaId: null, proximoVencimento: null,
     cadastroCompleto: true,
+    registroIp: ip, registroUa: ua,
+    ultimoLoginIp: ip, ultimoLoginUa: ua, ultimoLoginEm: agora,
     ...v.dados
   };
   const users = lerUsuarios();
   users.push(user);
   salvarUsuarios(users);
+  salvarAuditoria(id, { id:"aud_"+Date.now(), tipo:"registro", em:agora, ip, ua, iniciadoEm:agora });
   res.json({ ok: true, userId: id, mensagem: "Conta criada. Finalize o pagamento para ativar." });
 });
 
@@ -302,6 +335,9 @@ app.post("/api/auth/login", (req, res) => {
   const user = lerUsuarioPorEmail(email);
   if (!user || user.senha !== hashPassword(senha)) return res.status(401).json({ erro: "E-mail ou senha incorretos" });
   if (!user.ativo && !user.admin) return res.status(403).json({ erro: "Conta pendente de pagamento", pendente: true });
+  const ip = getClientIp(req); const ua = getClientUa(req); const agora = new Date().toISOString();
+  atualizarUsuario(user.id, { ultimoLoginIp: ip, ultimoLoginUa: ua, ultimoLoginEm: agora });
+  salvarAuditoria(user.id, { id:"aud_"+Date.now(), tipo:"login", em:agora, ip, ua, iniciadoEm:agora });
   const token = jwtSign({ userId: user.id, exp: Date.now() + 30 * 24 * 60 * 60 * 1000 });
   res.json({ ok: true, token, user: { id: user.id, nome: user.nome, email: user.email, plano: user.plano, admin: user.admin } });
 });
@@ -354,9 +390,13 @@ app.post("/api/auth/google", async (req, res) => {
   const googleId = payload.sub;
   const nomeGoogle = payload.name || payload.given_name || email.split("@")[0];
 
+  const ip = getClientIp(req); const ua = getClientUa(req); const agora = new Date().toISOString();
   let user = lerUsuarioPorEmail(email);
   if (user) {
-    if (!user.googleId) atualizarUsuario(user.id, { googleId });
+    const patch = { ultimoLoginIp: ip, ultimoLoginUa: ua, ultimoLoginEm: agora };
+    if (!user.googleId) patch.googleId = googleId;
+    atualizarUsuario(user.id, patch);
+    salvarAuditoria(user.id, { id:"aud_"+Date.now(), tipo:"login_google", em:agora, ip, ua, iniciadoEm:agora });
     if (!user.ativo && !user.admin) return res.status(403).json({ erro: "Conta pendente de pagamento", pendente: true });
     const token = jwtSign({ userId: user.id, exp: Date.now() + 30 * 24 * 60 * 60 * 1000 });
     return res.json({ ok: true, token, user: { id: user.id, nome: user.nome, email: user.email, plano: user.plano, admin: user.admin }, cadastroCompleto: user.cadastroCompleto !== false });
@@ -369,11 +409,14 @@ app.post("/api/auth/google", async (req, res) => {
   user = {
     id, email, nome: nomeGoogle, googleId,
     senha: null, plano, ciclo: cicloNorm, ativo: false,
-    admin: false, criadoEm: new Date().toISOString(),
+    admin: false, criadoEm: agora,
     enviosHoje: 0, ultimoEnvioData: null,
     assinaturaId: null, proximoVencimento: null,
-    cadastroCompleto: false
+    cadastroCompleto: false,
+    registroIp: ip, registroUa: ua,
+    ultimoLoginIp: ip, ultimoLoginUa: ua, ultimoLoginEm: agora
   };
+  salvarAuditoria(id, { id:"aud_"+Date.now(), tipo:"registro_google", em:agora, ip, ua, iniciadoEm:agora });
   const users = lerUsuarios();
   users.push(user);
   salvarUsuarios(users);
@@ -976,9 +1019,20 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
   }
 
   const { nomeCampanha, contaId } = req.body;
-  campanhas[uid] = { enviados: [], erros: [], pulados: [], total: 0, nome: nomeCampanha||"Campanha", contaId };
-
   const cfg     = lerUser(uid, "chatmove.config.json", {});
+  campanhas[uid] = {
+    enviados: [], erros: [], pulados: [], total: 0,
+    nome: nomeCampanha||"Campanha", contaId,
+    // Snapshot pra auditoria: config no momento do disparo + contexto do usuário
+    configSnapshot: {
+      delayMin: cfg.delayMin, delayMax: cfg.delayMax,
+      pausarACada: cfg.pausarACada, duracaoPausa: cfg.duracaoPausa,
+      enviarImagem: cfg.enviarImagem, modoCaption: cfg.modoCaption,
+      mensagemTamanho: (cfg.mensagem || "").length
+    },
+    ip: getClientIp(req), ua: getClientUa(req),
+    planoAtivo: req.user.plano
+  };
   const conta   = contaId ? lerUser(uid, "contas.json", []).find(c => c.id === contaId) : null;
   const authDir = path.join(userDir(uid), conta ? ".wwebjs_auth_" + conta.id : ".wwebjs_auth");
 
@@ -1174,6 +1228,53 @@ app.delete("/api/admin/usuarios/:id", adminMiddleware, async (req, res) => {
   console.log(`🗑️  Usuário excluído · id=${id} email=${alvo.email}`);
   res.json({ ok: true });
 });
+// Auditoria detalhada de 1 usuário: registro + logins + disparos com configs/hashes
+app.get("/api/admin/usuarios/:id/auditoria", adminMiddleware, (req, res) => {
+  const user = lerUsuario(req.params.id);
+  if (!user) return res.status(404).json({ erro: "Usuário não encontrado" });
+  const { senha, ...safe } = user;
+  const audit = lerUser(req.params.id, "audit.json", []);
+  const hist = lerUser(req.params.id, "historico.json", []);
+  res.json({
+    usuario: safe,
+    registro: {
+      registroIp: user.registroIp || null, registroUa: user.registroUa || null,
+      ultimoLoginIp: user.ultimoLoginIp || null, ultimoLoginUa: user.ultimoLoginUa || null,
+      ultimoLoginEm: user.ultimoLoginEm || null,
+      ativadoEm: user.ativadoEm || null, canceladoEm: user.canceladoEm || null,
+      trialFim: user.trialFim || null, assinaturaStatus: user.assinaturaStatus || null
+    },
+    audit, historico: hist,
+    retencaoDias: AUDIT_RETENCAO_DIAS
+  });
+});
+
+// Painel geral de abuso: multi-contas por IP/CPF/email + cancelamentos em trial
+app.get("/api/admin/auditoria/geral", adminMiddleware, (req, res) => {
+  const users = lerUsuarios();
+  const porIpReg = {}, porIpLogin = {}, porCpf = {}, porEmailBase = {};
+  users.forEach(u => {
+    if (u.registroIp) (porIpReg[u.registroIp] = porIpReg[u.registroIp] || []).push(u.id);
+    if (u.ultimoLoginIp) (porIpLogin[u.ultimoLoginIp] = porIpLogin[u.ultimoLoginIp] || []).push(u.id);
+    if (u.cpf) (porCpf[u.cpf] = porCpf[u.cpf] || []).push(u.id);
+    // Base do email antes do "+": lucas+x@a.com -> lucas@a.com
+    if (u.email) {
+      const base = u.email.replace(/\+[^@]*@/, "@").toLowerCase();
+      (porEmailBase[base] = porEmailBase[base] || []).push(u.id);
+    }
+  });
+  const multiIpRegistro = Object.entries(porIpReg).filter(([,v]) => v.length > 1).map(([ip, ids]) => ({ ip, userIds: ids }));
+  const multiIpLogin = Object.entries(porIpLogin).filter(([,v]) => v.length > 1).map(([ip, ids]) => ({ ip, userIds: ids }));
+  const multiCpf = Object.entries(porCpf).filter(([,v]) => v.length > 1).map(([cpf, ids]) => ({ cpf, userIds: ids }));
+  const multiEmail = Object.entries(porEmailBase).filter(([,v]) => v.length > 1).map(([e, ids]) => ({ emailBase: e, userIds: ids }));
+  // Cancelados dentro de 7 dias (trial abuse)
+  const trialCancelados = users.filter(u => u.canceladoEm && u.ativadoEm &&
+    (new Date(u.canceladoEm) - new Date(u.ativadoEm)) < 8 * 86400000
+  ).map(u => ({ id: u.id, email: u.email, ativadoEm: u.ativadoEm, canceladoEm: u.canceladoEm,
+    diasAtivo: Math.round((new Date(u.canceladoEm) - new Date(u.ativadoEm)) / 86400000) }));
+  res.json({ multiIpRegistro, multiIpLogin, multiCpf, multiEmail, trialCancelados, totalUsuarios: users.length });
+});
+
 app.get("/api/admin/stats", adminMiddleware, (req, res) => {
   const users  = lerUsuarios();
   const ativos = users.filter(u => u.ativo);
@@ -1312,16 +1413,44 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
     delete processos[uid];
     const camp = campanhas[uid] || {};
     if (camp.nome) {
-      // O limite diário conta mensagens reais (1 com caption, 2 sem). Se msgsReais
-      // não veio do worker (ex: kill antes do primeiro envio), cai no nº de contatos.
       const consumoLimite = camp.msgsReais || camp.enviados.length;
       contarEnvio(uid, consumoLimite);
       const hist = lerUser(uid, "historico.json", []);
       const conta = camp.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === camp.contaId) : null;
-      const duracaoMin = Math.round((Date.now() - iniciadoEm.getTime()) / 60000);
-      hist.unshift({ id: "h_"+Date.now(), nome: camp.nome, conta: conta?.nome||"Padrão", contaId: camp.contaId,
+      const fimEm = new Date();
+      const duracaoSeg = Math.round((fimEm.getTime() - iniciadoEm.getTime()) / 1000);
+      const duracaoMin = Math.round(duracaoSeg / 60);
+      const histId = "h_" + Date.now();
+      hist.unshift({ id: histId, nome: camp.nome, conta: conta?.nome||"Padrão", contaId: camp.contaId,
         dataEnvio: iniciadoEm.toISOString(), enviados: camp.enviados.length, falhas: camp.erros.length, total: camp.total });
       salvarUser(uid, "historico.json", hist.slice(0, 100));
+
+      // ── AUDITORIA: entrada detalhada pra defesa jurídica / abuso ──
+      const msgsReais = camp.msgsReais || camp.enviados.length;
+      const intervaloMedioSeg = msgsReais > 1 ? +(duracaoSeg / msgsReais).toFixed(2) : null;
+      const hashDestinatarios = (camp.enviados || []).map(e => hashNumero(e.numero));
+      salvarAuditoria(uid, {
+        id: "aud_" + Date.now(),
+        tipo: "disparo",
+        campanhaId: histId,
+        nome: camp.nome,
+        iniciadoEm: iniciadoEm.toISOString(),
+        finalizadoEm: fimEm.toISOString(),
+        duracaoSeg, duracaoMin,
+        configUsada: camp.configSnapshot || null,
+        planoAtivo: camp.planoAtivo || null,
+        contaId: camp.contaId || null, contaNome: conta?.nome || "Padrão",
+        totalContatos: camp.total,
+        enviados: camp.enviados.length,
+        msgsReais,
+        falhas: camp.erros.length,
+        pulados: camp.pulados.length,
+        intervaloMedioSeg,
+        limiteDiarioPlano: (PLANOS[camp.planoAtivo] || {}).limiteEnviosDia || null,
+        encerramentoCodigo: code,
+        ip: camp.ip || null, ua: camp.ua || null,
+        hashDestinatarios
+      });
     }
     try { fs.unlinkSync(userFile(uid, "progress.json")); } catch(_) {}
     broadcastUser(uid, { tipo: "concluido", codigo: code });

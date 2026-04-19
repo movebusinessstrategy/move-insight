@@ -76,6 +76,9 @@ tbody tr:hover td{background:var(--gold-bg2)}
 .bx.inativo{color:var(--text3);border-color:var(--border2);background:rgba(255,255,255,.03)}
 .bx.premium{color:var(--gold);border-color:rgba(198,169,107,.22);background:var(--gold-bg)}
 .bx.basico{color:var(--text2);border-color:var(--border2)}
+.bx.pro{color:var(--gold);border-color:rgba(198,169,107,.35);background:var(--gold-bg)}
+.bx.owner{color:#111;border-color:var(--gold);background:var(--gold)}
+.bx.red{color:var(--red);border-color:rgba(199,61,50,.25);background:rgba(199,61,50,.08)}
 .act-row{display:flex;gap:5px}
 .act-btn{padding:4px 11px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);font-size:10px;font-family:inherit;font-weight:600;cursor:pointer;transition:all var(--ease)}
 .act-btn:hover{border-color:var(--gold2);color:var(--gold)}
@@ -131,6 +134,10 @@ tbody tr:hover td{background:var(--gold-bg2)}
       <a class="nav-item" href="#" onclick="goSec('usuarios',this);return false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Usuários
+      </a>
+      <a class="nav-item" href="#" onclick="goSec('auditoria',this);return false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        Auditoria
       </a>
     </nav>
     <div class="sb-foot">
@@ -190,7 +197,49 @@ tbody tr:hover td{background:var(--gold-bg2)}
         </table>
       </div>
     </div>
+
+    <!-- AUDITORIA: painel geral de abuso (multi-contas, cancelados em trial) -->
+    <div id="s-auditoria" class="sec">
+      <div class="page-hd">
+        <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div><div class="ph-title">Auditoria</div><div class="ph-desc">Detecção de abuso, multi-contas e retenção de logs (90 dias)</div></div>
+      </div>
+      <div class="stats-row" style="margin-bottom:18px">
+        <div class="stat-c"><div class="s-num" id="auTotal">...</div><div class="s-lbl">Usuários totais</div></div>
+        <div class="stat-c hi"><div class="s-num gold" id="auTrial">...</div><div class="s-lbl">Cancelados no trial</div></div>
+        <div class="stat-c"><div class="s-num red" id="auMultiIp">...</div><div class="s-lbl">IPs com múltiplas contas</div></div>
+        <div class="stat-c"><div class="s-num" id="auMultiCpf">...</div><div class="s-lbl">CPFs duplicados</div></div>
+      </div>
+      <div class="tbl-card" style="margin-bottom:16px">
+        <div class="tbl-top"><div class="tbl-title">Cancelamentos dentro do trial (7 dias)</div></div>
+        <table><thead><tr><th>E-mail</th><th>Ativado</th><th>Cancelado</th><th>Dias ativo</th><th></th></tr></thead><tbody id="auTrialTbody"></tbody></table>
+      </div>
+      <div class="tbl-card" style="margin-bottom:16px">
+        <div class="tbl-top"><div class="tbl-title">IPs com múltiplas contas (cadastro)</div></div>
+        <table><thead><tr><th>IP</th><th>Contas</th><th>E-mails</th></tr></thead><tbody id="auIpTbody"></tbody></table>
+      </div>
+      <div class="tbl-card" style="margin-bottom:16px">
+        <div class="tbl-top"><div class="tbl-title">CPFs duplicados</div></div>
+        <table><thead><tr><th>CPF</th><th>Contas</th></tr></thead><tbody id="auCpfTbody"></tbody></table>
+      </div>
+      <div class="tbl-card">
+        <div class="tbl-top"><div class="tbl-title">E-mails base duplicados (ex: lucas+1@x.com = lucas@x.com)</div></div>
+        <table><thead><tr><th>E-mail base</th><th>Contas</th></tr></thead><tbody id="auEmailTbody"></tbody></table>
+      </div>
+    </div>
+
   </main>
+</div>
+
+<!-- Modal de atividade do usuário -->
+<div id="modAtividade" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:500;padding:40px 20px;overflow-y:auto" onclick="if(event.target===this)fecharAtividade()">
+  <div style="max-width:820px;margin:0 auto;background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:0;box-shadow:var(--sh);overflow:hidden">
+    <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div><div style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.1em;text-transform:uppercase">Auditoria do usuário</div><div id="atvTitle" style="font-size:18px;font-weight:800;letter-spacing:-.02em">...</div></div>
+      <button onclick="fecharAtividade()" style="background:none;border:1px solid var(--border2);color:var(--text2);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px">×</button>
+    </div>
+    <div style="padding:20px 24px;max-height:70vh;overflow-y:auto" id="atvBody">Carregando...</div>
+  </div>
 </div>
 
 <script>
@@ -246,6 +295,7 @@ function render(){
         (u.ativo
           ?'<button class="act-btn danger" onclick="suspender(\''+u.id+'\')">Suspender</button>'
           :'<button class="act-btn" onclick="ativar(\''+u.id+'\')">Ativar</button>')+
+        '<button class="act-btn" onclick="verAtividade(\''+u.id+'\'\,\''+u.email.replace(/'/g,"\\'")+'\')">Atividade</button>'+
         '<button class="act-btn" onclick="trocarPlano(\''+u.id+'\'\,\''+u.plano+'\')">Plano</button>'+
         '<button class="act-btn danger" onclick="excluir(\''+u.id+'\'\,\''+u.email.replace(/'/g,"\\'")+'\')">Excluir</button>'+
       '</div></td></tr>';
@@ -303,8 +353,141 @@ function goSec(id,el){
   el.classList.add('active');
   if(id==='dashboard')loadStats();
   if(id==='usuarios')loadUsers();
+  if(id==='auditoria')loadAuditoria();
 }
 function sair(){localStorage.clear();window.location.href='/login';}
+
+// ─── AUDITORIA: painel geral de abuso ─────────────────────────────────────────
+async function loadAuditoria(){
+  var d = await api('/api/admin/auditoria/geral') || {};
+  document.getElementById('auTotal').textContent = d.totalUsuarios || 0;
+  document.getElementById('auTrial').textContent = (d.trialCancelados||[]).length;
+  document.getElementById('auMultiIp').textContent = (d.multiIpRegistro||[]).length;
+  document.getElementById('auMultiCpf').textContent = (d.multiCpf||[]).length;
+
+  var mapa = {};
+  (usuarios||[]).forEach(function(u){ mapa[u.id] = u; });
+
+  // Cancelados dentro de 7 dias
+  var trialTb = document.getElementById('auTrialTbody');
+  trialTb.innerHTML = (d.trialCancelados||[]).length
+    ? d.trialCancelados.map(function(t){
+        return '<tr><td style="font-size:12px">'+(t.email||t.id)+'</td>'+
+          '<td style="font-size:12px;color:var(--text3)">'+new Date(t.ativadoEm).toLocaleDateString('pt-BR')+'</td>'+
+          '<td style="font-size:12px;color:var(--text3)">'+new Date(t.canceladoEm).toLocaleDateString('pt-BR')+'</td>'+
+          '<td><span class="bx '+(t.diasAtivo<=7?'red':'ativo')+'">'+t.diasAtivo+' dias</span></td>'+
+          '<td><button class="act-btn" onclick="verAtividade(\''+t.id+'\'\,\''+(t.email||'').replace(/\'/g,"\\'")+'\')">Ver</button></td></tr>';
+      }).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Nenhum cancelamento em trial ainda.</td></tr>';
+
+  // Multi IP
+  var ipTb = document.getElementById('auIpTbody');
+  ipTb.innerHTML = (d.multiIpRegistro||[]).length
+    ? d.multiIpRegistro.map(function(row){
+        var emails = row.userIds.map(function(id){ return (mapa[id]||{}).email || id; }).join(', ');
+        return '<tr><td style="font-family:monospace;font-size:12px">'+row.ip+'</td>'+
+          '<td><span class="bx red">'+row.userIds.length+'</span></td>'+
+          '<td style="font-size:12px">'+emails+'</td></tr>';
+      }).join('')
+    : '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text3)">Nenhum IP suspeito.</td></tr>';
+
+  // CPFs
+  var cpfTb = document.getElementById('auCpfTbody');
+  cpfTb.innerHTML = (d.multiCpf||[]).length
+    ? d.multiCpf.map(function(row){
+        var emails = row.userIds.map(function(id){ return (mapa[id]||{}).email || id; }).join(', ');
+        return '<tr><td style="font-family:monospace;font-size:12px">'+row.cpf+'</td>'+
+          '<td style="font-size:12px">'+emails+' <span class="bx red" style="margin-left:6px">'+row.userIds.length+'×</span></td></tr>';
+      }).join('')
+    : '<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text3)">Nenhum CPF duplicado.</td></tr>';
+
+  // E-mails base
+  var emTb = document.getElementById('auEmailTbody');
+  emTb.innerHTML = (d.multiEmail||[]).length
+    ? d.multiEmail.map(function(row){
+        var emails = row.userIds.map(function(id){ return (mapa[id]||{}).email || id; }).join(', ');
+        return '<tr><td style="font-size:12px">'+row.emailBase+'</td>'+
+          '<td style="font-size:12px">'+emails+' <span class="bx red" style="margin-left:6px">'+row.userIds.length+'×</span></td></tr>';
+      }).join('')
+    : '<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text3)">Nenhum e-mail base duplicado.</td></tr>';
+}
+
+// ─── MODAL de atividade do usuário ────────────────────────────────────────────
+function fecharAtividade(){ document.getElementById('modAtividade').style.display='none'; }
+async function verAtividade(id, email){
+  document.getElementById('atvTitle').textContent = email;
+  document.getElementById('atvBody').innerHTML = 'Carregando...';
+  document.getElementById('modAtividade').style.display = 'block';
+  var d = await api('/api/admin/usuarios/'+id+'/auditoria');
+  if(!d || d.erro){ document.getElementById('atvBody').innerHTML = 'Erro: '+(d&&d.erro||'falha'); return; }
+  var u = d.usuario, r = d.registro, audit = d.audit||[], hist = d.historico||[];
+  var disparos = audit.filter(function(a){ return a.tipo==='disparo'; });
+  var logins = audit.filter(function(a){ return a.tipo&&a.tipo.indexOf('login')===0; }).slice(0,12);
+  var cellLbl = 'font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px';
+  var cellVal = 'font-size:13px;color:var(--text);font-family:monospace;word-break:break-all';
+  var box = 'padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px';
+  var html = '';
+
+  // Cartão: dados de registro
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">';
+  html += '<div style="'+box+'"><div style="'+cellLbl+'">Cadastrado em</div><div style="'+cellVal+'">'+new Date(u.criadoEm).toLocaleString('pt-BR')+'</div></div>';
+  html += '<div style="'+box+'"><div style="'+cellLbl+'">IP do registro</div><div style="'+cellVal+'">'+(r.registroIp||'—')+'</div></div>';
+  html += '<div style="'+box+'"><div style="'+cellLbl+'">Último login</div><div style="'+cellVal+'">'+(r.ultimoLoginEm?new Date(r.ultimoLoginEm).toLocaleString('pt-BR'):'—')+'</div></div>';
+  html += '<div style="'+box+'"><div style="'+cellLbl+'">IP do último login</div><div style="'+cellVal+'">'+(r.ultimoLoginIp||'—')+'</div></div>';
+  if(u.cpf) html += '<div style="'+box+'"><div style="'+cellLbl+'">CPF</div><div style="'+cellVal+'">'+u.cpf+'</div></div>';
+  if(u.whatsapp) html += '<div style="'+box+'"><div style="'+cellLbl+'">WhatsApp</div><div style="'+cellVal+'">'+u.whatsapp+'</div></div>';
+  if(r.trialFim) html += '<div style="'+box+'"><div style="'+cellLbl+'">Fim do trial</div><div style="'+cellVal+'">'+new Date(r.trialFim).toLocaleString('pt-BR')+'</div></div>';
+  if(r.canceladoEm) html += '<div style="'+box+'"><div style="'+cellLbl+'">Cancelado em</div><div style="'+cellVal+';color:var(--red)">'+new Date(r.canceladoEm).toLocaleString('pt-BR')+'</div></div>';
+  html += '</div>';
+
+  // Disparos com config usada
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">Disparos registrados · '+disparos.length+' <span style="font-size:10px;color:var(--text3);font-weight:500;margin-left:6px">(retenção '+d.retencaoDias+' dias)</span></div>';
+  if(!disparos.length){ html += '<div style="'+box+';text-align:center;color:var(--text3);margin-bottom:18px">Nenhum disparo nos últimos '+d.retencaoDias+' dias.</div>'; }
+  else {
+    html += '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px">';
+    disparos.forEach(function(a){
+      var cfg = a.configUsada || {};
+      var dMin = cfg.delayMin ? (cfg.delayMin/1000).toFixed(1)+'s' : '?';
+      var dMax = cfg.delayMax ? (cfg.delayMax/1000).toFixed(1)+'s' : '?';
+      var pausa = cfg.duracaoPausa ? (cfg.duracaoPausa/1000).toFixed(0)+'s a cada '+cfg.pausarACada+' msgs' : '—';
+      var intMed = a.intervaloMedioSeg != null ? a.intervaloMedioSeg+'s' : '—';
+      var durMin = a.duracaoMin != null ? a.duracaoMin+' min' : (a.duracaoSeg||'?')+'s';
+      html += '<div style="'+box+'">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;flex-wrap:wrap">' +
+          '<div><div style="font-weight:700;font-size:13px;color:var(--text)">'+a.nome+'</div>' +
+          '<div style="font-size:11px;color:var(--text3)">'+new Date(a.iniciadoEm).toLocaleString('pt-BR')+' · '+durMin+' · '+(a.contaNome||'conta padrão')+'</div></div>' +
+          '<span class="bx '+(a.planoAtivo||'basico')+'">'+(a.planoAtivo||'—')+' · limite '+(a.limiteDiarioPlano||'—')+'/dia</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px">' +
+          '<div><div style="'+cellLbl+';margin-bottom:2px">Contatos</div><div style="font-weight:700;font-size:14px">'+a.totalContatos+'</div></div>' +
+          '<div><div style="'+cellLbl+';margin-bottom:2px">Enviados</div><div style="font-weight:700;font-size:14px;color:var(--green)">'+a.enviados+'</div></div>' +
+          '<div><div style="'+cellLbl+';margin-bottom:2px">Msgs reais</div><div style="font-weight:700;font-size:14px">'+a.msgsReais+'</div></div>' +
+          '<div><div style="'+cellLbl+';margin-bottom:2px">Falhas</div><div style="font-weight:700;font-size:14px;color:var(--red)">'+a.falhas+'</div></div>' +
+          '<div><div style="'+cellLbl+';margin-bottom:2px">Intervalo médio</div><div style="font-weight:700;font-size:14px">'+intMed+'</div></div>' +
+          '<div><div style="'+cellLbl+';margin-bottom:2px">Delay configurado</div><div style="font-weight:700;font-size:14px">'+dMin+' – '+dMax+'</div></div>' +
+        '</div>' +
+        '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);line-height:1.5">' +
+          '<strong>Pausa anti-ban:</strong> '+pausa+' · <strong>Caption:</strong> '+(cfg.modoCaption?'ligado':'desligado')+' · <strong>IP:</strong> '+(a.ip||'—')+' · <strong>Hashes de destinatários:</strong> '+(a.hashDestinatarios||[]).length+
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  // Logins recentes
+  html += '<div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">Logins recentes · '+logins.length+'</div>';
+  if(!logins.length){ html += '<div style="'+box+';text-align:center;color:var(--text3)">Nenhum login registrado.</div>'; }
+  else {
+    html += '<div style="'+box+';font-size:12px;display:flex;flex-direction:column;gap:6px">';
+    logins.forEach(function(l){
+      html += '<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">'+new Date(l.em).toLocaleString('pt-BR')+' · '+l.tipo+'</span><span style="font-family:monospace;color:var(--text3)">'+(l.ip||'—')+'</span></div>';
+    });
+    html += '</div>';
+  }
+
+  document.getElementById('atvBody').innerHTML = html;
+}
+
 api('/api/auth/me').then(function(u){if(!u.admin){window.location.href='/painel';return;}loadStats();});
 </script>
 </body>
