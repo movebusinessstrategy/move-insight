@@ -603,9 +603,9 @@ footer a:hover { color:var(--text2); }
 
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-glow"></div>
-  <div class="hero-badge"><span class="badge-dot"></span>Plataforma profissional de disparo no WhatsApp</div>
-  <h1 id="hero-title">Disparador de WhatsApp<br>com <span class="accent">envio humanizado e escala</span></h1>
-  <p class="hero-desc">O ChatMOVE é a plataforma de <strong>disparo de WhatsApp em massa</strong> com simulação de comportamento humano. Intervalos variáveis, pausas naturais e ritmo controlado. Envie mensagens para milhares de contatos com listas segmentadas, agendamento automático e relatórios em tempo real, sem parecer automático e com menor risco de bloqueio.</p>
+  <div class="hero-badge"><span class="badge-dot"></span>Disparo nominal no WhatsApp para negócios locais</div>
+  <h1 id="hero-title">Dispare no WhatsApp<br>com o <span class="accent">nome de cada cliente</span></h1>
+  <p class="hero-desc">O ChatMOVE dispara mensagens em massa no WhatsApp com o <strong>nome de cada cliente da sua lista</strong>, como se você tivesse mandado uma a uma. Agendamento automático, pausas inteligentes que reduzem o risco de ban e relatório no fim da campanha. Feito pra pizzaria, lanchonete, restaurante e qualquer negócio que vende pelo zap.</p>
   <div class="hero-btns">
     <a href="#planos" class="btn-primary">Criar conta <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></a>
     <a href="#steps" class="btn-ghost-hero">Como funciona</a>
@@ -680,11 +680,11 @@ footer a:hover { color:var(--text2); }
       <!-- CARD 3: Vendas e faturamento subindo -->
       <div class="hs-card">
         <div class="hs-step"><span class="hs-step-num">3</span><span>Vendas sobem</span></div>
-        <div class="hs-title">Suas vendas reais</div>
+        <div class="hs-title">Terça-feira · 19h32</div>
 
         <div class="hs-metric">
           <div class="hs-metric-val" id="hsPedidos">0</div>
-          <div class="hs-metric-lbl">pedidos confirmados</div>
+          <div class="hs-metric-lbl" id="hsPedidosLbl">pedidos até agora · noite parada</div>
         </div>
 
         <svg class="hs-chart" viewBox="0 0 500 120" preserveAspectRatio="none" aria-hidden="true">
@@ -715,10 +715,10 @@ footer a:hover { color:var(--text2); }
 
     <!-- Controle central -->
     <div class="hs-control">
-      <p class="hs-narr" id="hsNarr"><strong>Terça à noite.</strong> Restaurante parado, clientes em casa. Aperte o botão e veja um disparo real acontecendo.</p>
+      <p class="hs-narr" id="hsNarr"><strong>É terça-feira, 19h32. Restaurante vazio, 0 pedidos.</strong> Sua base de clientes tá em casa, sem lembrar de pedir. Uma mensagem resolve.</p>
       <button class="hs-fire" id="hsBtn" type="button">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        <span id="hsBtnTxt">Disparar promoção</span>
+        <span id="hsBtnTxt">Mudar essa terça fraca</span>
       </button>
     </div>
   </div>
@@ -1157,6 +1157,7 @@ function animateCounter(el) {
   var sent = document.getElementById('hsSent');
   var sentFill = document.getElementById('hsSentFill');
   var pedidos = document.getElementById('hsPedidos');
+  var pedidosLbl = document.getElementById('hsPedidosLbl');
   var fatPed = document.getElementById('hsFatPed');
   var fat = document.getElementById('hsFat');
   var badge = document.getElementById('hsBadge');
@@ -1262,6 +1263,7 @@ function animateCounter(el) {
     btn.disabled = true;
     btnTxt.textContent = 'Disparando...';
     narr.innerHTML = '<strong>Disparo em andamento.</strong> Cada cliente recebe a mensagem com o próprio nome. Olha o <strong>{nome}</strong> mudando na mensagem.';
+    if (pedidosLbl) pedidosLbl.textContent = 'pedidos confirmados agora';
 
     // Timings bem lentos pra acompanhar com calma (~11s total)
     // 1) Barra de progresso 0 → 600 em 9s
@@ -1280,9 +1282,10 @@ function animateCounter(el) {
 
     // 5) Narrativa final (em ~10.5s)
     setTimeout(function(){
-      narr.innerHTML = '<strong>600 mensagens enviadas com o nome de cada cliente. 47 pedidos. R$ 2.914 de faturamento.</strong> Uma terça que seria morta virou receita.';
+      narr.innerHTML = '<strong>600 mensagens enviadas com o nome de cada cliente. 47 pedidos. R$ 2.914 numa terça que seria morta.</strong> Agora imagina isso toda semana.';
+      if (pedidosLbl) pedidosLbl.textContent = 'pedidos em 40 minutos';
       btn.disabled = false;
-      btnTxt.textContent = 'Simular de novo';
+      btnTxt.textContent = 'Mudar essa terça de novo';
     }, 10500);
   }
 
@@ -1294,8 +1297,9 @@ function animateCounter(el) {
     pedidos.textContent = '0';
     fatPed.textContent = '0';
     fat.textContent = '0';
-    narr.innerHTML = '<strong>Terça à noite.</strong> Restaurante parado, clientes em casa. Aperte o botão e veja um disparo real acontecendo.';
-    btnTxt.textContent = 'Disparar promoção';
+    if (pedidosLbl) pedidosLbl.textContent = 'pedidos até agora · noite parada';
+    narr.innerHTML = '<strong>É terça-feira, 19h32. Restaurante vazio, 0 pedidos.</strong> Sua base de clientes tá em casa, sem lembrar de pedir. Uma mensagem resolve.';
+    btnTxt.textContent = 'Mudar essa terça fraca';
   }
 
   btn.addEventListener('click', function(){
