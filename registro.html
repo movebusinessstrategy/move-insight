@@ -23,15 +23,24 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
 .sdot{height:3px;border-radius:999px;background:var(--border3);transition:all var(--ease);flex:1}
 .sdot.on{background:var(--gold)}
 .planos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
-.plano-opt{border:1.5px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:all var(--ease);position:relative;background:var(--surface2)}
+.plano-opt{border:1.5px solid var(--border);border-radius:14px;padding:16px 14px;cursor:pointer;transition:all var(--ease);position:relative;background:var(--surface2);display:flex;flex-direction:column}
 .plano-opt:hover{border-color:var(--border2)}
 .plano-opt.on{border-color:var(--gold);background:var(--gold-bg)}
 .plano-opt input{position:absolute;opacity:0;width:0;height:0}
 .p-nome{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
-.p-val{font-size:22px;font-weight:800;letter-spacing:-.04em}
+.p-val{font-size:22px;font-weight:800;letter-spacing:-.04em;line-height:1.1}
 .p-val.gold{color:var(--gold2)}
 .p-per{font-size:11px;color:var(--text3);margin-top:2px}
-.pop-b{position:absolute;top:10px;right:10px;font-size:8px;font-weight:800;letter-spacing:.1em;background:var(--gold);color:#111;padding:3px 8px;border-radius:999px}
+.p-anual-sub{display:none;font-size:10px;color:var(--text3);margin-top:4px;line-height:1.4}
+.p-anual-sub strong{color:var(--green);font-weight:700}
+.p-desc{font-size:11px;color:var(--text2);margin-top:10px;line-height:1.4;min-height:30px}
+.p-feats{list-style:none;padding:0;margin:10px 0 0 0;font-size:11px;color:var(--text2)}
+.p-feats li{padding:4px 0 4px 16px;position:relative;line-height:1.35}
+.p-feats li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:800}
+.pop-b{position:absolute;top:10px;right:10px;font-size:8px;font-weight:800;letter-spacing:.1em;background:var(--gold);color:#111;padding:3px 8px;border-radius:999px;z-index:1}
+.trial-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(48,209,88,.1),rgba(48,209,88,.04));border:1px solid rgba(48,209,88,.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;line-height:1.45;color:var(--text2)}
+.trial-banner .tb-icon{flex-shrink:0;width:28px;height:28px;border-radius:8px;background:rgba(48,209,88,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.trial-banner strong{color:var(--green);font-weight:700}
 .fg{margin-bottom:14px}
 .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .fg-row-3{display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;margin-bottom:14px}
@@ -99,7 +108,12 @@ input.invalid{border-color:var(--red)}
   <div id="s1">
     <div class="step-dots"><div class="sdot on"></div><div class="sdot"></div><div class="sdot"></div></div>
     <h2>Escolha seu plano</h2>
-    <p class="subtitle">Você pode trocar depois.</p>
+    <p class="subtitle">7 dias grátis · cancele quando quiser.</p>
+
+    <div class="trial-banner">
+      <div class="tb-icon">✓</div>
+      <div><strong>7 dias grátis</strong> pra testar · você cadastra o cartão mas a primeira cobrança só acontece no 8º dia. Cancele antes e não paga nada.</div>
+    </div>
 
     <div style="display:flex;justify-content:center;margin-bottom:6px">
       <div class="ciclo-toggle">
@@ -112,21 +126,45 @@ input.invalid{border-color:var(--red)}
       <label class="plano-opt" id="optB">
         <input type="radio" name="pl" value="basico" onchange="selPlano('basico')">
         <div class="p-nome">Básico</div>
-        <div class="p-val" data-plano="basico">R$<span class="pv-int">49</span><span class="pv-cent" style="font-size:12px">,90</span></div>
+        <div class="p-val" data-plano="basico">R$<span class="pv-int">39</span><span class="pv-cent" style="font-size:12px">,90</span></div>
         <div class="p-per"><span class="pv-per">/mês</span></div>
+        <div class="p-anual-sub" data-plano="basico"></div>
+        <div class="p-desc">Restaurantes começando no WhatsApp marketing</div>
+        <ul class="p-feats">
+          <li>100 envios/dia</li>
+          <li>1 número de WhatsApp</li>
+          <li>Listas e contatos ilimitados</li>
+          <li>Mensagens com nome do cliente</li>
+        </ul>
       </label>
       <label class="plano-opt on" id="optP">
         <input type="radio" name="pl" value="premium" checked onchange="selPlano('premium')">
         <div class="pop-b">Popular</div>
         <div class="p-nome">Premium</div>
-        <div class="p-val gold" data-plano="premium">R$<span class="pv-int">99</span><span class="pv-cent" style="font-size:12px">,90</span></div>
+        <div class="p-val gold" data-plano="premium">R$<span class="pv-int">79</span><span class="pv-cent" style="font-size:12px">,90</span></div>
         <div class="p-per"><span class="pv-per">/mês</span></div>
+        <div class="p-anual-sub" data-plano="premium"></div>
+        <div class="p-desc">Restaurantes com base ativa de clientes</div>
+        <ul class="p-feats">
+          <li>500 envios/dia</li>
+          <li>Até 2 números de WhatsApp</li>
+          <li>Agendamento de campanhas</li>
+          <li>Tudo do Básico</li>
+        </ul>
       </label>
       <label class="plano-opt" id="optPro">
         <input type="radio" name="pl" value="pro" onchange="selPlano('pro')">
         <div class="p-nome">Pro</div>
-        <div class="p-val" data-plano="pro">R$<span class="pv-int">199</span><span class="pv-cent" style="font-size:12px">,90</span></div>
+        <div class="p-val" data-plano="pro">R$<span class="pv-int">149</span><span class="pv-cent" style="font-size:12px">,90</span></div>
         <div class="p-per"><span class="pv-per">/mês</span></div>
+        <div class="p-anual-sub" data-plano="pro"></div>
+        <div class="p-desc">Franquias e redes de restaurantes</div>
+        <ul class="p-feats">
+          <li>1.000 envios/dia</li>
+          <li>Até 5 números de WhatsApp</li>
+          <li>Agendamento recorrente (ex: toda sexta 18h)</li>
+          <li>Tudo do Premium</li>
+        </ul>
       </label>
     </div>
     <button class="btn btn-gold" onclick="irS2()">Continuar →</button>
@@ -215,7 +253,7 @@ input.invalid{border-color:var(--red)}
 <script>
 // Estado
 var pl='premium', ci='mensal', tipo='pf';
-var PRECOS={basico:{mensal:4990,anual:49900},premium:{mensal:9990,anual:99900},pro:{mensal:19990,anual:199900}};
+var PRECOS={basico:{mensal:3990,anual:39900},premium:{mensal:7990,anual:79900},pro:{mensal:14990,anual:149900}};
 var NOMES={basico:'Básico',premium:'Premium',pro:'Pro'};
 
 function fmtInt(c){return Math.floor(c/100).toLocaleString('pt-BR');}
@@ -234,11 +272,25 @@ function selCiclo(c){
   document.getElementById('cbMensal').classList.toggle('on',c==='mensal');
   document.getElementById('cbAnual').classList.toggle('on',c==='anual');
   document.querySelectorAll('.p-val[data-plano]').forEach(function(el){
-    var v=PRECOS[el.dataset.plano][c];
-    el.querySelector('.pv-int').textContent=fmtInt(v);
-    el.querySelector('.pv-cent').textContent=fmtCent(v);
+    var plano=el.dataset.plano;
+    // No ciclo anual, mostra o valor mensal EQUIVALENTE grande (protagonismo do preço mensal)
+    var valorDisplay = c==='anual' ? Math.round(PRECOS[plano].anual/12) : PRECOS[plano].mensal;
+    el.querySelector('.pv-int').textContent=fmtInt(valorDisplay);
+    el.querySelector('.pv-cent').textContent=fmtCent(valorDisplay);
   });
-  document.querySelectorAll('.pv-per').forEach(function(el){el.textContent=c==='anual'?'/ano':'/mês';});
+  // Sub-texto abaixo do valor mostra o total anual + economia (só aparece no anual)
+  document.querySelectorAll('.p-anual-sub').forEach(function(el){
+    var plano=el.dataset.plano;
+    if (c==='anual') {
+      var anual=PRECOS[plano].anual;
+      var economia=PRECOS[plano].mensal*12 - anual;
+      el.innerHTML = fmtReaisFull(anual)+'/ano<br><strong>Economize '+fmtReaisFull(economia)+'</strong>';
+      el.style.display='block';
+    } else {
+      el.style.display='none';
+    }
+  });
+  document.querySelectorAll('.pv-per').forEach(function(el){el.textContent='/mês';});
 }
 function selTipo(t){
   tipo=t;

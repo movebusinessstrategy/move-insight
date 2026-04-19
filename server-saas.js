@@ -117,34 +117,54 @@ function atualizarUsuario(id, campos) {
 }
 
 // ── Planos ────────────────────────────────────────────────────────────────────
-// Preços em centavos. Anual = mensal × 10 (2 meses grátis).
+// Preços em centavos. Anual = mensal × 10 (2 meses grátis). Trial: 7 dias.
+const TRIAL_DIAS = 7;
 const PLANOS = {
   basico: {
     id: "basico", nome: "Básico",
-    precoMensal: 4990, precoAnual: 49900,
+    precoMensal: 3990, precoAnual: 39900,
     limiteEnviosDia: 100,
     contasWhatsApp: 1,
     agendamento: false,
     recorrente: false,
-    descricao: "Para quem está começando"
+    descricao: "Para restaurantes começando no WhatsApp marketing",
+    features: [
+      "100 envios por dia",
+      "1 número de WhatsApp conectado",
+      "Listas e contatos ilimitados",
+      "Mensagens com nome do cliente ({nome})",
+      "Envio de imagem + texto em campanhas"
+    ]
   },
   premium: {
     id: "premium", nome: "Premium",
-    precoMensal: 9990, precoAnual: 99900,
+    precoMensal: 7990, precoAnual: 79900,
     limiteEnviosDia: 500,
     contasWhatsApp: 2,
     agendamento: true,
     recorrente: false,
-    descricao: "Para uso profissional"
+    descricao: "Para restaurantes com base ativa de clientes",
+    features: [
+      "500 envios por dia",
+      "Até 2 números de WhatsApp",
+      "Agendamento de campanhas",
+      "Tudo que o Básico oferece"
+    ]
   },
   pro: {
     id: "pro", nome: "Pro",
-    precoMensal: 19990, precoAnual: 199900,
+    precoMensal: 14990, precoAnual: 149900,
     limiteEnviosDia: 1000,
     contasWhatsApp: 5,
     agendamento: true,
     recorrente: true,
-    descricao: "Para escala máxima com automação"
+    descricao: "Para franquias e redes de restaurantes",
+    features: [
+      "1.000 envios por dia",
+      "Até 5 números de WhatsApp",
+      "Agendamento recorrente (ex: toda sexta às 18h)",
+      "Tudo que o Premium oferece"
+    ]
   },
   owner: {
     id: "owner", nome: "Owner",
@@ -153,7 +173,8 @@ const PLANOS = {
     contasWhatsApp: 999,
     agendamento: true,
     recorrente: true,
-    descricao: "Acesso total do proprietário"
+    descricao: "Acesso total do proprietário",
+    features: []
   }
 };
 function precoDo(plano, ciclo) {
@@ -413,7 +434,7 @@ app.post("/api/pagamento/criar", async (req, res) => {
     const data = await mpFetch("/preapproval", {
       method: "POST",
       body: JSON.stringify({
-        reason: `ChatMOVE ${planoInfo.nome} (${cicloNorm === "anual" ? "Anual" : "Mensal"})`,
+        reason: `ChatMOVE ${planoInfo.nome} (${cicloNorm === "anual" ? "Anual" : "Mensal"}) · ${TRIAL_DIAS} dias grátis`,
         external_reference: `${userId}|${plano}|${cicloNorm}`,
         payer_email: user.email,
         back_url: `${base}/login?ativado=1`,
@@ -421,13 +442,15 @@ app.post("/api/pagamento/criar", async (req, res) => {
           frequency: cicloNorm === "anual" ? 12 : 1,
           frequency_type: "months",
           transaction_amount: preco / 100,
-          currency_id: "BRL"
+          currency_id: "BRL",
+          free_trial: { frequency: TRIAL_DIAS, frequency_type: "days" }
         },
         status: "pending"
       })
     });
-    atualizarUsuario(userId, { assinaturaId: data.id, plano, ciclo: cicloNorm });
-    res.json({ ok: true, checkoutUrl: data.init_point, assinaturaId: data.id });
+    const trialFim = new Date(Date.now() + TRIAL_DIAS * 86400000).toISOString();
+    atualizarUsuario(userId, { assinaturaId: data.id, plano, ciclo: cicloNorm, trialFim });
+    res.json({ ok: true, checkoutUrl: data.init_point, assinaturaId: data.id, trialDias: TRIAL_DIAS });
   } catch (e) {
     console.error("MP criar preapproval:", e.message);
     res.status(500).json({ erro: "Erro ao criar assinatura" });
