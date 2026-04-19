@@ -372,6 +372,14 @@ footer a:hover { color:var(--text2); }
 .hs-msg-sub { font-size:10px; color:var(--text3); font-weight:500; }
 .hs-msg-body { font-size:12.5px; line-height:1.6; color:var(--text2); }
 .hs-msg-body strong { color:var(--gold); font-weight:700; }
+/* Variável destacada ({nome}) — pulsa quando troca pelo nome real */
+.hs-var { display:inline-block; padding:1px 7px; margin:0 1px; background:rgba(185,141,65,.14); border:1px dashed rgba(185,141,65,.5); border-radius:5px; color:var(--gold); font-weight:700; font-size:12px; transition:background .3s, border-color .3s, transform .3s; }
+.hs-var.live { background:rgba(185,141,65,.28); border-style:solid; border-color:var(--gold); transform:scale(1.05); }
+
+/* Dica explicativa sobre a variável */
+.hs-var-tip { margin-top:10px; padding:10px 12px; background:var(--gold-bg); border:1px solid rgba(185,141,65,.22); border-radius:10px; display:flex; align-items:flex-start; gap:8px; font-size:11px; line-height:1.5; color:var(--text2); }
+.hs-var-tip svg { color:var(--gold); flex-shrink:0; margin-top:1px; }
+.hs-var-tip strong { color:var(--gold); font-weight:700; }
 
 .hs-sent { margin-top:auto; }
 .hs-sent-hd { display:flex; justify-content:space-between; align-items:center; font-size:11px; margin-bottom:8px; color:var(--text2); font-weight:600; }
@@ -411,11 +419,11 @@ footer a:hover { color:var(--text2); }
 .hs-line.flat { stroke:var(--red); opacity:.9; transition:opacity .4s; }
 .hs-line.rise { stroke:var(--gold); stroke-dasharray:700; stroke-dashoffset:700; filter:drop-shadow(0 2px 4px rgba(185,141,65,.4)); }
 #hsWrap.fired .hs-line.flat { opacity:0; }
-#hsWrap.fired .hs-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 2.4s cubic-bezier(.2,.6,.2,1) .2s; }
-.hs-area { fill:url(#hsGrad); opacity:0; transition:opacity .8s .8s; }
+#hsWrap.fired .hs-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 4s cubic-bezier(.2,.6,.2,1) .4s; }
+.hs-area { fill:url(#hsGrad); opacity:0; transition:opacity 1.2s 2s; }
 #hsWrap.fired .hs-area { opacity:.4; }
 .hs-dot { fill:var(--gold); opacity:0; }
-#hsWrap.fired .hs-dot { opacity:1; animation:hsDotPop .5s cubic-bezier(.34,1.56,.64,1) 2.4s forwards; }
+#hsWrap.fired .hs-dot { opacity:1; animation:hsDotPop .5s cubic-bezier(.34,1.56,.64,1) 4.2s forwards; }
 @keyframes hsDotPop { from{r:0;} to{r:5;} }
 
 .hs-fat { margin-top:auto; padding:13px 14px; background:linear-gradient(135deg, rgba(185,141,65,.08), transparent); border:1px solid rgba(185,141,65,.22); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; transition:all .5s; }
@@ -477,14 +485,12 @@ footer a:hover { color:var(--text2); }
 .pm-prog-t { font-weight:700; color:var(--text); }
 .pm-prog-count { color:var(--gold); font-weight:800; font-variant-numeric:tabular-nums; }
 .pm-prog-bar { height:8px; background:var(--surface3); border-radius:999px; overflow:hidden; }
-.pm-prog-fill { height:100%; background:linear-gradient(90deg, var(--gold), var(--gold2)); border-radius:999px; width:0%; animation:pmProg 5s ease-out .8s forwards; box-shadow:0 0 12px rgba(185,141,65,.5); }
-@keyframes pmProg { to { width:72%; } }
+.pm-prog-fill { height:100%; background:linear-gradient(90deg, var(--gold), var(--gold2)); border-radius:999px; width:0%; box-shadow:0 0 12px rgba(185,141,65,.5); transition:width .25s linear; }
 .pm-prog-foot { display:flex; justify-content:space-between; margin-top:8px; font-size:10px; color:var(--text3); }
 .pm-log { background:#101012; color:#e8e8ea; border-radius:12px; padding:16px 18px; font-family:'SF Mono','Monaco',monospace; font-size:11.5px; line-height:1.7; max-height:200px; overflow:hidden; position:relative; }
 .pm-log::after { content:''; position:absolute; bottom:0; left:0; right:0; height:50px; background:linear-gradient(to bottom, transparent, #101012); pointer-events:none; }
-.pm-log-line { display:flex; gap:10px; align-items:flex-start; opacity:0; animation:logFade .4s ease forwards; }
-.pm-log-line:nth-child(1){animation-delay:.2s} .pm-log-line:nth-child(2){animation-delay:.5s} .pm-log-line:nth-child(3){animation-delay:.9s} .pm-log-line:nth-child(4){animation-delay:1.3s} .pm-log-line:nth-child(5){animation-delay:1.7s} .pm-log-line:nth-child(6){animation-delay:2.1s} .pm-log-line:nth-child(7){animation-delay:2.5s}
-@keyframes logFade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+.pm-log-line { display:flex; gap:10px; align-items:flex-start; opacity:0; transform:translateY(4px); transition:opacity .35s, transform .35s; }
+.pm-log-line.in { opacity:1; transform:translateY(0); }
 .pm-log-time { color:#6b6b70; flex-shrink:0; }
 .pm-log-txt.ok { color:#57d670; } .pm-log-txt.dim { color:#a0a0a5; } .pm-log-txt.gold { color:#d9be86; } .pm-log-txt.err { color:#ff7a74; }
 @media(max-width:768px){
@@ -519,26 +525,54 @@ footer a:hover { color:var(--text2); }
 /* ═════════════════════════════════════════════════════════════════════════ */
 /*  ANTES x DEPOIS                                                            */
 /* ═════════════════════════════════════════════════════════════════════════ */
-.compare-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:20px; align-items:stretch; margin-top:52px; }
-.compare-col { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px 28px; position:relative; overflow:hidden; }
-.compare-col.bad { border-color:rgba(199,61,50,.2); }
-.compare-col.good { border-color:rgba(185,141,65,.28); background:linear-gradient(135deg,rgba(185,141,65,.05),var(--surface)); box-shadow:0 20px 50px -20px rgba(185,141,65,.25); }
-.compare-hd { display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
-.compare-ico { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.compare-col.bad .compare-ico { background:rgba(199,61,50,.08); color:var(--red); }
-.compare-col.good .compare-ico { background:var(--gold-bg); color:var(--gold); }
-.compare-t { font-size:14px; font-weight:800; letter-spacing:-.02em; }
-.compare-col.bad .compare-t { color:var(--red); }
-.compare-col.good .compare-t { color:var(--gold); }
-.compare-list { display:flex; flex-direction:column; gap:12px; }
-.compare-li { display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:1.55; color:var(--text2); }
-.compare-li .compare-mark { width:18px; height:18px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:10px; margin-top:1px; }
-.compare-col.bad .compare-mark { background:rgba(199,61,50,.12); color:var(--red); }
-.compare-col.good .compare-mark { background:rgba(31,154,82,.12); color:var(--green); }
-.compare-arrow { align-self:center; width:44px; height:44px; border-radius:50%; background:var(--gold); color:#111; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(185,141,65,.35); }
+/* Grid duas colunas, sem botão do meio */
+.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch; margin-top:52px; position:relative; }
+
+/* Coluna base */
+.compare-col { background:var(--surface); border:1px solid var(--border); border-radius:22px; padding:0; position:relative; overflow:hidden; display:flex; flex-direction:column; transition:transform .4s; }
+.compare-col:hover { transform:translateY(-3px); }
+
+/* Ribbon do topo: "ANTES" / "DEPOIS" */
+.compare-ribbon { padding:14px 22px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+.compare-col.bad .compare-ribbon { background:linear-gradient(135deg, rgba(199,61,50,.08), rgba(199,61,50,.02)); }
+.compare-col.good .compare-ribbon { background:linear-gradient(135deg, rgba(185,141,65,.12), rgba(185,141,65,.03)); }
+.compare-tag { font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; padding:3px 10px; border-radius:999px; }
+.compare-col.bad .compare-tag { background:rgba(199,61,50,.14); color:var(--red); border:1px solid rgba(199,61,50,.25); }
+.compare-col.good .compare-tag { background:var(--gold); color:#111; box-shadow:0 2px 10px rgba(185,141,65,.35); }
+.compare-title { font-size:15px; font-weight:800; letter-spacing:-.02em; }
+.compare-col.bad .compare-title { color:var(--red); }
+.compare-col.good .compare-title { color:var(--gold); }
+
+/* Métrica hero: tempo/volume em destaque */
+.compare-metric { padding:24px 24px 18px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:8px; }
+.compare-col.bad .compare-metric { background:linear-gradient(180deg, rgba(199,61,50,.03), transparent); }
+.compare-col.good .compare-metric { background:linear-gradient(180deg, rgba(185,141,65,.04), transparent); }
+.compare-m-val { font-size:40px; font-weight:800; letter-spacing:-.04em; line-height:1; }
+.compare-col.bad .compare-m-val { color:var(--red); }
+.compare-col.good .compare-m-val { color:var(--gold); }
+.compare-m-sub { font-size:12px; color:var(--text2); line-height:1.4; font-weight:500; }
+.compare-m-sub strong { color:var(--text); font-weight:700; }
+
+/* Lista */
+.compare-list { display:flex; flex-direction:column; gap:12px; padding:22px 24px 26px; }
+.compare-li { display:flex; align-items:flex-start; gap:11px; font-size:13px; line-height:1.55; color:var(--text2); }
+.compare-li .compare-mark { width:20px; height:20px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; margin-top:1px; }
+.compare-col.bad .compare-mark { background:rgba(199,61,50,.1); color:var(--red); border:1px solid rgba(199,61,50,.2); }
+.compare-col.good .compare-mark { background:rgba(31,154,82,.12); color:var(--green); border:1px solid rgba(31,154,82,.2); }
+
+/* Destaque do DEPOIS (card dourado ganha mais protagonismo) */
+.compare-col.good { border-color:rgba(185,141,65,.35); box-shadow:0 24px 60px -24px rgba(185,141,65,.3), 0 0 0 1px rgba(185,141,65,.12); }
+.compare-col.good::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+/* "VS" sutil no meio do gap (visível só em desktop) */
+.compare-vs { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; width:42px; height:42px; border-radius:50%; background:var(--surface); border:1px solid rgba(185,141,65,.3); box-shadow:0 4px 14px rgba(0,0,0,.08), 0 0 20px rgba(185,141,65,.15); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; letter-spacing:.1em; color:var(--gold); pointer-events:none; }
+
 @media(max-width:768px){
-  .compare-grid { grid-template-columns:1fr; }
-  .compare-arrow { transform:rotate(90deg); justify-self:center; }
+  .compare-grid { grid-template-columns:1fr; gap:16px; }
+  .compare-vs { display:none; }
+  .compare-metric { padding:20px 20px 16px; }
+  .compare-m-val { font-size:32px; }
+  .compare-list { padding:18px 20px 22px; }
 }
 </style>
 </head>
@@ -602,10 +636,14 @@ footer a:hover { color:var(--text2); }
             </div>
           </div>
           <div class="hs-msg-body">
-            Oi <strong>{nome}</strong>, boa terça!<br>
+            Oi <span class="hs-var" id="hsMsgName">{nome}</span>, boa terça!<br>
             Hoje tem <strong>Combo Família</strong> por apenas <strong>R$ 62,00</strong>. Pizza grande + refri 2L.<br>
             Retire no balcão ou peça delivery direto aqui pelo zap.
           </div>
+        </div>
+        <div class="hs-var-tip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>O <strong>{nome}</strong> é trocado automaticamente pelo nome de cada cliente na sua lista. Aperte o botão e veja.</span>
         </div>
 
         <div class="hs-sent">
@@ -713,8 +751,8 @@ footer a:hover { color:var(--text2); }
 </div>
 </section>
 
-<!-- Mockup do Painel de Envio em ação -->
-<section class="divider-sec panel-showcase reveal" aria-label="Painel de envio em ação">
+<!-- Mockup do Painel Monitor em ação (simulação lenta, dispara ao entrar em viewport) -->
+<section class="divider-sec panel-showcase reveal" aria-label="Painel de envio em ação" id="pmSection">
   <div class="panel-mockup">
     <div class="pm-chrome">
       <div class="pm-dot r"></div><div class="pm-dot y"></div><div class="pm-dot g"></div>
@@ -733,30 +771,22 @@ footer a:hover { color:var(--text2); }
       </div>
 
       <div class="pm-stats">
-        <div class="pm-stat"><div class="pm-stat-val a" data-count="482">0</div><div class="pm-stat-lbl">Total</div></div>
-        <div class="pm-stat"><div class="pm-stat-val g" data-count="347">0</div><div class="pm-stat-lbl">Enviados</div></div>
-        <div class="pm-stat"><div class="pm-stat-val r" data-count="8">0</div><div class="pm-stat-lbl">Falhas</div></div>
-        <div class="pm-stat"><div class="pm-stat-val d" data-count="4">0</div><div class="pm-stat-lbl">Pulados</div></div>
+        <div class="pm-stat"><div class="pm-stat-val a" id="pmTotal">482</div><div class="pm-stat-lbl">Total</div></div>
+        <div class="pm-stat"><div class="pm-stat-val g" id="pmEnv">0</div><div class="pm-stat-lbl">Enviados</div></div>
+        <div class="pm-stat"><div class="pm-stat-val r" id="pmFalhas">0</div><div class="pm-stat-lbl">Falhas</div></div>
+        <div class="pm-stat"><div class="pm-stat-val d" id="pmPulados">0</div><div class="pm-stat-lbl">Pulados</div></div>
       </div>
 
       <div class="pm-prog-card">
         <div class="pm-prog-hd">
           <span class="pm-prog-t">Progresso</span>
-          <span class="pm-prog-count">347 / 482</span>
+          <span class="pm-prog-count" id="pmProgCount">0 / 482</span>
         </div>
-        <div class="pm-prog-bar"><div class="pm-prog-fill"></div></div>
-        <div class="pm-prog-foot"><span>72% concluído</span><span>≈ 4 min restantes</span></div>
+        <div class="pm-prog-bar"><div class="pm-prog-fill" id="pmProgFill"></div></div>
+        <div class="pm-prog-foot"><span id="pmProgPct">0% concluído</span><span id="pmProgEta">calculando tempo restante</span></div>
       </div>
 
-      <div class="pm-log">
-        <div class="pm-log-line"><span class="pm-log-time">18:42:01</span><span class="pm-log-txt ok">✓ Enviado para Maria Silva (5543900001001)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:05</span><span class="pm-log-txt ok">✓ Enviado para Carlos Mendes (5543900001002)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:08</span><span class="pm-log-txt dim">⏸ Pausa anti-ban (10s) após 40 mensagens</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:19</span><span class="pm-log-txt ok">✓ Enviado para Ana Oliveira (5543900001003)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:23</span><span class="pm-log-txt gold">➡ Enviando para Pedro Souza (5543900001004)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:27</span><span class="pm-log-txt ok">✓ Enviado para Pedro Souza (5543900001004)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:30</span><span class="pm-log-txt gold">➡ Enviando para Juliana Rocha (5543900001005)</span></div>
-      </div>
+      <div class="pm-log" id="pmLog"></div>
     </div>
   </div>
 </section>
@@ -858,37 +888,46 @@ footer a:hover { color:var(--text2); }
   <p class="sec-sub reveal reveal-delay-1">A diferença entre enviar manualmente um por um e disparar pra toda sua base com o nome de cada cliente.</p>
 
   <div class="compare-grid">
+    <!-- ANTES: sem ChatMOVE -->
     <div class="compare-col bad reveal">
-      <div class="compare-hd">
-        <div class="compare-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
-        <div class="compare-t">Sem ChatMOVE</div>
+      <div class="compare-ribbon">
+        <span class="compare-tag">Antes</span>
+        <span class="compare-title">Sem ChatMOVE</span>
+      </div>
+      <div class="compare-metric">
+        <div class="compare-m-val">1 dia</div>
+        <div class="compare-m-sub">pra enviar <strong>100 mensagens</strong> manualmente, uma por uma</div>
       </div>
       <div class="compare-list">
-        <div class="compare-li"><span class="compare-mark">✕</span>Copia e cola a mesma mensagem pra cada cliente na mão</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Gasta 2-3 horas pra disparar 200 mensagens (e ainda esquece contatos)</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Não consegue personalizar com o nome do cliente em escala</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Sem agendamento, precisa lembrar toda sexta de disparar</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>WhatsApp banido por enviar rápido demais sem pausa</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Passa o dia inteiro copiando e colando a mesma mensagem, trocando o nome na mão 100 vezes</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Esquece contato no meio do caminho e precisa conferir a planilha toda de novo</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Sem agendamento, precisa lembrar toda sexta de sentar e disparar</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Risco alto de ban por enviar rápido demais, sem pausa e sem variação</div>
         <div class="compare-li"><span class="compare-mark">✕</span>Não sabe quantas mensagens chegaram nem quantas falharam</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Dispara de um número só: se quiser usar outro WhatsApp, começa tudo do zero</div>
       </div>
     </div>
 
-    <div class="compare-arrow reveal reveal-delay-1">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>
+    <!-- Badge "VS" flutuante -->
+    <div class="compare-vs" aria-hidden="true">VS</div>
 
-    <div class="compare-col good reveal reveal-delay-2">
-      <div class="compare-hd">
-        <div class="compare-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <div class="compare-t">Com ChatMOVE</div>
+    <!-- DEPOIS: com ChatMOVE -->
+    <div class="compare-col good reveal reveal-delay-1">
+      <div class="compare-ribbon">
+        <span class="compare-tag">Depois</span>
+        <span class="compare-title">Com ChatMOVE</span>
+      </div>
+      <div class="compare-metric">
+        <div class="compare-m-val">~20 min</div>
+        <div class="compare-m-sub">pra disparar <strong>500 mensagens</strong> personalizadas automaticamente</div>
       </div>
       <div class="compare-list">
-        <div class="compare-li"><span class="compare-mark">✓</span>Importa a lista e dispara pra todo mundo com 2 cliques</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Envia 500 mensagens em ~20 minutos com pausas inteligentes</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Cada cliente recebe a mensagem com o próprio nome ("Olá Maria!")</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Agenda toda sexta 18h e o sistema dispara sozinho</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Intervalos variáveis + pausas reduzem drasticamente risco de bloqueio</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Importa a lista uma vez e dispara pra todo mundo com 2 cliques</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Cada cliente recebe a mensagem com o próprio nome automaticamente</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Agenda toda sexta 18h, o sistema dispara sozinho sem ninguém precisar estar no PC</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Intervalos variáveis + pausas inteligentes reduzem muito o risco de bloqueio</div>
         <div class="compare-li"><span class="compare-mark">✓</span>Relatório completo chega no seu WhatsApp ao fim da campanha</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Até 5 números de WhatsApp conectados, cada um com suas campanhas</div>
       </div>
     </div>
   </div>
@@ -1117,7 +1156,7 @@ function animateCounter(el) {
   requestAnimationFrame(tick);
 }
 
-// Hero simulator: disparo de 600 msgs + notificações chegando + vendas/faturamento subindo
+// Hero simulator: disparo de 600 msgs + {nome} ciclando + pedidos chegando + vendas subindo
 (function(){
   var wrap = document.getElementById('hsWrap');
   var btn = document.getElementById('hsBtn');
@@ -1129,8 +1168,8 @@ function animateCounter(el) {
   var fat = document.getElementById('hsFat');
   var badge = document.getElementById('hsBadge');
   var notifs = document.getElementById('hsNotifs');
-  var empty = document.getElementById('hsPhoneEmpty');
   var narr = document.getElementById('hsNarr');
+  var msgName = document.getElementById('hsMsgName');
   if (!wrap || !btn) return;
 
   var TICKET = 62;
@@ -1152,6 +1191,8 @@ function animateCounter(el) {
     ['GS','Gustavo Silva','Combo mais batata frita'],
     ['TC','Tainá Costa','Entrega no meu bairro?']
   ];
+  // Primeiros nomes pra ciclar no {nome} (mostra personalização pro usuário leigo)
+  var nomesCiclo = clientes.map(function(c){ return c[1].split(' ')[0]; });
 
   function fmtBR(n){ return n.toLocaleString('pt-BR'); }
   function pad(n){ return n < 10 ? '0'+n : ''+n; }
@@ -1179,7 +1220,7 @@ function animateCounter(el) {
     })(start);
   }
 
-  var notifTimers = [];
+  var timers = [];
   var pedidoCount = 0;
 
   function addNotif(i, delay){
@@ -1199,48 +1240,62 @@ function animateCounter(el) {
       badge.textContent = pedidoCount;
       badge.classList.add('pulse');
       setTimeout(function(){ badge.classList.remove('pulse'); }, 300);
-      // Mantém no máximo 5 visíveis
       while (notifs.children.length > 5) notifs.removeChild(notifs.firstChild);
     }, delay);
-    notifTimers.push(t);
+    timers.push(t);
   }
 
-  function clearNotifs(){
-    notifTimers.forEach(clearTimeout);
-    notifTimers = [];
+  // Cicla os nomes reais no lugar do {nome}, mostrando a personalização
+  function cycleName(nome, delay){
+    var t = setTimeout(function(){
+      msgName.textContent = nome;
+      msgName.classList.add('live');
+    }, delay);
+    timers.push(t);
+  }
+
+  function clearAll(){
+    timers.forEach(clearTimeout);
+    timers = [];
     Array.prototype.slice.call(notifs.querySelectorAll('.hs-notif')).forEach(function(n){ n.remove(); });
     badge.textContent = '0';
     pedidoCount = 0;
+    msgName.textContent = '{nome}';
+    msgName.classList.remove('live');
   }
 
   function fire(){
     wrap.classList.add('fired');
     btn.disabled = true;
     btnTxt.textContent = 'Disparando...';
-    narr.innerHTML = '<strong>Disparo em andamento.</strong> 600 mensagens saindo, clientes já começando a responder.';
+    narr.innerHTML = '<strong>Disparo em andamento.</strong> Cada cliente recebe a mensagem com o próprio nome. Olha o <strong>{nome}</strong> mudando na mensagem.';
 
-    // 1) Counter de mensagens 0 → 600 com barra de progresso (3.5s)
-    animProgress(3500);
+    // Timings mais lentos pra poder acompanhar (~7s total)
+    // 1) Barra de progresso 0 → 600 em 5.5s
+    animProgress(5500);
 
-    // 2) Notificações pingando: 12 pedidos ao longo de ~3.5s (começa 400ms após)
-    for (var i = 0; i < 12; i++) addNotif(i, 400 + i * 270);
+    // 2) {nome} cicla pelos primeiros 8 nomes reais (1 a cada 600ms, começa em 500ms)
+    for (var n = 0; n < 8; n++) cycleName(nomesCiclo[n], 500 + n * 600);
 
-    // 3) Contadores de pedidos/faturamento (começa 600ms após, dura 2.8s)
-    setTimeout(function(){ animCounter(pedidos, TOTAL_PED, 2600); }, 600);
-    setTimeout(function(){ animCounter(fatPed, TOTAL_PED, 2600); }, 600);
-    setTimeout(function(){ animCounter(fat, FAT_FINAL, 2800, fmtBR); }, 600);
+    // 3) Notificações de pedido chegando: 12 ao longo de ~6s (cada 500ms, começa em 800ms)
+    for (var i = 0; i < 12; i++) addNotif(i, 800 + i * 500);
 
-    // 4) Narrativa final depois que tudo se acomoda
+    // 4) Contadores de pedidos/faturamento (começam em 1.2s, duram 4.8s)
+    setTimeout(function(){ animCounter(pedidos, TOTAL_PED, 4800); }, 1200);
+    setTimeout(function(){ animCounter(fatPed, TOTAL_PED, 4800); }, 1200);
+    setTimeout(function(){ animCounter(fat, FAT_FINAL, 5200, fmtBR); }, 1200);
+
+    // 5) Narrativa final (em 7.2s)
     setTimeout(function(){
-      narr.innerHTML = '<strong>600 mensagens enviadas. 47 pedidos. R$ 2.914 de faturamento.</strong> Uma terça que seria morta virou receita.';
+      narr.innerHTML = '<strong>600 mensagens enviadas com o nome de cada cliente. 47 pedidos. R$ 2.914 de faturamento.</strong> Uma terça que seria morta virou receita.';
       btn.disabled = false;
       btnTxt.textContent = 'Simular de novo';
-    }, 4200);
+    }, 7200);
   }
 
   function reset(){
     wrap.classList.remove('fired');
-    clearNotifs();
+    clearAll();
     sent.textContent = '0';
     sentFill.style.width = '0%';
     pedidos.textContent = '0';
@@ -1251,9 +1306,107 @@ function animateCounter(el) {
   }
 
   btn.addEventListener('click', function(){
-    if (wrap.classList.contains('fired') && !btn.disabled) { reset(); setTimeout(fire, 400); return; }
+    if (wrap.classList.contains('fired') && !btn.disabled) { reset(); setTimeout(fire, 500); return; }
     fire();
   });
+})();
+
+// Painel Monitor: simulação lenta disparada ao entrar em viewport (~12s)
+(function(){
+  var section = document.getElementById('pmSection');
+  var envEl = document.getElementById('pmEnv');
+  var falhasEl = document.getElementById('pmFalhas');
+  var pulEl = document.getElementById('pmPulados');
+  var progFill = document.getElementById('pmProgFill');
+  var progCount = document.getElementById('pmProgCount');
+  var progPct = document.getElementById('pmProgPct');
+  var progEta = document.getElementById('pmProgEta');
+  var log = document.getElementById('pmLog');
+  if (!section || !log) return;
+
+  var TOTAL = 482;
+  var FINAL_ENV = 347;
+  var FINAL_FALHAS = 8;
+  var FINAL_PUL = 4;
+
+  // Eventos do log em sequência lenta (timestamps reais de simulação)
+  var eventos = [
+    { t:  300, tipo:'ok', hora:'18:42:01', txt:'Enviado para Maria Silva (5543900001001)' },
+    { t: 1000, tipo:'ok', hora:'18:42:05', txt:'Enviado para Carlos Mendes (5543900001002)' },
+    { t: 1700, tipo:'ok', hora:'18:42:08', txt:'Enviado para Ana Oliveira (5543900001003)' },
+    { t: 2400, tipo:'dim',hora:'18:42:11', txt:'⏸ Pausa anti-ban (10s) após 40 mensagens' },
+    { t: 3400, tipo:'gold',hora:'18:42:21', txt:'➡ Enviando para Pedro Souza (5543900001004)' },
+    { t: 4100, tipo:'ok', hora:'18:42:25', txt:'Enviado para Pedro Souza (5543900001004)' },
+    { t: 4900, tipo:'err',hora:'18:42:29', txt:'✕ Número inválido: (5543900001999)' },
+    { t: 5700, tipo:'ok', hora:'18:42:32', txt:'Enviado para Juliana Rocha (5543900001005)' },
+    { t: 6600, tipo:'ok', hora:'18:42:36', txt:'Enviado para Rafael Torres (5543900001006)' },
+    { t: 7500, tipo:'ok', hora:'18:42:40', txt:'Enviado para Lucas Cardoso (5543900001007)' },
+    { t: 8500, tipo:'dim',hora:'18:42:44', txt:'⏭ Pulado: já enviado hoje (5543900001008)' },
+    { t: 9400, tipo:'gold',hora:'18:42:48',txt:'➡ Enviando para Bianca Martins (5543900001009)' }
+  ];
+
+  var DUR = 11000; // duração total da simulação
+
+  function anim(el, to, dur){
+    var from = parseInt(el.textContent, 10) || 0;
+    var start = performance.now();
+    (function tick(now){
+      var p = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 2);
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  function animProg(dur){
+    var start = performance.now();
+    (function tick(now){
+      var p = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 2);
+      var pct = eased * 72; // sobe até 72%
+      progFill.style.width = pct + '%';
+      var enviadosAtuais = Math.round(eased * FINAL_ENV);
+      progCount.textContent = enviadosAtuais + ' / ' + TOTAL;
+      progPct.textContent = Math.round(pct) + '% concluído';
+      var minRest = Math.max(1, Math.round((1 - eased) * 4));
+      progEta.textContent = '≈ ' + minRest + ' min restantes';
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  var started = false;
+  function start(){
+    if (started) return;
+    started = true;
+    // Contadores (enviados, falhas, pulados) em paralelo com a barra
+    anim(envEl, FINAL_ENV, DUR);
+    anim(falhasEl, FINAL_FALHAS, DUR);
+    anim(pulEl, FINAL_PUL, DUR);
+    animProg(DUR);
+    // Log entries aparecendo na ordem certa
+    eventos.forEach(function(ev){
+      setTimeout(function(){
+        var div = document.createElement('div');
+        div.className = 'pm-log-line';
+        div.innerHTML = '<span class="pm-log-time">' + ev.hora + '</span>' +
+          '<span class="pm-log-txt ' + ev.tipo + '">' + (ev.tipo === 'ok' ? '✓ ' : '') + ev.txt + '</span>';
+        log.appendChild(div);
+        requestAnimationFrame(function(){ div.classList.add('in'); });
+        // Mantém só os últimos 7 visíveis
+        while (log.children.length > 7) log.removeChild(log.firstChild);
+      }, ev.t);
+    });
+  }
+
+  // Dispara quando a section entra em 40% do viewport
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { start(); io.disconnect(); } });
+    }, { threshold:0.4 });
+    io.observe(section);
+  } else {
+    start();
+  }
 })();
 
 // Cursor spotlight: segue o mouse pelo fundo (usa CSS vars pra perf)
