@@ -145,8 +145,9 @@ html { scroll-behavior: smooth; }
 body { font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative; }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/*  BACKGROUND "BURACO NEGRO DE TRAÇOS": grid + vortex radial + lines  */
+/*  BACKGROUND INTERATIVO: grid + vortex + cursor spotlight + broadcast */
 /* ═══════════════════════════════════════════════════════════════════ */
+/* Camada 1: grid dourado global, foco central via mask */
 body::before {
   content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
   background-image:
@@ -157,7 +158,7 @@ body::before {
   mask-image:radial-gradient(ellipse 75% 55% at 50% 40%, #000 0%, transparent 85%);
   opacity:.85;
 }
-/* Traços radiais que criam a sensação de buraco negro puxando pra dentro */
+/* Camada 2: raios radiais em rotação lenta (vortex) */
 body::after {
   content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
   background:repeating-conic-gradient(from 0deg at 50% 40%,
@@ -168,6 +169,41 @@ body::after {
   animation:vortexSpin 90s linear infinite;
 }
 @keyframes vortexSpin { to { transform:rotate(360deg); } }
+
+/* Camada 3: SPOTLIGHT seguindo o cursor (JS atualiza --mx/--my) */
+.cursor-spot {
+  position:fixed; top:0; left:0; width:520px; height:520px; border-radius:50%;
+  background:radial-gradient(circle, rgba(185,141,65,.22), rgba(185,141,65,.05) 40%, transparent 70%);
+  filter:blur(30px); pointer-events:none; z-index:0;
+  transform:translate(var(--mx,50vw), var(--my,50vh)) translate(-50%,-50%);
+  opacity:0; transition:opacity .4s ease;
+  mix-blend-mode:multiply;
+}
+.cursor-spot.on { opacity:1; }
+
+/* Camada 4: ONDAS DE BROADCAST: anéis pulsantes que saem do centro (metáfora do disparo) */
+.broadcast { position:fixed; top:40%; left:50%; pointer-events:none; z-index:0; width:120px; height:120px; margin:-60px 0 0 -60px; }
+.bcast-ring { position:absolute; inset:0; border:1.5px solid rgba(185,141,65,.5); border-radius:50%; opacity:0; animation:broadcastWave 8s ease-out infinite; }
+.bcast-ring:nth-child(1) { animation-delay:0s; }
+.bcast-ring:nth-child(2) { animation-delay:2.6s; }
+.bcast-ring:nth-child(3) { animation-delay:5.2s; }
+@keyframes broadcastWave {
+  0%   { transform:scale(.3); opacity:0; border-width:1.5px; }
+  8%   { opacity:.55; }
+  50%  { opacity:.25; }
+  100% { transform:scale(18); opacity:0; border-width:.5px; }
+}
+/* Ponto central do broadcast */
+.bcast-core { position:absolute; top:50%; left:50%; width:10px; height:10px; border-radius:50%; background:var(--gold); box-shadow:0 0 16px rgba(185,141,65,.6); transform:translate(-50%,-50%); animation:bcastCore 2.6s ease-in-out infinite; }
+@keyframes bcastCore { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.9} 50%{transform:translate(-50%,-50%) scale(1.25);opacity:1} }
+
+@media(max-width:768px) {
+  .cursor-spot { display:none; } /* touch devices não têm cursor */
+}
+@media(prefers-reduced-motion:reduce) {
+  body::after, .bcast-ring, .bcast-core { animation:none; }
+  .cursor-spot { transition:none; }
+}
 /* Garante que o conteúdo fique acima do background */
 nav, section, footer { position:relative; z-index:1; }
 
@@ -443,6 +479,67 @@ footer a:hover { color:var(--text2); }
 @media(max-width:768px){ .stats-grid { grid-template-columns:1fr 1fr; } }
 
 /* ═════════════════════════════════════════════════════════════════════════ */
+/*  SIMULADOR: vendas paradas -> usuário dispara -> vendas subindo            */
+/* ═════════════════════════════════════════════════════════════════════════ */
+.sim-wrap { margin-top:52px; display:grid; grid-template-columns:1.1fr 1fr; gap:24px; align-items:stretch; }
+.sim-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px; box-shadow:0 20px 50px -20px rgba(0,0,0,.1); position:relative; overflow:hidden; }
+.sim-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); opacity:.3; }
+.sim-hd { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.sim-hd-ico { width:32px; height:32px; border-radius:9px; background:var(--gold-bg); border:1px solid rgba(185,141,65,.2); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+.sim-hd-t { font-size:13px; font-weight:800; letter-spacing:-.01em; }
+.sim-hd-s { font-size:11px; color:var(--text3); }
+.sim-big { font-size:48px; font-weight:800; letter-spacing:-.04em; line-height:1; margin:14px 0 4px; color:var(--red); transition:color .6s; }
+.sim-wrap.fired .sim-big { color:var(--green); }
+.sim-lbl { font-size:11px; color:var(--text3); font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:18px; }
+
+/* Gráfico SVG */
+.sim-chart { width:100%; height:150px; display:block; }
+.sim-grid-line { stroke:var(--border); stroke-width:1; stroke-dasharray:2 4; }
+.sim-axis-label { font-size:9px; fill:var(--text3); font-family:inherit; font-weight:600; }
+.sim-line { fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.sim-line.flat { stroke:var(--red); opacity:.9; }
+.sim-line.rise { stroke:var(--gold); stroke-dasharray:700; stroke-dashoffset:700; filter:drop-shadow(0 2px 6px rgba(185,141,65,.4)); }
+.sim-wrap.fired .sim-line.flat { opacity:0; transition:opacity .5s; }
+.sim-wrap.fired .sim-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 2.2s cubic-bezier(.2,.6,.2,1) .1s; }
+.sim-area { fill:url(#simGrad); opacity:0; transition:opacity 1s .8s; }
+.sim-wrap.fired .sim-area { opacity:.35; }
+.sim-dot { fill:var(--gold); opacity:0; transform-origin:center; }
+.sim-wrap.fired .sim-dot { opacity:1; animation:simDotPop .5s cubic-bezier(.34,1.56,.64,1) forwards; }
+
+/* Restaurante: mesas */
+.sim-resto { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px; }
+.sim-table { aspect-ratio:1; background:var(--surface2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; position:relative; transition:all .5s cubic-bezier(.2,.6,.2,1); }
+.sim-table .sim-empty-ic { color:var(--text3); opacity:.4; }
+.sim-table .sim-full-ic { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:24px; opacity:0; transform:scale(.5); transition:all .4s cubic-bezier(.34,1.56,.64,1); }
+.sim-wrap.fired .sim-table { background:var(--gold-bg); border-color:rgba(185,141,65,.35); box-shadow:0 4px 14px rgba(185,141,65,.15); }
+.sim-wrap.fired .sim-table .sim-empty-ic { opacity:0; }
+.sim-wrap.fired .sim-table .sim-full-ic { opacity:1; transform:scale(1); }
+.sim-wrap.fired .sim-table:nth-child(1) { transition-delay:.5s; } .sim-wrap.fired .sim-table:nth-child(1) .sim-full-ic { transition-delay:.6s; }
+.sim-wrap.fired .sim-table:nth-child(2) { transition-delay:.8s; } .sim-wrap.fired .sim-table:nth-child(2) .sim-full-ic { transition-delay:.9s; }
+.sim-wrap.fired .sim-table:nth-child(3) { transition-delay:1.1s; } .sim-wrap.fired .sim-table:nth-child(3) .sim-full-ic { transition-delay:1.2s; }
+.sim-wrap.fired .sim-table:nth-child(4) { transition-delay:1.4s; } .sim-wrap.fired .sim-table:nth-child(4) .sim-full-ic { transition-delay:1.5s; }
+.sim-wrap.fired .sim-table:nth-child(5) { transition-delay:1.7s; } .sim-wrap.fired .sim-table:nth-child(5) .sim-full-ic { transition-delay:1.8s; }
+.sim-wrap.fired .sim-table:nth-child(6) { transition-delay:2s; } .sim-wrap.fired .sim-table:nth-child(6) .sim-full-ic { transition-delay:2.1s; }
+
+/* Controles do simulador */
+.sim-controls { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 24px; background:linear-gradient(135deg, var(--gold-bg), transparent); border:1px solid rgba(185,141,65,.25); border-radius:16px; flex-wrap:wrap; }
+.sim-narr { font-size:13px; color:var(--text2); font-weight:500; }
+.sim-narr strong { color:var(--gold); font-weight:700; }
+.sim-btn { display:inline-flex; align-items:center; gap:8px; background:var(--gold); color:#111; font-size:13px; font-weight:700; padding:12px 22px; border-radius:999px; border:none; cursor:pointer; font-family:inherit; box-shadow:0 4px 18px rgba(185,141,65,.4); transition:all .25s; position:relative; overflow:hidden; }
+.sim-btn:hover { transform:translateY(-2px); box-shadow:0 8px 26px rgba(185,141,65,.55); }
+.sim-btn:active { transform:translateY(0); }
+.sim-btn::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.3); transform:translate(-50%,-50%); transition:width .5s, height .5s; }
+.sim-btn:active::before { width:200px; height:200px; transition:0s; }
+
+@media(max-width:768px){
+  .sim-wrap { grid-template-columns:1fr; }
+  .sim-big { font-size:36px; }
+  .sim-controls { flex-direction:column; align-items:stretch; text-align:center; }
+  .sim-btn { justify-content:center; }
+}
+@keyframes simDotPop { from{transform:scale(0);} to{transform:scale(1);} }
+
+/* ═════════════════════════════════════════════════════════════════════════ */
 /*  CARROSSEL DE LOGOS (esteira infinita)                                     */
 /* ═════════════════════════════════════════════════════════════════════════ */
 .logos-wrap { margin-top:40px; padding:24px 0; overflow:hidden; position:relative; mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%); -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%); }
@@ -479,6 +576,15 @@ footer a:hover { color:var(--text2); }
 </style>
 </head>
 <body>
+
+<!-- Background interativo: spotlight do cursor + ondas de broadcast -->
+<div class="cursor-spot" aria-hidden="true"></div>
+<div class="broadcast" aria-hidden="true">
+  <div class="bcast-core"></div>
+  <div class="bcast-ring"></div>
+  <div class="bcast-ring"></div>
+  <div class="bcast-ring"></div>
+</div>
 
 <nav aria-label="Menu principal">
   <a href="/" class="nav-logo" aria-label="ChatMOVE · Página inicial">
@@ -718,6 +824,88 @@ footer a:hover { color:var(--text2); }
   </div>
   <div style="margin-top:28px;text-align:center">
     <p style="font-size:13px;color:var(--text3);max-width:600px;margin:0 auto;line-height:1.7">Também usado por <strong>pet shops, mercadinhos, salões de festa, academias, lojas de roupas e estúdios de estética</strong>. Qualquer negócio que tenha uma base de clientes no WhatsApp e precise vender mais sem queimar verba em tráfego pago.</p>
+  </div>
+</div>
+</section>
+
+<!-- Simulador interativo: vendas paradas -> disparo -> vendas subindo -->
+<section class="divider-sec" id="simulador" aria-labelledby="sim-title">
+<div class="sec">
+  <div class="sec-label">Simule você mesmo</div>
+  <h2 id="sim-title" class="sec-title reveal">Veja o impacto de um disparo em tempo real</h2>
+  <p class="sec-sub reveal reveal-delay-1">Clique no botão e veja como suas vendas reagem quando você aciona sua base de clientes pelo WhatsApp.</p>
+
+  <div class="sim-wrap reveal reveal-delay-2" id="simWrap">
+
+    <!-- Card gráfico -->
+    <div class="sim-card">
+      <div class="sim-hd">
+        <div class="sim-hd-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div>
+          <div class="sim-hd-t">Vendas de hoje</div>
+          <div class="sim-hd-s">terça-feira, 19h às 22h</div>
+        </div>
+      </div>
+      <div class="sim-big"><span id="simCount">0</span></div>
+      <div class="sim-lbl" id="simLbl">Parado · nenhuma venda</div>
+
+      <svg class="sim-chart" viewBox="0 0 500 150" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="simGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#b98d41" stop-opacity=".5"/>
+            <stop offset="100%" stop-color="#b98d41" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid horizontal -->
+        <line class="sim-grid-line" x1="0" y1="30" x2="500" y2="30"/>
+        <line class="sim-grid-line" x1="0" y1="75" x2="500" y2="75"/>
+        <line class="sim-grid-line" x1="0" y1="120" x2="500" y2="120"/>
+        <!-- Eixo tempo -->
+        <text class="sim-axis-label" x="5" y="145">19h</text>
+        <text class="sim-axis-label" x="160" y="145">20h</text>
+        <text class="sim-axis-label" x="320" y="145">21h</text>
+        <text class="sim-axis-label" x="470" y="145">22h</text>
+        <!-- Área preenchida (curva subindo) -->
+        <path class="sim-area" d="M0,135 C80,135 130,132 180,125 C240,115 280,90 330,60 C380,35 440,22 500,18 L500,150 L0,150 Z"/>
+        <!-- Linha flat (estado inicial) -->
+        <path class="sim-line flat" d="M0,135 L500,132"/>
+        <!-- Linha subindo (após disparo) -->
+        <path class="sim-line rise" d="M0,135 C80,135 130,132 180,125 C240,115 280,90 330,60 C380,35 440,22 500,18"/>
+        <!-- Ponto no fim da curva -->
+        <circle class="sim-dot" cx="500" cy="18" r="5"/>
+      </svg>
+    </div>
+
+    <!-- Card restaurante -->
+    <div class="sim-card">
+      <div class="sim-hd">
+        <div class="sim-hd-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4M4 11h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z"/></svg></div>
+        <div>
+          <div class="sim-hd-t">Restaurante agora</div>
+          <div class="sim-hd-s">6 mesas disponíveis</div>
+        </div>
+      </div>
+      <div class="sim-big" style="font-size:30px;margin-top:18px"><span id="simOcup">0</span>/6</div>
+      <div class="sim-lbl" id="simOcupLbl">Mesas ocupadas</div>
+      <div class="sim-resto">
+        <div class="sim-table"><span class="sim-empty-ic">🍽️</span><span class="sim-full-ic">👨‍👩‍👧</span></div>
+        <div class="sim-table"><span class="sim-empty-ic">🍽️</span><span class="sim-full-ic">👫</span></div>
+        <div class="sim-table"><span class="sim-empty-ic">🍽️</span><span class="sim-full-ic">👤</span></div>
+        <div class="sim-table"><span class="sim-empty-ic">🍽️</span><span class="sim-full-ic">👥</span></div>
+        <div class="sim-table"><span class="sim-empty-ic">🍽️</span><span class="sim-full-ic">👨‍👩‍👦</span></div>
+        <div class="sim-table"><span class="sim-empty-ic">🍽️</span><span class="sim-full-ic">👬</span></div>
+      </div>
+    </div>
+
+    <!-- Barra de controle -->
+    <div class="sim-controls">
+      <div class="sim-narr" id="simNarr">Terça à noite no restaurante. <strong>Ninguém entrou ainda.</strong> Seus clientes estão em casa, sem lembrar de pedir.</div>
+      <button class="sim-btn" id="simBtn" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="simBtnTxt">Disparar promoção</span>
+      </button>
+    </div>
+
   </div>
 </div>
 </section>
@@ -988,6 +1176,76 @@ function animateCounter(el) {
   }
   requestAnimationFrame(tick);
 }
+
+// Simulador de vendas: dispara animação do gráfico + mesas enchendo
+(function(){
+  var wrap = document.getElementById('simWrap');
+  var btn = document.getElementById('simBtn');
+  var btnTxt = document.getElementById('simBtnTxt');
+  var count = document.getElementById('simCount');
+  var lbl = document.getElementById('simLbl');
+  var ocup = document.getElementById('simOcup');
+  var ocupLbl = document.getElementById('simOcupLbl');
+  var narr = document.getElementById('simNarr');
+  if (!wrap || !btn) return;
+
+  function animCounter(el, to, dur){
+    var from = parseInt(el.textContent, 10) || 0;
+    var start = performance.now();
+    (function tick(now){
+      var p = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  function fire(){
+    wrap.classList.add('fired');
+    btn.disabled = true;
+    btnTxt.textContent = 'Disparando...';
+    lbl.textContent = '🚀 Disparo ativo · clientes recebendo a promoção';
+    narr.innerHTML = 'Mensagem chegou em <strong>482 clientes</strong>. Eles começam a pedir.';
+    animCounter(count, 47, 2500);
+    animCounter(ocup, 6, 2200);
+    setTimeout(function(){
+      ocupLbl.textContent = 'Restaurante cheio!';
+      lbl.textContent = '+47 vendas em 40 minutos';
+      narr.innerHTML = '<strong>47 pedidos em 40 minutos.</strong> Uma terça que seria morta virou faturamento.';
+      btn.disabled = false;
+      btnTxt.textContent = 'Simular de novo';
+    }, 2800);
+  }
+
+  function reset(){
+    wrap.classList.remove('fired');
+    count.textContent = '0';
+    ocup.textContent = '0';
+    lbl.textContent = 'Parado · nenhuma venda';
+    ocupLbl.textContent = 'Mesas ocupadas';
+    narr.innerHTML = 'Terça à noite no restaurante. <strong>Ninguém entrou ainda.</strong> Seus clientes estão em casa, sem lembrar de pedir.';
+    btnTxt.textContent = 'Disparar promoção';
+  }
+
+  btn.addEventListener('click', function(){
+    if (wrap.classList.contains('fired') && !btn.disabled) { reset(); setTimeout(fire, 400); return; }
+    fire();
+  });
+})();
+
+// Cursor spotlight: segue o mouse pelo fundo (usa CSS vars pra perf)
+(function(){
+  var spot = document.querySelector('.cursor-spot');
+  if (!spot || matchMedia('(hover:none)').matches) return;
+  var rafId = null, tx = 0, ty = 0;
+  function update(){ spot.style.setProperty('--mx', tx+'px'); spot.style.setProperty('--my', ty+'px'); rafId = null; }
+  document.addEventListener('mousemove', function(e){
+    tx = e.clientX; ty = e.clientY;
+    if (!rafId) rafId = requestAnimationFrame(update);
+    if (!spot.classList.contains('on')) spot.classList.add('on');
+  });
+  document.addEventListener('mouseleave', function(){ spot.classList.remove('on'); });
+})();
 
 // Smooth scroll com offset do nav fixo (60px), evita título cortado pela barra
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
