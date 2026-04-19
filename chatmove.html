@@ -1458,9 +1458,9 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
             <textarea id="normInput" placeholder="Baixe o modelo, preencha e cole aqui.
 
 Formato ideal (o sistema aceita variações):
-João Silva,5543996255556
-Maria Oliveira,5511987654321
-Carlos Mendes,5521998887777" style="min-height:160px;font-size:12px;font-family:monospace;line-height:1.7" oninput="normalizarPreview()"></textarea>
+João Silva,5511900001001
+Maria Oliveira,5521900001002
+Carlos Mendes,5543900001003" style="min-height:160px;font-size:12px;font-family:monospace;line-height:1.7" oninput="normalizarPreview()"></textarea>
             <div class="hint">Padrão: <strong>nome,55+DDD+9+número</strong> · O sistema corrige formatação, espaços e traços automaticamente.</div>
           </div>
 
@@ -2027,7 +2027,7 @@ window.refreshPrev = function() {
   var d = new Date();
   var txt = ta.value;
   txt = txt.replace(/{nome}/g,     '<span class="hi">João Silva</span>');
-  txt = txt.replace(/{telefone}/g, '<span class="hi">11999887766</span>');
+  txt = txt.replace(/{telefone}/g, '<span class="hi">11900001001</span>');
   txt = txt.replace(/{data}/g,     '<span class="hi">' + d.toLocaleDateString('pt-BR') + '</span>');
   txt = txt.replace(/{hora}/g,     '<span class="hi">' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) + '</span>');
   txt = txt.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
@@ -2748,7 +2748,7 @@ function mostrarPairingCode(code) {
 }
 
 window.conectarPeloNumero = function() {
-  var phone = prompt('Digite seu número de WhatsApp com DDI e DDD (só dígitos, sem espaços):\n\nExemplo: 5511999998888\n(55 = Brasil, 11 = DDD, 999998888 = número)');
+  var phone = prompt('Digite seu número de WhatsApp com DDI e DDD (só dígitos, sem espaços):\n\nExemplo: 5511900001234\n(55 = Brasil, 11 = DDD, 900001234 = número)');
   if (!phone) return;
   var digits = String(phone).replace(/\D/g, '');
   if (digits.length < 10 || digits.length > 15) { toast('Número inválido', 'erro'); return; }
@@ -4155,11 +4155,11 @@ window.baixarModelo = function() {
   // Modelo padrão: nome limpo + DDD + 9 + 8 dígitos, sem formatação extra
   var modelo = [
     'nome,telefone',
-    'João Silva,5543996255556',
-    'Maria Oliveira,5511987654321',
-    'Carlos Mendes,5521998887777',
-    'Ana Paula Souza,5547991234567',
-    'Pedro Alves,5585996543210'
+    'João Silva,5511900001001',
+    'Maria Oliveira,5521900001002',
+    'Carlos Mendes,5543900001003',
+    'Ana Paula Souza,5547900001004',
+    'Pedro Alves,5585900001005'
   ].join('\n');
 
   var blob = new Blob([modelo], { type: 'text/csv;charset=utf-8;' });

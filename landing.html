@@ -339,71 +339,115 @@ footer a:hover { color:var(--text2); }
 .feat:hover { transform:translateY(-6px); box-shadow:0 12px 40px -12px rgba(185,141,65,.35), 0 4px 16px rgba(0,0,0,.08); z-index:2; }
 
 /* ═════════════════════════════════════════════════════════════════════════ */
-/*  HERO DISPLAY: mockup de celular flutuando com a mensagem do WhatsApp      */
+/*  HERO SIMULATOR: mensagem disparada -> WhatsApp recebendo -> vendas         */
 /* ═════════════════════════════════════════════════════════════════════════ */
-.hero-display { padding:0 24px 120px; display:flex; justify-content:center; position:relative; margin-top:-20px; }
-.hero-display::before {
-  content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
-  width:90%; max-width:900px; height:260px; border-radius:50%;
-  background:radial-gradient(ellipse,rgba(185,141,65,.18) 0%,transparent 70%);
-  filter:blur(30px); pointer-events:none;
+.hero-sim { padding:20px 24px 100px; position:relative; }
+.hs-container { max-width:1240px; margin:0 auto; position:relative; }
+.hs-container::before { content:''; position:absolute; top:-20px; left:50%; transform:translateX(-50%); width:100%; max-width:1000px; height:200px; border-radius:50%; background:radial-gradient(ellipse, rgba(185,141,65,.18) 0%, transparent 70%); filter:blur(40px); pointer-events:none; z-index:-1; }
+.hs-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-bottom:24px; }
+
+.hs-card {
+  background:var(--surface);
+  border:1px solid rgba(185,141,65,.22);
+  border-radius:20px;
+  padding:22px;
+  box-shadow:0 20px 50px -22px rgba(0,0,0,.14), 0 0 40px -12px rgba(185,141,65,.22);
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; gap:16px;
+  transition:transform .4s, box-shadow .4s, border-color .4s;
+  min-height:440px;
 }
-.hd-wrap { display:flex; align-items:center; justify-content:center; gap:48px; flex-wrap:wrap; position:relative; z-index:1; max-width:900px; }
+.hs-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); opacity:.5; }
+#hsWrap.fired .hs-card { border-color:rgba(185,141,65,.4); box-shadow:0 24px 60px -22px rgba(0,0,0,.18), 0 0 60px -12px rgba(185,141,65,.35); }
 
-/* Seta/fluxo conectando dashboard -> phone (dados saindo do painel chegando no cliente) */
-.hd-flow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; z-index:0; opacity:.55; }
-.hd-flow svg { display:block; }
-.hd-flow path { stroke:var(--gold); stroke-width:1.5; stroke-dasharray:4 4; fill:none; animation:flowDash 3s linear infinite; }
-@keyframes flowDash { to { stroke-dashoffset:-80; } }
-@media(max-width:768px) { .hd-flow { display:none; } }
+.hs-step { display:inline-flex; align-items:center; gap:8px; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); }
+.hs-step-num { width:20px; height:20px; border-radius:50%; background:var(--gold); color:#111; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; }
+.hs-title { font-size:16px; font-weight:800; letter-spacing:-.02em; color:var(--text); line-height:1.2; margin-top:-8px; }
 
-/* Mockup celular: moldura com halo dourado integrando à paleta */
-.phone { width:300px; background:linear-gradient(140deg,#18181a,#0c0c0e); border-radius:36px; padding:10px; position:relative; transform:rotate(-4deg); animation:phoneFloat 6s ease-in-out infinite; box-shadow:0 30px 80px -20px rgba(0,0,0,.28), 0 0 0 1px rgba(185,141,65,.18), 0 0 60px -10px rgba(185,141,65,.35), 0 12px 30px -8px rgba(185,141,65,.25); }
-@keyframes phoneFloat { 0%,100%{transform:rotate(-4deg) translateY(0)} 50%{transform:rotate(-4deg) translateY(-10px)} }
-.phone::before { content:''; position:absolute; top:18px; left:50%; transform:translateX(-50%); width:90px; height:22px; background:#0c0c0e; border-radius:999px; z-index:2; }
-.phone-screen { background:#efeae2; border-radius:28px; overflow:hidden; padding-top:44px; min-height:560px; font-family:-apple-system,'Segoe UI',Roboto,sans-serif; position:relative; }
-.phone-header { background:#075e54; padding:10px 14px 12px; display:flex; align-items:center; gap:10px; color:#fff; position:relative; }
-.phone-header::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold) 50%,transparent); opacity:.5; }
-.phone-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#b98d41,#c69a4e); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0; box-shadow:0 0 0 2px rgba(255,255,255,.18); }
-.phone-name { font-size:13px; font-weight:600; line-height:1.2; }
-.phone-status { font-size:10px; opacity:.85; }
-.phone-chat { padding:18px 14px; display:flex; flex-direction:column; gap:8px; background:#efeae2; min-height:400px; position:relative; }
-.phone-chat::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(0,0,0,.03) 1px,transparent 1px); background-size:20px 20px; pointer-events:none; }
-.phone-msg { align-self:flex-start; background:#fff; border-radius:8px 8px 8px 2px; padding:8px 11px; max-width:80%; font-size:12.5px; line-height:1.4; color:#1c1c1e; box-shadow:0 1px 1px rgba(0,0,0,.08); position:relative; z-index:1; animation:msgFadeIn .6s ease both; }
-.phone-msg.mine { align-self:flex-end; background:#d9fdd3; border-radius:8px 8px 2px 8px; }
-.phone-msg-time { font-size:9px; color:rgba(0,0,0,.45); margin-top:3px; text-align:right; }
-.phone-msg strong { color:#b98d41; }
-@keyframes msgFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.phone-msg:nth-child(1) { animation-delay:.2s; }
-.phone-msg:nth-child(2) { animation-delay:.6s; }
-.phone-msg:nth-child(3) { animation-delay:1s; }
+/* Card 1: Mensagem modelo */
+.hs-msg { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:14px 15px; }
+.hs-msg-hd { display:flex; align-items:center; gap:10px; margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.hs-msg-avatar { width:34px; height:34px; border-radius:10px; background:var(--gold-bg); color:var(--gold); display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid rgba(185,141,65,.2); }
+.hs-msg-name { font-size:12.5px; font-weight:700; color:var(--text); line-height:1.2; }
+.hs-msg-sub { font-size:10px; color:var(--text3); font-weight:500; }
+.hs-msg-body { font-size:12.5px; line-height:1.6; color:var(--text2); }
+.hs-msg-body strong { color:var(--gold); font-weight:700; }
 
-/* Dashboard floating card ao lado do celular: moldura dourada sutil unifica com phone */
-.hd-dash { width:340px; background:var(--surface); border:1px solid rgba(185,141,65,.18); border-radius:20px; padding:22px; transform:rotate(2deg); animation:dashFloat 7s ease-in-out infinite; box-shadow:0 24px 60px -18px rgba(0,0,0,.16), 0 6px 18px rgba(0,0,0,.05), 0 0 40px -8px rgba(185,141,65,.25); position:relative; }
-.hd-dash::before { content:''; position:absolute; inset:0; border-radius:20px; padding:1px; background:linear-gradient(135deg,rgba(185,141,65,.35),transparent 50%); -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
-@keyframes dashFloat { 0%,100%{transform:rotate(2deg) translateY(0)} 50%{transform:rotate(2deg) translateY(-8px)} }
-.hd-dash-hd { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
-.hd-dash-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 3px rgba(185,141,65,.18); animation:livePulse 1.8s ease-in-out infinite; }
-@keyframes livePulse { 0%,100%{box-shadow:0 0 0 3px rgba(185,141,65,.18)} 50%{box-shadow:0 0 0 7px rgba(185,141,65,.04)} }
-.hd-dash-t { font-size:12px; font-weight:700; letter-spacing:-.01em; }
-.hd-dash-badge { margin-left:auto; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-bg); padding:3px 8px; border-radius:999px; }
-.hd-dash-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
-.hd-stat { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
-.hd-stat-val { font-size:18px; font-weight:800; letter-spacing:-.02em; }
-.hd-stat-val.g { color:#1f9a52; }
-.hd-stat-val.a { color:var(--gold); }
-.hd-stat-lbl { font-size:9px; color:var(--text3); font-weight:700; letter-spacing:.06em; text-transform:uppercase; margin-top:2px; }
-.hd-prog-wrap { height:6px; background:var(--surface3); border-radius:999px; overflow:hidden; margin-bottom:6px; }
-.hd-prog { height:100%; background:linear-gradient(90deg,var(--gold),#c69a4e); border-radius:999px; width:0%; animation:progFill 4s ease-out .5s forwards; }
-@keyframes progFill { to { width:72%; } }
-.hd-prog-txt { font-size:10px; color:var(--text3); display:flex; justify-content:space-between; }
+.hs-sent { margin-top:auto; }
+.hs-sent-hd { display:flex; justify-content:space-between; align-items:center; font-size:11px; margin-bottom:8px; color:var(--text2); font-weight:600; }
+.hs-sent-count { color:var(--gold); font-weight:800; font-variant-numeric:tabular-nums; }
+.hs-sent-bar { height:8px; background:var(--surface3); border-radius:999px; overflow:hidden; }
+.hs-sent-fill { height:100%; width:0%; background:linear-gradient(90deg, var(--gold), var(--gold2)); border-radius:999px; transition:width .3s linear; box-shadow:0 0 10px rgba(185,141,65,.4); }
 
-@media(max-width:768px){
-  .hd-wrap { gap:20px; }
-  .phone { width:240px; transform:rotate(-3deg); }
-  .phone-screen { min-height:480px; }
-  .phone-chat { min-height:340px; }
-  .hd-dash { width:100%; max-width:340px; transform:rotate(0); }
+/* Card 2: WhatsApp recebendo pedidos */
+.hs-phone { flex:1; background:#0b141a; border-radius:14px; overflow:hidden; display:flex; flex-direction:column; min-height:310px; border:1px solid #1f2c33; }
+.hs-phone-hd { display:flex; align-items:center; gap:10px; padding:12px 14px; background:#1f2c33; color:#fff; border-bottom:1px solid #2a3942; }
+.hs-phone-hd svg { flex-shrink:0; }
+.hs-phone-hd > span:not(.hs-phone-badge) { font-size:13px; font-weight:600; }
+.hs-phone-badge { margin-left:auto; background:var(--gold); color:#111; font-size:10px; font-weight:800; padding:3px 9px; border-radius:999px; min-width:24px; text-align:center; transition:transform .3s cubic-bezier(.34,1.56,.64,1); font-variant-numeric:tabular-nums; }
+.hs-phone-badge.pulse { transform:scale(1.2); }
+.hs-phone-notifs { flex:1; padding:10px; display:flex; flex-direction:column-reverse; gap:7px; position:relative; background:#0b141a; overflow:hidden; }
+.hs-phone-empty { margin:auto; text-align:center; color:rgba(255,255,255,.25); font-size:11.5px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.hs-phone-empty svg { opacity:.35; }
+#hsWrap.fired .hs-phone-empty { display:none; }
+
+.hs-notif { background:#202c33; border-radius:10px; padding:9px 11px; display:flex; align-items:flex-start; gap:10px; color:#e9edef; opacity:0; transform:translateY(-8px) scale(.96); transition:opacity .4s, transform .4s cubic-bezier(.34,1.56,.64,1); }
+.hs-notif.in { opacity:1; transform:translateY(0) scale(1); }
+.hs-notif-avatar { width:26px; height:26px; border-radius:50%; background:var(--gold); color:#111; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0; }
+.hs-notif-body { flex:1; min-width:0; font-size:11px; line-height:1.35; }
+.hs-notif-name { font-weight:700; color:#e9edef; display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:1px; }
+.hs-notif-time { font-size:9px; color:#8b969c; font-weight:500; flex-shrink:0; }
+.hs-notif-msg { color:#cfd2d5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Card 3: Vendas */
+.hs-metric { text-align:center; padding:2px 0; }
+.hs-metric-val { font-size:56px; font-weight:800; letter-spacing:-.04em; line-height:1; color:var(--red); transition:color .6s; font-variant-numeric:tabular-nums; }
+#hsWrap.fired .hs-metric-val { color:var(--gold); }
+.hs-metric-lbl { font-size:11px; color:var(--text3); font-weight:600; letter-spacing:.04em; margin-top:4px; }
+
+.hs-chart { width:100%; height:100px; display:block; }
+.hs-grid-line { stroke:var(--border); stroke-width:1; stroke-dasharray:2 3; }
+.hs-line { fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.hs-line.flat { stroke:var(--red); opacity:.9; transition:opacity .4s; }
+.hs-line.rise { stroke:var(--gold); stroke-dasharray:700; stroke-dashoffset:700; filter:drop-shadow(0 2px 4px rgba(185,141,65,.4)); }
+#hsWrap.fired .hs-line.flat { opacity:0; }
+#hsWrap.fired .hs-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 2.4s cubic-bezier(.2,.6,.2,1) .2s; }
+.hs-area { fill:url(#hsGrad); opacity:0; transition:opacity .8s .8s; }
+#hsWrap.fired .hs-area { opacity:.4; }
+.hs-dot { fill:var(--gold); opacity:0; }
+#hsWrap.fired .hs-dot { opacity:1; animation:hsDotPop .5s cubic-bezier(.34,1.56,.64,1) 2.4s forwards; }
+@keyframes hsDotPop { from{r:0;} to{r:5;} }
+
+.hs-fat { margin-top:auto; padding:13px 14px; background:linear-gradient(135deg, rgba(185,141,65,.08), transparent); border:1px solid rgba(185,141,65,.22); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; transition:all .5s; }
+#hsWrap.fired .hs-fat { border-color:rgba(185,141,65,.5); background:linear-gradient(135deg, rgba(185,141,65,.15), rgba(185,141,65,.04)); box-shadow:0 6px 16px -4px rgba(185,141,65,.3); }
+.hs-fat-calc { font-size:10.5px; color:var(--text3); font-weight:600; line-height:1.5; }
+.hs-fat-calc strong { color:var(--text2); font-weight:800; font-variant-numeric:tabular-nums; }
+.hs-fat-total { text-align:right; }
+.hs-fat-lbl { font-size:8.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); }
+.hs-fat-val { font-size:22px; font-weight:800; letter-spacing:-.03em; color:var(--red); transition:color .5s; line-height:1.15; font-variant-numeric:tabular-nums; }
+#hsWrap.fired .hs-fat-val { color:var(--gold); }
+
+/* Controle central */
+.hs-control { display:flex; align-items:center; justify-content:space-between; gap:22px; padding:18px 26px; background:linear-gradient(135deg, rgba(185,141,65,.08), rgba(185,141,65,.02)); border:1px solid rgba(185,141,65,.28); border-radius:16px; flex-wrap:wrap; box-shadow:0 8px 24px -8px rgba(185,141,65,.2); }
+.hs-narr { flex:1; min-width:260px; font-size:13px; color:var(--text2); line-height:1.6; margin:0; }
+.hs-narr strong { color:var(--gold); font-weight:700; }
+.hs-fire { display:inline-flex; align-items:center; gap:9px; background:var(--gold); color:#111; font-size:14px; font-weight:800; padding:14px 26px; border-radius:999px; border:none; cursor:pointer; font-family:inherit; box-shadow:0 6px 22px rgba(185,141,65,.45); transition:all .25s; position:relative; overflow:hidden; flex-shrink:0; letter-spacing:-.01em; }
+.hs-fire:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 32px rgba(185,141,65,.6); }
+.hs-fire:active:not(:disabled) { transform:translateY(0); }
+.hs-fire:disabled { opacity:.7; cursor:not-allowed; }
+.hs-fire::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.35); transform:translate(-50%,-50%); transition:width .5s, height .5s; }
+.hs-fire:active::before { width:200px; height:200px; transition:0s; }
+
+/* Responsive */
+@media(max-width:1000px){ .hs-grid { grid-template-columns:1fr 1fr; } .hs-card:nth-child(3) { grid-column:1 / -1; } }
+@media(max-width:700px){
+  .hero-sim { padding:8px 16px 56px; }
+  .hs-grid { grid-template-columns:1fr; gap:14px; margin-bottom:16px; }
+  .hs-card { min-height:auto; }
+  .hs-card:nth-child(3) { grid-column:auto; }
+  .hs-control { flex-direction:column; text-align:center; padding:16px; }
+  .hs-narr { min-width:0; }
+  .hs-metric-val { font-size:44px; }
 }
 
 /* ═════════════════════════════════════════════════════════════════════════ */
@@ -461,79 +505,6 @@ footer a:hover { color:var(--text2); }
 .stat-suffix { font-size:.55em; margin-left:2px; }
 .stat-small { font-size:12px; color:var(--text2); margin-top:6px; line-height:1.4; font-weight:500; }
 @media(max-width:768px){ .stats-grid { grid-template-columns:1fr 1fr; } }
-
-/* ═════════════════════════════════════════════════════════════════════════ */
-/*  SIMULADOR: vendas paradas -> usuário dispara -> vendas subindo            */
-/* ═════════════════════════════════════════════════════════════════════════ */
-.sim-wrap { margin-top:52px; display:grid; grid-template-columns:1.1fr 1fr; gap:24px; align-items:stretch; }
-.sim-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px; box-shadow:0 20px 50px -20px rgba(0,0,0,.1); position:relative; overflow:hidden; }
-.sim-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); opacity:.3; }
-.sim-hd { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
-.sim-hd-ico { width:32px; height:32px; border-radius:9px; background:var(--gold-bg); border:1px solid rgba(185,141,65,.2); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
-.sim-hd-t { font-size:13px; font-weight:800; letter-spacing:-.01em; }
-.sim-hd-s { font-size:11px; color:var(--text3); }
-.sim-big { font-size:48px; font-weight:800; letter-spacing:-.04em; line-height:1; margin:14px 0 4px; color:var(--red); transition:color .6s; }
-.sim-wrap.fired .sim-big { color:var(--green); }
-.sim-lbl { font-size:11px; color:var(--text3); font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:18px; }
-
-/* Gráfico SVG */
-.sim-chart { width:100%; height:150px; display:block; }
-.sim-grid-line { stroke:var(--border); stroke-width:1; stroke-dasharray:2 4; }
-.sim-axis-label { font-size:9px; fill:var(--text3); font-family:inherit; font-weight:600; }
-.sim-line { fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
-.sim-line.flat { stroke:var(--red); opacity:.9; }
-.sim-line.rise { stroke:var(--gold); stroke-dasharray:700; stroke-dashoffset:700; filter:drop-shadow(0 2px 6px rgba(185,141,65,.4)); }
-.sim-wrap.fired .sim-line.flat { opacity:0; transition:opacity .5s; }
-.sim-wrap.fired .sim-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 2.2s cubic-bezier(.2,.6,.2,1) .1s; }
-.sim-area { fill:url(#simGrad); opacity:0; transition:opacity 1s .8s; }
-.sim-wrap.fired .sim-area { opacity:.35; }
-.sim-dot { fill:var(--gold); opacity:0; transform-origin:center; }
-.sim-wrap.fired .sim-dot { opacity:1; animation:simDotPop .5s cubic-bezier(.34,1.56,.64,1) forwards; }
-
-/* Restaurante: mesas com ícones SVG (sem emoji) */
-.sim-resto { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px; }
-.sim-table { aspect-ratio:1; background:var(--surface2); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; position:relative; transition:all .5s cubic-bezier(.2,.6,.2,1); overflow:hidden; }
-.sim-table svg { width:40%; height:40%; transition:all .4s cubic-bezier(.34,1.56,.64,1); }
-.sim-table .sim-empty-ic { color:var(--text3); opacity:.55; position:relative; z-index:1; }
-.sim-table .sim-full-ic { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(.4); color:var(--gold); opacity:0; z-index:2; filter:drop-shadow(0 2px 4px rgba(185,141,65,.25)); }
-.sim-wrap.fired .sim-table { background:linear-gradient(135deg, var(--gold-bg), rgba(185,141,65,.04)); border-color:rgba(185,141,65,.35); box-shadow:0 4px 14px rgba(185,141,65,.18); }
-.sim-wrap.fired .sim-table .sim-empty-ic { opacity:0; transform:scale(.6); }
-.sim-wrap.fired .sim-table .sim-full-ic { opacity:1; transform:translate(-50%,-50%) scale(1); }
-.sim-wrap.fired .sim-table:nth-child(1) { transition-delay:.5s; } .sim-wrap.fired .sim-table:nth-child(1) .sim-full-ic { transition-delay:.6s; }
-.sim-wrap.fired .sim-table:nth-child(2) { transition-delay:.8s; } .sim-wrap.fired .sim-table:nth-child(2) .sim-full-ic { transition-delay:.9s; }
-.sim-wrap.fired .sim-table:nth-child(3) { transition-delay:1.1s; } .sim-wrap.fired .sim-table:nth-child(3) .sim-full-ic { transition-delay:1.2s; }
-.sim-wrap.fired .sim-table:nth-child(4) { transition-delay:1.4s; } .sim-wrap.fired .sim-table:nth-child(4) .sim-full-ic { transition-delay:1.5s; }
-.sim-wrap.fired .sim-table:nth-child(5) { transition-delay:1.7s; } .sim-wrap.fired .sim-table:nth-child(5) .sim-full-ic { transition-delay:1.8s; }
-.sim-wrap.fired .sim-table:nth-child(6) { transition-delay:2s; } .sim-wrap.fired .sim-table:nth-child(6) .sim-full-ic { transition-delay:2.1s; }
-
-/* Bloco de faturamento (cálculo 47 × R$62 = R$2.914) */
-.sim-fat { margin-top:20px; padding:16px 18px; background:linear-gradient(135deg, rgba(185,141,65,.08), transparent); border:1px solid rgba(185,141,65,.2); border-radius:14px; display:flex; align-items:center; justify-content:space-between; gap:12px; transition:all .5s; }
-.sim-wrap.fired .sim-fat { border-color:rgba(185,141,65,.45); background:linear-gradient(135deg, rgba(185,141,65,.14), rgba(185,141,65,.04)); box-shadow:0 6px 18px -6px rgba(185,141,65,.3); }
-.sim-fat-calc { font-size:11px; color:var(--text3); font-weight:600; letter-spacing:.02em; line-height:1.5; }
-.sim-fat-calc strong { color:var(--text2); font-weight:700; }
-.sim-fat-total { text-align:right; }
-.sim-fat-lbl { font-size:9px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); }
-.sim-fat-val { font-size:26px; font-weight:800; letter-spacing:-.03em; color:var(--red); transition:color .5s; line-height:1.1; font-variant-numeric:tabular-nums; }
-.sim-fat-val .sim-fat-cur { font-size:.55em; margin-right:2px; opacity:.8; }
-.sim-wrap.fired .sim-fat-val { color:var(--gold); }
-
-/* Controles do simulador */
-.sim-controls { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 24px; background:linear-gradient(135deg, var(--gold-bg), transparent); border:1px solid rgba(185,141,65,.25); border-radius:16px; flex-wrap:wrap; }
-.sim-narr { font-size:13px; color:var(--text2); font-weight:500; }
-.sim-narr strong { color:var(--gold); font-weight:700; }
-.sim-btn { display:inline-flex; align-items:center; gap:8px; background:var(--gold); color:#111; font-size:13px; font-weight:700; padding:12px 22px; border-radius:999px; border:none; cursor:pointer; font-family:inherit; box-shadow:0 4px 18px rgba(185,141,65,.4); transition:all .25s; position:relative; overflow:hidden; }
-.sim-btn:hover { transform:translateY(-2px); box-shadow:0 8px 26px rgba(185,141,65,.55); }
-.sim-btn:active { transform:translateY(0); }
-.sim-btn::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.3); transform:translate(-50%,-50%); transition:width .5s, height .5s; }
-.sim-btn:active::before { width:200px; height:200px; transition:0s; }
-
-@media(max-width:768px){
-  .sim-wrap { grid-template-columns:1fr; }
-  .sim-big { font-size:36px; }
-  .sim-controls { flex-direction:column; align-items:stretch; text-align:center; }
-  .sim-btn { justify-content:center; }
-}
-@keyframes simDotPop { from{transform:scale(0);} to{transform:scale(1);} }
 
 /* ═════════════════════════════════════════════════════════════════════════ */
 /*  CARROSSEL DE LOGOS (esteira infinita)                                     */
@@ -610,44 +581,105 @@ footer a:hover { color:var(--text2); }
   </div>
 </section>
 
-<!-- Hero display: celular + dashboard flutuando conectados por seta dourada -->
-<section class="hero-display reveal" aria-hidden="true">
-  <div class="hd-wrap">
-    <!-- Seta de fluxo: dados saem do dashboard e chegam no phone -->
-    <div class="hd-flow" aria-hidden="true">
-      <svg width="220" height="60" viewBox="0 0 220 60" fill="none">
-        <path d="M10 30 Q 110 -10 210 30" stroke-linecap="round"/>
-        <circle cx="210" cy="30" r="3" fill="var(--gold)" opacity=".9"/>
-      </svg>
-    </div>
-    <div class="phone">
-      <div class="phone-screen">
-        <div class="phone-header">
-          <div class="phone-avatar">🍕</div>
-          <div>
-            <div class="phone-name">Pizzaria do João</div>
-            <div class="phone-status">online</div>
+<!-- Simulador interativo no hero: mensagem -> WhatsApp recebendo pedidos -> vendas subindo -->
+<section class="hero-sim reveal" aria-label="Simulador de disparo em tempo real">
+  <div class="hs-container" id="hsWrap">
+    <div class="hs-grid">
+
+      <!-- CARD 1: Mensagem disparando -->
+      <div class="hs-card">
+        <div class="hs-step"><span class="hs-step-num">1</span><span>Você dispara</span></div>
+        <div class="hs-title">Promoção de Terça</div>
+
+        <div class="hs-msg">
+          <div class="hs-msg-hd">
+            <div class="hs-msg-avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="1" fill="currentColor"/><circle cx="9" cy="18" r="1" fill="currentColor"/><circle cx="15" cy="18" r="1" fill="currentColor"/></svg>
+            </div>
+            <div>
+              <div class="hs-msg-name">Pizzaria do João</div>
+              <div class="hs-msg-sub">mensagem modelo</div>
+            </div>
+          </div>
+          <div class="hs-msg-body">
+            Oi <strong>{nome}</strong>, boa terça!<br>
+            Hoje tem <strong>Combo Família</strong> por apenas <strong>R$ 62,00</strong>. Pizza grande + refri 2L.<br>
+            Retire no balcão ou peça delivery direto aqui pelo zap.
           </div>
         </div>
-        <div class="phone-chat">
-          <div class="phone-msg">Olá <strong>Maria</strong>! 👋<br>Hoje é sexta e a promoção tá imperdível: pizza grande + refri 2L por <strong>R$ 59,90</strong>. Quer garantir a sua?<div class="phone-msg-time">18:42 ✓✓</div></div>
-          <div class="phone-msg mine">Quero sim! Pode mandar a de calabresa 🙏<div class="phone-msg-time">18:43</div></div>
-          <div class="phone-msg">Perfeito, Maria! Saindo do forno em 30min e chegando quentinha aí 🚀<div class="phone-msg-time">18:43</div></div>
+
+        <div class="hs-sent">
+          <div class="hs-sent-hd">
+            <span>Enviando para sua lista</span>
+            <span class="hs-sent-count"><span id="hsSent">0</span> / 600</span>
+          </div>
+          <div class="hs-sent-bar"><div class="hs-sent-fill" id="hsSentFill"></div></div>
         </div>
       </div>
+
+      <!-- CARD 2: WhatsApp recebendo pedidos -->
+      <div class="hs-card">
+        <div class="hs-step"><span class="hs-step-num">2</span><span>Pedidos chegam</span></div>
+        <div class="hs-title">Seu WhatsApp bomba</div>
+
+        <div class="hs-phone">
+          <div class="hs-phone-hd">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M20.5 3.5a12 12 0 0 0-17 0c-3.15 3.2-3.83 8.03-1.85 11.94L1 22l6.67-1.75a12 12 0 0 0 5.83 1.5h.01c6.62 0 12-5.38 12-12a11.9 11.9 0 0 0-3.5-8.5.5.5 0 0 0-1.51 0zM12 20.15a10 10 0 0 1-5.1-1.4l-.36-.22-3.77.99 1-3.67-.24-.38a10 10 0 1 1 8.48 4.68z"/></svg>
+            <span>WhatsApp</span>
+            <span class="hs-phone-badge" id="hsBadge">0</span>
+          </div>
+          <div class="hs-phone-notifs" id="hsNotifs">
+            <div class="hs-phone-empty" id="hsPhoneEmpty">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <div>Sem pedidos no momento</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: Vendas e faturamento subindo -->
+      <div class="hs-card">
+        <div class="hs-step"><span class="hs-step-num">3</span><span>Vendas sobem</span></div>
+        <div class="hs-title">Suas vendas reais</div>
+
+        <div class="hs-metric">
+          <div class="hs-metric-val" id="hsPedidos">0</div>
+          <div class="hs-metric-lbl">pedidos confirmados</div>
+        </div>
+
+        <svg class="hs-chart" viewBox="0 0 500 120" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="hsGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#b98d41" stop-opacity=".45"/>
+              <stop offset="100%" stop-color="#b98d41" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <line class="hs-grid-line" x1="0" y1="30" x2="500" y2="30"/>
+          <line class="hs-grid-line" x1="0" y1="75" x2="500" y2="75"/>
+          <path class="hs-area" d="M0,110 C80,110 140,108 200,100 C260,90 310,60 360,35 C410,15 460,10 500,8 L500,120 L0,120 Z"/>
+          <path class="hs-line flat" d="M0,110 L500,108"/>
+          <path class="hs-line rise" d="M0,110 C80,110 140,108 200,100 C260,90 310,60 360,35 C410,15 460,10 500,8"/>
+          <circle class="hs-dot" cx="500" cy="8" r="4.5"/>
+        </svg>
+
+        <div class="hs-fat">
+          <div class="hs-fat-calc"><strong><span id="hsFatPed">0</span></strong> pedidos<br>× R$ 62 ticket médio</div>
+          <div class="hs-fat-total">
+            <div class="hs-fat-lbl">Faturamento</div>
+            <div class="hs-fat-val">R$ <span id="hsFat">0</span></div>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div class="hd-dash">
-      <div class="hd-dash-hd">
-        <div class="hd-dash-dot"></div>
-        <div class="hd-dash-t">Campanha Sexta Promo</div>
-        <div class="hd-dash-badge">Ao vivo</div>
-      </div>
-      <div class="hd-dash-stats">
-        <div class="hd-stat"><div class="hd-stat-val g" data-count="347">0</div><div class="hd-stat-lbl">Entregues</div></div>
-        <div class="hd-stat"><div class="hd-stat-val a" data-count="482">0</div><div class="hd-stat-lbl">Total</div></div>
-      </div>
-      <div class="hd-prog-wrap"><div class="hd-prog"></div></div>
-      <div class="hd-prog-txt"><span>72% concluído</span><span>~4 min restantes</span></div>
+
+    <!-- Controle central -->
+    <div class="hs-control">
+      <p class="hs-narr" id="hsNarr"><strong>Terça à noite.</strong> Restaurante parado, clientes em casa. Aperte o botão e veja um disparo real acontecendo.</p>
+      <button class="hs-fire" id="hsBtn" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span id="hsBtnTxt">Disparar promoção</span>
+      </button>
     </div>
   </div>
 </section>
@@ -717,13 +749,13 @@ footer a:hover { color:var(--text2); }
       </div>
 
       <div class="pm-log">
-        <div class="pm-log-line"><span class="pm-log-time">18:42:01</span><span class="pm-log-txt ok">✓ Enviado para Maria Silva (5543996255556)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:05</span><span class="pm-log-txt ok">✓ Enviado para Carlos Mendes (5543988447722)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:01</span><span class="pm-log-txt ok">✓ Enviado para Maria Silva (5543900001001)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:05</span><span class="pm-log-txt ok">✓ Enviado para Carlos Mendes (5543900001002)</span></div>
         <div class="pm-log-line"><span class="pm-log-time">18:42:08</span><span class="pm-log-txt dim">⏸ Pausa anti-ban (10s) após 40 mensagens</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:19</span><span class="pm-log-txt ok">✓ Enviado para Ana Oliveira (5543991102233)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:23</span><span class="pm-log-txt gold">➡ Enviando para Pedro Souza (5543997558844)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:27</span><span class="pm-log-txt ok">✓ Enviado para Pedro Souza (5543997558844)</span></div>
-        <div class="pm-log-line"><span class="pm-log-time">18:42:30</span><span class="pm-log-txt gold">➡ Enviando para Juliana Rocha (5543992334455)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:19</span><span class="pm-log-txt ok">✓ Enviado para Ana Oliveira (5543900001003)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:23</span><span class="pm-log-txt gold">➡ Enviando para Pedro Souza (5543900001004)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:27</span><span class="pm-log-txt ok">✓ Enviado para Pedro Souza (5543900001004)</span></div>
+        <div class="pm-log-line"><span class="pm-log-time">18:42:30</span><span class="pm-log-txt gold">➡ Enviando para Juliana Rocha (5543900001005)</span></div>
       </div>
     </div>
   </div>
@@ -814,88 +846,6 @@ footer a:hover { color:var(--text2); }
   </div>
   <div style="margin-top:28px;text-align:center">
     <p style="font-size:13px;color:var(--text3);max-width:600px;margin:0 auto;line-height:1.7">Também usado por <strong>pet shops, mercadinhos, salões de festa, academias, lojas de roupas e estúdios de estética</strong>. Qualquer negócio que tenha uma base de clientes no WhatsApp e precise vender mais sem queimar verba em tráfego pago.</p>
-  </div>
-</div>
-</section>
-
-<!-- Simulador interativo: vendas paradas -> disparo -> vendas subindo -->
-<section class="divider-sec" id="simulador" aria-labelledby="sim-title">
-<div class="sec">
-  <div class="sec-label">Simule você mesmo</div>
-  <h2 id="sim-title" class="sec-title reveal">Veja o impacto de um disparo em tempo real</h2>
-  <p class="sec-sub reveal reveal-delay-1">Clique no botão e veja como suas vendas reagem quando você aciona sua base de clientes pelo WhatsApp.</p>
-
-  <div class="sim-wrap reveal reveal-delay-2" id="simWrap">
-
-    <!-- Card gráfico -->
-    <div class="sim-card">
-      <div class="sim-hd">
-        <div class="sim-hd-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-        <div>
-          <div class="sim-hd-t">Vendas de hoje</div>
-          <div class="sim-hd-s">terça-feira, 19h às 22h</div>
-        </div>
-      </div>
-      <div class="sim-big"><span id="simCount">0</span></div>
-      <div class="sim-lbl" id="simLbl">Parado · nenhuma venda</div>
-
-      <svg class="sim-chart" viewBox="0 0 500 150" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <linearGradient id="simGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#b98d41" stop-opacity=".5"/>
-            <stop offset="100%" stop-color="#b98d41" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <!-- Grid horizontal -->
-        <line class="sim-grid-line" x1="0" y1="30" x2="500" y2="30"/>
-        <line class="sim-grid-line" x1="0" y1="75" x2="500" y2="75"/>
-        <line class="sim-grid-line" x1="0" y1="120" x2="500" y2="120"/>
-        <!-- Eixo tempo -->
-        <text class="sim-axis-label" x="5" y="145">19h</text>
-        <text class="sim-axis-label" x="160" y="145">20h</text>
-        <text class="sim-axis-label" x="320" y="145">21h</text>
-        <text class="sim-axis-label" x="470" y="145">22h</text>
-        <!-- Área preenchida (curva subindo) -->
-        <path class="sim-area" d="M0,135 C80,135 130,132 180,125 C240,115 280,90 330,60 C380,35 440,22 500,18 L500,150 L0,150 Z"/>
-        <!-- Linha flat (estado inicial) -->
-        <path class="sim-line flat" d="M0,135 L500,132"/>
-        <!-- Linha subindo (após disparo) -->
-        <path class="sim-line rise" d="M0,135 C80,135 130,132 180,125 C240,115 280,90 330,60 C380,35 440,22 500,18"/>
-        <!-- Ponto no fim da curva -->
-        <circle class="sim-dot" cx="500" cy="18" r="5"/>
-      </svg>
-    </div>
-
-    <!-- Card restaurante -->
-    <div class="sim-card">
-      <div class="sim-hd">
-        <div class="sim-hd-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h18M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4M4 11h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z"/></svg></div>
-        <div>
-          <div class="sim-hd-t">Restaurante agora</div>
-          <div class="sim-hd-s">6 mesas disponíveis</div>
-        </div>
-      </div>
-      <div class="sim-big" style="font-size:30px;margin-top:18px"><span id="simOcup">0</span>/6</div>
-      <div class="sim-lbl" id="simOcupLbl">Mesas ocupadas</div>
-      <div class="sim-resto" id="simResto"></div>
-      <div class="sim-fat">
-        <div class="sim-fat-calc"><strong><span id="simFatPed">0</span> pedidos</strong><br>× R$ 62,00 ticket médio</div>
-        <div class="sim-fat-total">
-          <div class="sim-fat-lbl">Faturamento</div>
-          <div class="sim-fat-val"><span class="sim-fat-cur">R$</span><span id="simFat">0</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Barra de controle -->
-    <div class="sim-controls">
-      <div class="sim-narr" id="simNarr">Terça à noite no restaurante. <strong>Ninguém entrou ainda.</strong> Seus clientes estão em casa, sem lembrar de pedir.</div>
-      <button class="sim-btn" id="simBtn" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        <span id="simBtnTxt">Disparar promoção</span>
-      </button>
-    </div>
-
   </div>
 </div>
 </section>
@@ -1167,33 +1117,44 @@ function animateCounter(el) {
   requestAnimationFrame(tick);
 }
 
-// Simulador de vendas: gráfico + mesas enchendo + cálculo de faturamento
+// Hero simulator: disparo de 600 msgs + notificações chegando + vendas/faturamento subindo
 (function(){
-  var wrap = document.getElementById('simWrap');
-  var btn = document.getElementById('simBtn');
-  var btnTxt = document.getElementById('simBtnTxt');
-  var count = document.getElementById('simCount');
-  var lbl = document.getElementById('simLbl');
-  var ocup = document.getElementById('simOcup');
-  var ocupLbl = document.getElementById('simOcupLbl');
-  var narr = document.getElementById('simNarr');
-  var resto = document.getElementById('simResto');
-  var fat = document.getElementById('simFat');
-  var fatPed = document.getElementById('simFatPed');
+  var wrap = document.getElementById('hsWrap');
+  var btn = document.getElementById('hsBtn');
+  var btnTxt = document.getElementById('hsBtnTxt');
+  var sent = document.getElementById('hsSent');
+  var sentFill = document.getElementById('hsSentFill');
+  var pedidos = document.getElementById('hsPedidos');
+  var fatPed = document.getElementById('hsFatPed');
+  var fat = document.getElementById('hsFat');
+  var badge = document.getElementById('hsBadge');
+  var notifs = document.getElementById('hsNotifs');
+  var empty = document.getElementById('hsPhoneEmpty');
+  var narr = document.getElementById('hsNarr');
   if (!wrap || !btn) return;
 
-  // Gera as 6 mesas com SVG sem emoji (ícone talher -> ícone pessoa dourado)
-  var emptySvg = '<svg class="sim-empty-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2"/><line x1="6" y1="13" x2="6" y2="22"/><path d="M18 2c-2 0-4 2-4 5v4c0 1 1 2 2 2h2v9"/></svg>';
-  var fullSvg  = '<svg class="sim-full-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M5 22v-1a7 7 0 0 1 14 0v1"/></svg>';
-  var mesasHtml = '';
-  for (var i = 0; i < 6; i++) mesasHtml += '<div class="sim-table">' + emptySvg + fullSvg + '</div>';
-  resto.innerHTML = mesasHtml;
+  var TICKET = 62;
+  var TOTAL_MSG = 600;
+  var TOTAL_PED = 47;
+  var FAT_FINAL = TICKET * TOTAL_PED; // 2914
 
-  var TICKET = 62;          // R$ 62,00 ticket médio
-  var PEDIDOS = 47;         // meta de pedidos após disparo
-  var FAT_FINAL = TICKET * PEDIDOS; // 2914
+  var clientes = [
+    ['MS','Maria Silva','Quero 1 combo família!'],
+    ['CM','Carlos Mendes','Pra mim 2, pode ser?'],
+    ['AO','Ana Oliveira','Entrega em 30 min?'],
+    ['PS','Pedro Souza','Fecho 1 aqui!'],
+    ['JR','Juliana Rocha','Combo família pra hoje'],
+    ['RT','Rafael Torres','Com borda recheada dá?'],
+    ['LC','Lucas Cardoso','Quero 3 combos família'],
+    ['BM','Bianca Martins','Posso pagar no pix?'],
+    ['FA','Felipe Almeida','Tem até que horas?'],
+    ['CA','Camila Alves','Fecho 1 com Coca zero'],
+    ['GS','Gustavo Silva','Combo mais batata frita'],
+    ['TC','Tainá Costa','Entrega no meu bairro?']
+  ];
 
   function fmtBR(n){ return n.toLocaleString('pt-BR'); }
+  function pad(n){ return n < 10 ? '0'+n : ''+n; }
 
   function animCounter(el, to, dur, formatter){
     var from = parseFloat(String(el.textContent).replace(/\./g,'').replace(',','.')) || 0;
@@ -1207,34 +1168,85 @@ function animateCounter(el) {
     })(start);
   }
 
+  function animProgress(dur){
+    var start = performance.now();
+    (function tick(now){
+      var p = Math.min(1, (now - start) / dur);
+      var eased = 1 - Math.pow(1 - p, 2);
+      sentFill.style.width = (eased * 100) + '%';
+      sent.textContent = Math.round(eased * TOTAL_MSG);
+      if (p < 1) requestAnimationFrame(tick);
+    })(start);
+  }
+
+  var notifTimers = [];
+  var pedidoCount = 0;
+
+  function addNotif(i, delay){
+    var t = setTimeout(function(){
+      var c = clientes[i % clientes.length];
+      pedidoCount++;
+      var div = document.createElement('div');
+      div.className = 'hs-notif';
+      var hora = '19:' + pad(Math.min(59, 12 + Math.floor(i * 2.5)));
+      div.innerHTML = '<div class="hs-notif-avatar">' + c[0] + '</div>' +
+        '<div class="hs-notif-body">' +
+          '<div class="hs-notif-name">' + c[1] + '<span class="hs-notif-time">' + hora + '</span></div>' +
+          '<div class="hs-notif-msg">' + c[2] + '</div>' +
+        '</div>';
+      notifs.appendChild(div);
+      requestAnimationFrame(function(){ div.classList.add('in'); });
+      badge.textContent = pedidoCount;
+      badge.classList.add('pulse');
+      setTimeout(function(){ badge.classList.remove('pulse'); }, 300);
+      // Mantém no máximo 5 visíveis
+      while (notifs.children.length > 5) notifs.removeChild(notifs.firstChild);
+    }, delay);
+    notifTimers.push(t);
+  }
+
+  function clearNotifs(){
+    notifTimers.forEach(clearTimeout);
+    notifTimers = [];
+    Array.prototype.slice.call(notifs.querySelectorAll('.hs-notif')).forEach(function(n){ n.remove(); });
+    badge.textContent = '0';
+    pedidoCount = 0;
+  }
+
   function fire(){
     wrap.classList.add('fired');
     btn.disabled = true;
     btnTxt.textContent = 'Disparando...';
-    lbl.textContent = 'Disparo ativo · clientes recebendo a promoção';
-    narr.innerHTML = 'Mensagem chegou em <strong>482 clientes</strong>. Eles começam a pedir.';
-    animCounter(count, PEDIDOS, 2500);
-    animCounter(ocup, 6, 2200);
-    animCounter(fatPed, PEDIDOS, 2500);
-    animCounter(fat, FAT_FINAL, 2800, fmtBR);
+    narr.innerHTML = '<strong>Disparo em andamento.</strong> 600 mensagens saindo, clientes já começando a responder.';
+
+    // 1) Counter de mensagens 0 → 600 com barra de progresso (3.5s)
+    animProgress(3500);
+
+    // 2) Notificações pingando: 12 pedidos ao longo de ~3.5s (começa 400ms após)
+    for (var i = 0; i < 12; i++) addNotif(i, 400 + i * 270);
+
+    // 3) Contadores de pedidos/faturamento (começa 600ms após, dura 2.8s)
+    setTimeout(function(){ animCounter(pedidos, TOTAL_PED, 2600); }, 600);
+    setTimeout(function(){ animCounter(fatPed, TOTAL_PED, 2600); }, 600);
+    setTimeout(function(){ animCounter(fat, FAT_FINAL, 2800, fmtBR); }, 600);
+
+    // 4) Narrativa final depois que tudo se acomoda
     setTimeout(function(){
-      ocupLbl.textContent = 'Restaurante cheio';
-      lbl.textContent = '+47 vendas em 40 minutos';
-      narr.innerHTML = '<strong>47 pedidos × R$ 62 de ticket médio = R$ 2.914 em uma noite.</strong> Uma terça que seria morta virou faturamento.';
+      narr.innerHTML = '<strong>600 mensagens enviadas. 47 pedidos. R$ 2.914 de faturamento.</strong> Uma terça que seria morta virou receita.';
       btn.disabled = false;
       btnTxt.textContent = 'Simular de novo';
-    }, 2900);
+    }, 4200);
   }
 
   function reset(){
     wrap.classList.remove('fired');
-    count.textContent = '0';
-    ocup.textContent = '0';
+    clearNotifs();
+    sent.textContent = '0';
+    sentFill.style.width = '0%';
+    pedidos.textContent = '0';
     fatPed.textContent = '0';
     fat.textContent = '0';
-    lbl.textContent = 'Parado · nenhuma venda';
-    ocupLbl.textContent = 'Mesas ocupadas';
-    narr.innerHTML = 'Terça à noite no restaurante. <strong>Ninguém entrou ainda.</strong> Seus clientes estão em casa, sem lembrar de pedir.';
+    narr.innerHTML = '<strong>Terça à noite.</strong> Restaurante parado, clientes em casa. Aperte o botão e veja um disparo real acontecendo.';
     btnTxt.textContent = 'Disparar promoção';
   }
 
