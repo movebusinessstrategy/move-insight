@@ -111,9 +111,47 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
   box-shadow:0 4px 14px rgba(198,169,107,.45), 0 0 0 3px var(--surface);
   white-space:nowrap;
 }
-.trial-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(48,209,88,.1),rgba(48,209,88,.04));border:1px solid rgba(48,209,88,.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;line-height:1.45;color:var(--text2)}
-.trial-banner .tb-icon{flex-shrink:0;width:28px;height:28px;border-radius:8px;background:rgba(48,209,88,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
-.trial-banner strong{color:var(--green);font-weight:700}
+/* Garantia 7 dias: painel horizontal abaixo dos planos */
+.garantia{
+  display:flex; align-items:center; gap:24px;
+  margin-top:32px; padding:28px 28px 28px 24px;
+  background:linear-gradient(135deg, rgba(48,209,88,.12), rgba(48,209,88,.03));
+  border:1px solid rgba(48,209,88,.25);
+  border-radius:18px;
+  box-shadow:0 2px 6px rgba(48,209,88,.06), 0 20px 40px -20px rgba(48,209,88,.2);
+  position:relative; overflow:hidden;
+  text-transform:none; letter-spacing:normal;
+}
+.garantia::before{
+  content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px;
+  background:radial-gradient(circle, rgba(48,209,88,.14), transparent 70%);
+  pointer-events:none;
+}
+.gar-art{
+  flex-shrink:0; width:72px; height:72px; border-radius:18px;
+  background:rgba(48,209,88,.14); border:1px solid rgba(48,209,88,.22);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(48,209,88,.18);
+}
+.gar-art svg{ width:42px; height:42px; filter:drop-shadow(0 2px 4px rgba(48,209,88,.25)); }
+.gar-body{ flex:1; min-width:0; }
+.gar-tag{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:10px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); background:rgba(48,209,88,.12);
+  padding:4px 11px; border-radius:999px;
+  margin-bottom:10px;
+}
+.gar-title{
+  font-size:17px; font-weight:700; letter-spacing:-.02em;
+  color:var(--text); margin:0 0 8px; line-height:1.25;
+  text-transform:none;
+}
+.gar-desc{
+  font-size:13px; color:var(--text2); line-height:1.55; margin:0;
+  text-transform:none; letter-spacing:normal; font-weight:400;
+}
+.gar-desc strong{ color:var(--green); font-weight:700; }
 .fg{margin-bottom:14px}
 .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .fg-row-3{display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;margin-bottom:14px}
@@ -138,10 +176,31 @@ input.invalid{border-color:var(--red)}
 .tipo-toggle{display:flex;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin-bottom:16px}
 .tipo-btn{flex:1;border:none;background:none;color:var(--text2);font-size:12px;font-weight:700;padding:8px;border-radius:999px;cursor:pointer;font-family:inherit;transition:all var(--ease)}
 .tipo-btn.on{background:var(--gold);color:#111}
-.ciclo-toggle{display:inline-flex;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;gap:4px;margin-bottom:16px}
-.ciclo-btn{border:none;background:transparent;color:var(--text2);padding:7px 14px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
-.ciclo-btn.on{background:var(--gold);color:#111}
-.ciclo-badge{background:var(--green);color:#fff;font-size:8px;padding:2px 5px;border-radius:4px;font-weight:800}
+.ciclo-toggle{
+  display:inline-flex; background:var(--surface2);
+  border:1px solid var(--border); border-radius:999px;
+  padding:5px; gap:2px;
+}
+.ciclo-btn{
+  border:none; background:transparent; color:var(--text2);
+  padding:9px 18px; border-radius:999px;
+  font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;
+  display:inline-flex; align-items:center; gap:8px;
+  transition:all var(--ease);
+  letter-spacing:normal; text-transform:none;
+}
+.ciclo-btn:hover:not(.on){ color:var(--text); }
+.ciclo-btn.on{
+  background:var(--gold); color:#111; font-weight:700;
+  box-shadow:0 2px 10px rgba(198,169,107,.35);
+}
+.ciclo-badge{
+  background:rgba(48,209,88,.18); color:var(--green);
+  font-size:9px; padding:3px 7px; border-radius:999px;
+  font-weight:700; letter-spacing:.04em;
+  text-transform:none;
+}
+.ciclo-btn.on .ciclo-badge{ background:rgba(0,0,0,.14); color:#0d6b33; }
 .checkbox-row{display:flex;align-items:flex-start;gap:10px;margin:14px 0;font-size:12px;color:var(--text2);line-height:1.5}
 .checkbox-row input{width:16px;height:16px;margin-top:2px;accent-color:var(--gold);flex-shrink:0;cursor:pointer}
 .google-btn{width:100%;height:44px;border-radius:11px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all var(--ease)}
@@ -157,6 +216,11 @@ input.invalid{border-color:var(--red)}
   h2{font-size:18px}
   .planos-grid{grid-template-columns:1fr !important;gap:16px;margin-top:16px}
   .plano-opt{padding:20px 18px 18px}
+  .garantia{flex-direction:column;text-align:center;gap:14px;padding:24px 20px;margin-top:24px}
+  .gar-art{width:60px;height:60px}
+  .gar-art svg{width:34px;height:34px}
+  .gar-title{font-size:15px}
+  .gar-desc{font-size:12.5px}
   .fg-row,.fg-row-3{grid-template-columns:1fr !important;gap:0}
   .fg-row>div,.fg-row-3>div{margin-bottom:14px}
   input[type=text],input[type=email],input[type=password],input[type=date],input[type=tel],select{font-size:16px !important}
@@ -182,15 +246,10 @@ input.invalid{border-color:var(--red)}
     <h2>Escolha seu plano</h2>
     <p class="subtitle">7 dias grátis · cancele quando quiser.</p>
 
-    <div class="trial-banner">
-      <div class="tb-icon">✓</div>
-      <div><strong>7 dias grátis</strong> pra testar · você cadastra o cartão mas a primeira cobrança só acontece no 8º dia. Cancele antes e não paga nada.</div>
-    </div>
-
-    <div style="display:flex;justify-content:center;margin-bottom:6px">
+    <div style="display:flex;justify-content:center;margin:20px 0 8px">
       <div class="ciclo-toggle">
-        <button type="button" id="cbMensal" class="ciclo-btn on" onclick="selCiclo('mensal')">Mensal</button>
-        <button type="button" id="cbAnual" class="ciclo-btn" onclick="selCiclo('anual')">Anual <span class="ciclo-badge">-2 MESES</span></button>
+        <button type="button" id="cbAnual" class="ciclo-btn on" onclick="selCiclo('anual')">Anual <span class="ciclo-badge">2 meses grátis</span></button>
+        <button type="button" id="cbMensal" class="ciclo-btn" onclick="selCiclo('mensal')">Mensal</button>
       </div>
     </div>
 
@@ -244,6 +303,21 @@ input.invalid{border-color:var(--red)}
     </div>
     <button class="btn btn-gold" onclick="irS2()">Continuar →</button>
     <div class="hint">Já tem conta? <a href="/login" class="link">Entrar</a></div>
+
+    <!-- Garantia: 7 dias grátis (visual rico estilo BotConversa) -->
+    <div class="garantia">
+      <div class="gar-art" aria-hidden="true">
+        <svg viewBox="0 0 80 80" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M40 10L12 22v18c0 14.5 11.5 25 28 30 16.5-5 28-15.5 28-30V22L40 10z"/>
+          <polyline points="28 40 36 48 52 32"/>
+        </svg>
+      </div>
+      <div class="gar-body">
+        <div class="gar-tag">Garantia · 7 dias grátis</div>
+        <h3 class="gar-title">Teste o ChatMOVE por 7 dias, sem compromisso</h3>
+        <p class="gar-desc">Você cadastra o cartão, mas a primeira cobrança só acontece no <strong>8º dia</strong>. Se não gostar, cancela antes e não paga nada. Sem burocracia, sem pegadinha.</p>
+      </div>
+    </div>
   </div>
 
   <!-- Passo 2: Dados básicos + PF/PJ + Google -->
@@ -327,7 +401,7 @@ input.invalid{border-color:var(--red)}
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // Estado
-var pl='premium', ci='mensal', tipo='pf';
+var pl='premium', ci='anual', tipo='pf';
 var PRECOS={basico:{mensal:3990,anual:39900},premium:{mensal:7990,anual:79900},pro:{mensal:14990,anual:149900}};
 var NOMES={basico:'Básico',premium:'Premium',pro:'Pro'};
 
@@ -530,11 +604,13 @@ async function registrar(){
   }catch(err){show('Erro de conexão','erro');btn.disabled=false;btn.textContent=window._modoCompletar?'Finalizar cadastro e pagar':'Criar conta e pagar';}
 }
 
-// Carrega preferências da URL
+// Carrega preferências da URL e aplica o ciclo default (anual) na UI
 (function(){
   var q=new URLSearchParams(location.search);
   var p=q.get('plano');if(p&&PRECOS[p])selPlano(p);
-  var c=q.get('ciclo');if(c==='anual')selCiclo('anual');
+  var c=q.get('ciclo');
+  // Se veio ?ciclo=mensal na URL, respeita; caso contrário, força anual (default)
+  selCiclo(c==='mensal'?'mensal':'anual');
 })();
 
 // Modo "completar cadastro" (usuário logado via Google com cadastroCompleto=false)
