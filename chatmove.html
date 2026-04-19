@@ -246,7 +246,7 @@ body {
 .sb-foot { padding: 12px; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: var(--surface); z-index: 5; }
 
 /* ═══════════════════════════════════════
-   DESTAQUE DE SELEÇÃO — labels marcadas com .sel-opt
+   DESTAQUE DE SELEÇÃO: labels marcadas com .sel-opt
 ═══════════════════════════════════════ */
 label.sel-opt { transition: all var(--ease); }
 label.sel-opt:has(> input:checked) {
@@ -259,7 +259,7 @@ label.sel-opt:has(> input:checked) {
 .st-dot.on  { background:var(--green); box-shadow:0 0 6px rgba(48,209,88,.5); }
 .st-dot.off { background:var(--red); box-shadow:0 0 6px rgba(255,95,87,.35); opacity:.6; }
 
-/* Custom dropdown — substitui <select> nativo */
+/* Custom dropdown: substitui <select> nativo */
 .cm-sel { position:relative; user-select:none; }
 .cm-sel-btn {
   display:flex; align-items:center; gap:10px;
@@ -322,7 +322,7 @@ label.sel-opt:has(> input:checked) {
 .step[data-tooltip]:hover::after { opacity: 1; transition-delay: .4s; }
 @media (max-width: 900px) { .step[data-tooltip]::after { display: none !important; } }
 
-/* Home — CTAs e checklist */
+/* Home: CTAs e checklist */
 .home-cta {
   display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
   padding: 20px 18px;
@@ -963,7 +963,7 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 .footer { margin-top: auto; padding-top: 40px; text-align: center; font-size: 11px; color: var(--text3); letter-spacing: .02em; user-select: none; }
 
 /* ═══════════════════════════════════════
-   MOBILE — hamburger + drawer + collapse grids
+   MOBILE: hamburger + drawer + collapse grids
 ═══════════════════════════════════════ */
 .mb-menu-btn { display:none; position:fixed; top:12px; left:12px; z-index:60; width:42px; height:42px; border-radius:12px; border:1px solid var(--border2); background:var(--surface); color:var(--text); align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--sh-sm,0 4px 12px rgba(0,0,0,.3)); }
 .mb-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); z-index:45; animation:fadeIn .2s }
@@ -2494,7 +2494,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function(){
               window.mostrarUpgrade(
                 'Limite diário atingido',
-                'Você usou os ' + d.enviados + ' envios do plano ' + plano.toUpperCase() + '. Faça upgrade para ' + proximoNome + ' e continue disparando hoje mesmo — sem esperar até amanhã.'
+                'Você usou os ' + d.enviados + ' envios do plano ' + plano.toUpperCase() + '. Faça upgrade para ' + proximoNome + ' e continue disparando hoje mesmo, sem esperar até amanhã.'
               );
             }, 800);
           }
@@ -3566,7 +3566,7 @@ window.carregarAssinatura = function() {
     }
 
     var info = document.getElementById('assInfo'); if (!info) return;
-    var venc = d.proximoVencimento ? new Date(d.proximoVencimento).toLocaleDateString('pt-BR') : '—';
+    var venc = d.proximoVencimento ? new Date(d.proximoVencimento).toLocaleDateString('pt-BR') : '...';
     var statusLabel = d.status === 'authorized' ? '<span style="color:var(--green);font-weight:700">Ativa</span>'
       : d.status === 'cancelled' ? '<span style="color:var(--red);font-weight:700">Cancelada</span>'
       : d.status === 'aguardando_autorizacao' ? '<span style="color:#b45309;font-weight:700">Aguardando autorização</span>'

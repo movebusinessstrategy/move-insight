@@ -238,7 +238,7 @@ footer a:hover { color:var(--text2); }
   .feat-grid{grid-template-columns:1fr;}
   .planos{grid-template-columns:1fr;}
   footer{padding:24px;flex-direction:column;text-align:center;}
-  /* Seção planos tem grid inline 1fr 1fr 1fr — força 1 coluna no mobile */
+  /* Seção planos tem grid inline 1fr 1fr 1fr, força 1 coluna no mobile */
   [style*="grid-template-columns:1fr 1fr 1fr"],
   [style*="grid-template-columns: 1fr 1fr 1fr"]{grid-template-columns:1fr !important;}
   .sec-title{font-size:32px !important;}
@@ -255,7 +255,7 @@ footer a:hover { color:var(--text2); }
 /*  ANIMAÇÕES, SCROLL REVEAL, HOVER TILT, GLOW PULSE                          */
 /* ═════════════════════════════════════════════════════════════════════════ */
 
-/* Scroll reveal — opacity 0 + slide up, ativado por JS ao entrar no viewport */
+/* Scroll reveal: opacity 0 + slide up, ativado por JS ao entrar no viewport */
 .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.2,.6,.2,1), transform .7s cubic-bezier(.2,.6,.2,1); will-change:opacity,transform; }
 .reveal.in { opacity:1; transform:translateY(0); }
 .reveal-delay-1 { transition-delay:.1s; }
@@ -274,7 +274,7 @@ footer a:hover { color:var(--text2); }
 .feat:hover { transform:translateY(-6px); box-shadow:0 12px 40px -12px rgba(185,141,65,.35), 0 4px 16px rgba(0,0,0,.08); z-index:2; }
 
 /* ═════════════════════════════════════════════════════════════════════════ */
-/*  HERO DISPLAY — mockup de celular flutuando com a mensagem do WhatsApp     */
+/*  HERO DISPLAY: mockup de celular flutuando com a mensagem do WhatsApp      */
 /* ═════════════════════════════════════════════════════════════════════════ */
 .hero-display { padding:0 24px 120px; display:flex; justify-content:center; position:relative; margin-top:-20px; }
 .hero-display::before {
@@ -283,15 +283,26 @@ footer a:hover { color:var(--text2); }
   background:radial-gradient(ellipse,rgba(185,141,65,.18) 0%,transparent 70%);
   filter:blur(30px); pointer-events:none;
 }
-.hd-wrap { display:flex; align-items:center; justify-content:center; gap:32px; flex-wrap:wrap; position:relative; z-index:1; }
+.hd-wrap { display:flex; align-items:center; justify-content:center; gap:48px; flex-wrap:wrap; position:relative; z-index:1; max-width:900px; }
 
-/* Mockup celular */
-.phone { width:300px; background:#0c0c0e; border-radius:36px; padding:10px; box-shadow:0 30px 80px -20px rgba(0,0,0,.3), 0 12px 30px -10px rgba(185,141,65,.2); position:relative; transform:rotate(-4deg); animation:phoneFloat 6s ease-in-out infinite; }
+/* Seta/fluxo conectando dashboard -> phone (dados saindo do painel chegando no cliente) */
+.hd-flow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; z-index:0; opacity:.55; }
+.hd-flow svg { display:block; }
+.hd-flow path { stroke:var(--gold); stroke-width:1.5; stroke-dasharray:4 4; fill:none; animation:flowDash 3s linear infinite; }
+@keyframes flowDash { to { stroke-dashoffset:-80; } }
+@media(max-width:768px) { .hd-flow { display:none; } }
+
+/* Mockup celular: moldura com halo dourado integrando à paleta */
+.phone { width:300px; background:linear-gradient(140deg,#18181a,#0c0c0e); border-radius:36px; padding:10px; position:relative; transform:rotate(-4deg); animation:phoneFloat 6s ease-in-out infinite; box-shadow:0 30px 80px -20px rgba(0,0,0,.28), 0 0 0 1px rgba(185,141,65,.18), 0 0 60px -10px rgba(185,141,65,.35), 0 12px 30px -8px rgba(185,141,65,.25); }
 @keyframes phoneFloat { 0%,100%{transform:rotate(-4deg) translateY(0)} 50%{transform:rotate(-4deg) translateY(-10px)} }
 .phone::before { content:''; position:absolute; top:18px; left:50%; transform:translateX(-50%); width:90px; height:22px; background:#0c0c0e; border-radius:999px; z-index:2; }
+/* Badge dourado flutuando no phone que amarra com o contador do dashboard */
+.phone-badge { position:absolute; top:-14px; right:-18px; background:var(--gold); color:#111; padding:6px 12px; border-radius:999px; font-size:10px; font-weight:800; letter-spacing:.06em; box-shadow:0 6px 18px rgba(185,141,65,.45), 0 0 0 3px rgba(255,255,255,.85); z-index:3; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.phone-badge .pb-dot { width:6px; height:6px; border-radius:50%; background:#111; animation:pdot 2.5s ease-in-out infinite; }
 .phone-screen { background:#efeae2; border-radius:28px; overflow:hidden; padding-top:44px; min-height:560px; font-family:-apple-system,'Segoe UI',Roboto,sans-serif; position:relative; }
-.phone-header { background:#075e54; padding:10px 14px 12px; display:flex; align-items:center; gap:10px; color:#fff; }
-.phone-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#b98d41,#c69a4e); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0; }
+.phone-header { background:#075e54; padding:10px 14px 12px; display:flex; align-items:center; gap:10px; color:#fff; position:relative; }
+.phone-header::after { content:''; position:absolute; bottom:-2px; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold) 50%,transparent); opacity:.5; }
+.phone-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#b98d41,#c69a4e); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0; box-shadow:0 0 0 2px rgba(255,255,255,.18); }
 .phone-name { font-size:13px; font-weight:600; line-height:1.2; }
 .phone-status { font-size:10px; opacity:.85; }
 .phone-chat { padding:18px 14px; display:flex; flex-direction:column; gap:8px; background:#efeae2; min-height:400px; position:relative; }
@@ -305,14 +316,15 @@ footer a:hover { color:var(--text2); }
 .phone-msg:nth-child(2) { animation-delay:.6s; }
 .phone-msg:nth-child(3) { animation-delay:1s; }
 
-/* Dashboard floating card ao lado do celular */
-.hd-dash { width:340px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 24px 60px -18px rgba(0,0,0,.18), 0 6px 18px rgba(0,0,0,.06); padding:22px; transform:rotate(2deg); animation:dashFloat 7s ease-in-out infinite; }
+/* Dashboard floating card ao lado do celular: moldura dourada sutil unifica com phone */
+.hd-dash { width:340px; background:var(--surface); border:1px solid rgba(185,141,65,.18); border-radius:20px; padding:22px; transform:rotate(2deg); animation:dashFloat 7s ease-in-out infinite; box-shadow:0 24px 60px -18px rgba(0,0,0,.16), 0 6px 18px rgba(0,0,0,.05), 0 0 40px -8px rgba(185,141,65,.25); position:relative; }
+.hd-dash::before { content:''; position:absolute; inset:0; border-radius:20px; padding:1px; background:linear-gradient(135deg,rgba(185,141,65,.35),transparent 50%); -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0); -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
 @keyframes dashFloat { 0%,100%{transform:rotate(2deg) translateY(0)} 50%{transform:rotate(2deg) translateY(-8px)} }
 .hd-dash-hd { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
-.hd-dash-dot { width:8px; height:8px; border-radius:50%; background:#1f9a52; box-shadow:0 0 0 3px rgba(31,154,82,.15); animation:livePulse 1.8s ease-in-out infinite; }
-@keyframes livePulse { 0%,100%{box-shadow:0 0 0 3px rgba(31,154,82,.15)} 50%{box-shadow:0 0 0 6px rgba(31,154,82,.05)} }
-.hd-dash-t { font-size:12px; font-weight:700; }
-.hd-dash-badge { margin-left:auto; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#1f9a52; background:rgba(31,154,82,.1); padding:3px 8px; border-radius:999px; }
+.hd-dash-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 3px rgba(185,141,65,.18); animation:livePulse 1.8s ease-in-out infinite; }
+@keyframes livePulse { 0%,100%{box-shadow:0 0 0 3px rgba(185,141,65,.18)} 50%{box-shadow:0 0 0 7px rgba(185,141,65,.04)} }
+.hd-dash-t { font-size:12px; font-weight:700; letter-spacing:-.01em; }
+.hd-dash-badge { margin-left:auto; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-bg); padding:3px 8px; border-radius:999px; }
 .hd-dash-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
 .hd-stat { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
 .hd-stat-val { font-size:18px; font-weight:800; letter-spacing:-.02em; }
@@ -415,10 +427,18 @@ footer a:hover { color:var(--text2); }
   </div>
 </section>
 
-<!-- Hero display: celular + dashboard flutuando -->
+<!-- Hero display: celular + dashboard flutuando conectados por seta dourada -->
 <section class="hero-display reveal" aria-hidden="true">
   <div class="hd-wrap">
+    <!-- Seta de fluxo: dados saem do dashboard e chegam no phone -->
+    <div class="hd-flow" aria-hidden="true">
+      <svg width="220" height="60" viewBox="0 0 220 60" fill="none">
+        <path d="M10 30 Q 110 -10 210 30" stroke-linecap="round"/>
+        <circle cx="210" cy="30" r="3" fill="var(--gold)" opacity=".9"/>
+      </svg>
+    </div>
     <div class="phone">
+      <div class="phone-badge"><span class="pb-dot"></span>Msg 347 de 482</div>
       <div class="phone-screen">
         <div class="phone-header">
           <div class="phone-avatar">🍕</div>
@@ -522,48 +542,48 @@ footer a:hover { color:var(--text2); }
 <div class="sec">
   <div class="sec-label">Para quem é</div>
   <h2 id="usos-title" class="sec-title reveal">Disparador de WhatsApp para negócios locais</h2>
-  <p class="sec-sub reveal reveal-delay-1">Dispare promoções, cardápios e avisos com o <strong>nome de cada cliente</strong>. Ideal pra quem vende todo dia e precisa lotar a casa sem gastar com anúncio.</p>
+  <p class="sec-sub reveal reveal-delay-1">Você importa sua lista de clientes, o ChatMOVE dispara a mensagem personalizada com o <strong>nome de cada um</strong>. Ideal pra quem vende todo dia e precisa lotar a casa sem gastar com anúncio.</p>
   <div class="feat-grid reveal reveal-delay-2">
 
     <article class="feat">
       <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="1.2" fill="currentColor"/><circle cx="9" cy="18" r="1.2" fill="currentColor"/><circle cx="15" cy="18" r="1.2" fill="currentColor"/></svg></div>
       <h3 class="feat-t">Pizzaria</h3>
-      <p class="feat-d">Dispare a promoção de sexta com o nome de cada cliente fidelizado. Movimento das noites fracas sobe sem gastar em anúncio pago.</p>
+      <p class="feat-d">Importe sua lista de clientes que já pediram e dispare a promoção de sexta com o nome de cada um. Movimento das noites fracas sobe sem gastar em anúncio pago.</p>
     </article>
 
     <article class="feat">
       <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="7" rx="8" ry="2.5"/><path d="M4 10c0 1.5 3.6 3 8 3s8-1.5 8-3"/><path d="M4 14c0 1.5 3.6 3 8 3s8-1.5 8-3"/><ellipse cx="12" cy="17" rx="8" ry="2.5"/></svg></div>
       <h3 class="feat-t">Hamburgueria e lanchonete</h3>
-      <p class="feat-d">Combo do dia, cupom de desconto e lançamentos direto no WhatsApp de quem já comprou. Ticket médio sobe e cliente volta.</p>
+      <p class="feat-d">Salve a lista de clientes que já compraram e envie combo do dia, cupom de desconto e lançamentos direto pro WhatsApp deles. Ticket médio sobe e cliente volta.</p>
     </article>
 
     <article class="feat">
       <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2"/><line x1="6" y1="13" x2="6" y2="22"/><path d="M18 2c-2 0-4 2-4 5v4c0 1 1 2 2 2h2v9"/></svg></div>
       <h3 class="feat-t">Restaurante e marmitaria</h3>
-      <p class="feat-d">Envie o cardápio do dia pra sua base toda às 10h da manhã. Os pedidos começam a chegar antes do almoço, sem depender de iFood.</p>
+      <p class="feat-d">Agende o disparo do cardápio do dia pra toda a sua lista de clientes às 10h da manhã. Os pedidos começam a chegar antes do almoço, sem depender de iFood.</p>
     </article>
 
     <article class="feat">
       <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12c0-4 3.5-7 8-7s8 3 8 7v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3z"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="16" y1="10" x2="16" y2="14"/></svg></div>
       <h3 class="feat-t">Padaria e confeitaria</h3>
-      <p class="feat-d">Avise sobre encomendas de bolo, datas sazonais (Páscoa, Dia das Mães) e café da manhã do fim de semana. Cliente pede antes e você produz certo.</p>
+      <p class="feat-d">Avise toda a sua lista de clientes sobre encomendas de bolo, datas sazonais (Páscoa, Dia das Mães) e café da manhã do fim de semana. Cliente pede antes e você produz certo.</p>
     </article>
 
     <article class="feat">
       <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6" r="4"/><path d="M8 10l4 12 4-12"/></svg></div>
       <h3 class="feat-t">Açaí e sorveteria</h3>
-      <p class="feat-d">Dia quente? Dispare promoção na hora pra quem mora no bairro. Novos sabores, combos e cupom de entrega grátis chegam direto no WhatsApp.</p>
+      <p class="feat-d">Dia quente? Dispare na hora promoção, novos sabores e cupom de entrega grátis pra toda sua lista de clientes cadastrados. Pedido chega em minutos.</p>
     </article>
 
     <article class="feat">
       <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div>
       <h3 class="feat-t">Barbearia e salão de beleza</h3>
-      <p class="feat-d">Lembre o cliente de agendar o próximo corte, dispare promoção de segunda e terça (dias fracos) e ofereça serviços novos pra base ativa.</p>
+      <p class="feat-d">Importe sua lista de clientes ativos e dispare lembretes de agendamento, promoção de segunda e terça (dias fracos) e ofertas de serviços novos.</p>
     </article>
 
   </div>
   <div style="margin-top:28px;text-align:center">
-    <p style="font-size:13px;color:var(--text3);max-width:600px;margin:0 auto;line-height:1.7">Também usado por <strong>pet shops, mercadinhos, salões de festa, academias, lojas de roupas e estúdios de estética</strong> — qualquer negócio que tenha uma base de clientes no WhatsApp e precise vender mais sem queimar verba em tráfego pago.</p>
+    <p style="font-size:13px;color:var(--text3);max-width:600px;margin:0 auto;line-height:1.7">Também usado por <strong>pet shops, mercadinhos, salões de festa, academias, lojas de roupas e estúdios de estética</strong>. Qualquer negócio que tenha uma base de clientes no WhatsApp e precise vender mais sem queimar verba em tráfego pago.</p>
   </div>
 </div>
 </section>
@@ -585,9 +605,9 @@ footer a:hover { color:var(--text2); }
         <div class="compare-li"><span class="compare-mark">✕</span>Copia e cola a mesma mensagem pra cada cliente na mão</div>
         <div class="compare-li"><span class="compare-mark">✕</span>Gasta 2-3 horas pra disparar 200 mensagens (e ainda esquece contatos)</div>
         <div class="compare-li"><span class="compare-mark">✕</span>Não consegue personalizar com o nome do cliente em escala</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Sem agendamento — precisa lembrar toda sexta de disparar</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Sem agendamento, precisa lembrar toda sexta de disparar</div>
         <div class="compare-li"><span class="compare-mark">✕</span>WhatsApp banido por enviar rápido demais sem pausa</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Sem controle de quem abriu, respondeu ou comprou</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Não sabe quantas mensagens chegaram nem quantas falharam</div>
       </div>
     </div>
 
@@ -604,7 +624,7 @@ footer a:hover { color:var(--text2); }
         <div class="compare-li"><span class="compare-mark">✓</span>Importa a lista e dispara pra todo mundo com 2 cliques</div>
         <div class="compare-li"><span class="compare-mark">✓</span>Envia 500 mensagens em ~20 minutos com pausas inteligentes</div>
         <div class="compare-li"><span class="compare-mark">✓</span>Cada cliente recebe a mensagem com o próprio nome ("Olá Maria!")</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Agenda toda sexta 18h — o sistema dispara sozinho</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Agenda toda sexta 18h e o sistema dispara sozinho</div>
         <div class="compare-li"><span class="compare-mark">✓</span>Intervalos variáveis + pausas reduzem drasticamente risco de bloqueio</div>
         <div class="compare-li"><span class="compare-mark">✓</span>Relatório completo chega no seu WhatsApp ao fim da campanha</div>
       </div>
@@ -690,7 +710,7 @@ footer a:hover { color:var(--text2); }
   </div>
 </div>
 
-<!-- Garantia — fora do .sec para usar largura total -->
+<!-- Garantia: fora do .sec para usar largura total -->
 <div style="padding:0 52px 52px;display:flex;justify-content:center">
   <div style="display:inline-flex;align-items:center;gap:14px;padding:16px 28px;background:var(--gold-bg);border:1px solid rgba(198,169,107,.2);border-radius:14px">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -727,7 +747,7 @@ footer a:hover { color:var(--text2); }
 function tf(btn){var i=btn.parentElement,o=i.classList.contains('open');document.querySelectorAll('.faq-item').forEach(function(x){x.classList.remove('open')});if(!o)i.classList.add('open');}
 window.addEventListener('scroll',function(){document.querySelector('nav').style.background=window.scrollY>20?'rgba(242,242,247,.98)':'rgba(242,242,247,.92)';});
 
-// Preços (centavos) — alinhado com PLANOS do server-saas.js
+// Preços (centavos), alinhado com PLANOS do server-saas.js
 var PRECOS = {
   basico:  { mensal: 3990,  anual: 39900 },
   premium: { mensal: 7990,  anual: 79900 },
@@ -795,7 +815,7 @@ window.setCiclo = function(ciclo) {
 })();
 
 // ═════════════════════════════════════════════════════════════════════════
-//  SCROLL REVEAL — elementos com .reveal animam ao entrar no viewport
+//  SCROLL REVEAL: elementos com .reveal animam ao entrar no viewport
 // ═════════════════════════════════════════════════════════════════════════
 (function() {
   if (!('IntersectionObserver' in window)) {
@@ -817,7 +837,7 @@ window.setCiclo = function(ciclo) {
   document.querySelectorAll('.reveal, [data-count]').forEach(function(el){ io.observe(el); });
 })();
 
-// Contador animado — conta de 0 até o valor em data-count em ~1.6s
+// Contador animado: conta de 0 até o valor em data-count em ~1.6s
 function animateCounter(el) {
   if (el.dataset.done) return;
   el.dataset.done = '1';
@@ -835,7 +855,7 @@ function animateCounter(el) {
   requestAnimationFrame(tick);
 }
 
-// Smooth scroll com offset do nav fixo (60px) — evita título cortado pela barra
+// Smooth scroll com offset do nav fixo (60px), evita título cortado pela barra
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
   a.addEventListener('click', function(e){
     var href = a.getAttribute('href');

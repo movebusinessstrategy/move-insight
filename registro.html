@@ -536,7 +536,7 @@ window.onload=function(){
 };
 </script>
 <script>
-// Client ID do Google — será injetado pelo servidor via endpoint /api/config/public
+// Client ID do Google: será injetado pelo servidor via endpoint /api/config/public
 fetch('/api/config/public').then(function(r){return r.json();}).then(function(c){
   window.GOOGLE_CLIENT_ID=c.googleClientId||null;
   if(window.google&&window.google.accounts&&window.google.accounts.id&&window.GOOGLE_CLIENT_ID){
