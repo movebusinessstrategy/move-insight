@@ -6,8 +6,8 @@
 
 <!-- SEO primário -->
 <title>ChatMOVE · Disparador de WhatsApp Profissional | Envio em Massa Automatizado</title>
-<meta name="description" content="Plataforma de disparo de WhatsApp em massa com agendamento, segmentação de listas e relatórios em tempo real. Envio humanizado que reduz o risco de bloqueio. Teste sem contrato, cancele quando quiser.">
-<meta name="keywords" content="disparador de whatsapp, disparo de whatsapp, envio em massa whatsapp, whatsapp marketing, automação whatsapp, ferramenta de disparo, plataforma whatsapp, disparador profissional, envio automatizado whatsapp, marketing whatsapp">
+<meta name="description" content="Disparador de WhatsApp em massa para pizzaria, lanchonete, restaurante, padaria, açaí, barbearia e outros negócios locais. Envie promoções e cardápios com o nome de cada cliente. 7 dias grátis, sem contrato.">
+<meta name="keywords" content="disparador de whatsapp, disparo de whatsapp, envio em massa whatsapp, whatsapp marketing, whatsapp para pizzaria, whatsapp para lanchonete, whatsapp para restaurante, whatsapp para padaria, whatsapp para açaí, whatsapp para barbearia, disparador whatsapp para restaurante, marketing whatsapp para negócios locais, automação whatsapp">
 <meta name="author" content="Move Business Solution">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="language" content="pt-BR">
@@ -21,7 +21,7 @@
 <meta property="og:site_name" content="ChatMOVE">
 <meta property="og:url" content="https://chat.movebusiness.com.br/">
 <meta property="og:title" content="ChatMOVE · Disparador de WhatsApp Profissional">
-<meta property="og:description" content="Envio em massa com simulação humanizada, agendamento e listas segmentadas. Alcance seus clientes no WhatsApp sem parecer automático.">
+<meta property="og:description" content="Disparador de WhatsApp para pizzaria, lanchonete, restaurante, padaria e outros negócios locais. Envie promoções com o nome de cada cliente. 7 dias grátis.">
 <meta property="og:image" content="https://chat.movebusiness.com.br/logosilversun.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -250,6 +250,133 @@ footer a:hover { color:var(--text2); }
   .hero-title{font-size:30px !important;}
   .btn-primary,.btn-secondary,.btn-nav-gold{font-size:12px;padding:10px 18px}
 }
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  ANIMAÇÕES, SCROLL REVEAL, HOVER TILT, GLOW PULSE                          */
+/* ═════════════════════════════════════════════════════════════════════════ */
+
+/* Scroll reveal — opacity 0 + slide up, ativado por JS ao entrar no viewport */
+.reveal { opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.2,.6,.2,1), transform .7s cubic-bezier(.2,.6,.2,1); will-change:opacity,transform; }
+.reveal.in { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay:.1s; }
+.reveal-delay-2 { transition-delay:.2s; }
+.reveal-delay-3 { transition-delay:.3s; }
+
+/* Glow do hero pulsa suavemente (sem chamar atenção demais) */
+.hero-glow { animation:glowPulse 6s ease-in-out infinite; }
+@keyframes glowPulse {
+  0%,100% { transform:translateX(-50%) scale(1); opacity:1; }
+  50%     { transform:translateX(-50%) scale(1.08); opacity:.75; }
+}
+
+/* Cards de feature: lift 3D + glow dourado no hover */
+.feat { transition:transform .35s cubic-bezier(.2,.6,.2,1), box-shadow .35s cubic-bezier(.2,.6,.2,1); }
+.feat:hover { transform:translateY(-6px); box-shadow:0 12px 40px -12px rgba(185,141,65,.35), 0 4px 16px rgba(0,0,0,.08); z-index:2; }
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  HERO DISPLAY — mockup de celular flutuando com a mensagem do WhatsApp     */
+/* ═════════════════════════════════════════════════════════════════════════ */
+.hero-display { padding:0 24px 120px; display:flex; justify-content:center; position:relative; margin-top:-20px; }
+.hero-display::before {
+  content:''; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+  width:90%; max-width:900px; height:260px; border-radius:50%;
+  background:radial-gradient(ellipse,rgba(185,141,65,.18) 0%,transparent 70%);
+  filter:blur(30px); pointer-events:none;
+}
+.hd-wrap { display:flex; align-items:center; justify-content:center; gap:32px; flex-wrap:wrap; position:relative; z-index:1; }
+
+/* Mockup celular */
+.phone { width:300px; background:#0c0c0e; border-radius:36px; padding:10px; box-shadow:0 30px 80px -20px rgba(0,0,0,.3), 0 12px 30px -10px rgba(185,141,65,.2); position:relative; transform:rotate(-4deg); animation:phoneFloat 6s ease-in-out infinite; }
+@keyframes phoneFloat { 0%,100%{transform:rotate(-4deg) translateY(0)} 50%{transform:rotate(-4deg) translateY(-10px)} }
+.phone::before { content:''; position:absolute; top:18px; left:50%; transform:translateX(-50%); width:90px; height:22px; background:#0c0c0e; border-radius:999px; z-index:2; }
+.phone-screen { background:#efeae2; border-radius:28px; overflow:hidden; padding-top:44px; min-height:560px; font-family:-apple-system,'Segoe UI',Roboto,sans-serif; position:relative; }
+.phone-header { background:#075e54; padding:10px 14px 12px; display:flex; align-items:center; gap:10px; color:#fff; }
+.phone-avatar { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#b98d41,#c69a4e); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0; }
+.phone-name { font-size:13px; font-weight:600; line-height:1.2; }
+.phone-status { font-size:10px; opacity:.85; }
+.phone-chat { padding:18px 14px; display:flex; flex-direction:column; gap:8px; background:#efeae2; min-height:400px; position:relative; }
+.phone-chat::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(0,0,0,.03) 1px,transparent 1px); background-size:20px 20px; pointer-events:none; }
+.phone-msg { align-self:flex-start; background:#fff; border-radius:8px 8px 8px 2px; padding:8px 11px; max-width:80%; font-size:12.5px; line-height:1.4; color:#1c1c1e; box-shadow:0 1px 1px rgba(0,0,0,.08); position:relative; z-index:1; animation:msgFadeIn .6s ease both; }
+.phone-msg.mine { align-self:flex-end; background:#d9fdd3; border-radius:8px 8px 2px 8px; }
+.phone-msg-time { font-size:9px; color:rgba(0,0,0,.45); margin-top:3px; text-align:right; }
+.phone-msg strong { color:#b98d41; }
+@keyframes msgFadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.phone-msg:nth-child(1) { animation-delay:.2s; }
+.phone-msg:nth-child(2) { animation-delay:.6s; }
+.phone-msg:nth-child(3) { animation-delay:1s; }
+
+/* Dashboard floating card ao lado do celular */
+.hd-dash { width:340px; background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 24px 60px -18px rgba(0,0,0,.18), 0 6px 18px rgba(0,0,0,.06); padding:22px; transform:rotate(2deg); animation:dashFloat 7s ease-in-out infinite; }
+@keyframes dashFloat { 0%,100%{transform:rotate(2deg) translateY(0)} 50%{transform:rotate(2deg) translateY(-8px)} }
+.hd-dash-hd { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.hd-dash-dot { width:8px; height:8px; border-radius:50%; background:#1f9a52; box-shadow:0 0 0 3px rgba(31,154,82,.15); animation:livePulse 1.8s ease-in-out infinite; }
+@keyframes livePulse { 0%,100%{box-shadow:0 0 0 3px rgba(31,154,82,.15)} 50%{box-shadow:0 0 0 6px rgba(31,154,82,.05)} }
+.hd-dash-t { font-size:12px; font-weight:700; }
+.hd-dash-badge { margin-left:auto; font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:#1f9a52; background:rgba(31,154,82,.1); padding:3px 8px; border-radius:999px; }
+.hd-dash-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.hd-stat { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
+.hd-stat-val { font-size:18px; font-weight:800; letter-spacing:-.02em; }
+.hd-stat-val.g { color:#1f9a52; }
+.hd-stat-val.a { color:var(--gold); }
+.hd-stat-lbl { font-size:9px; color:var(--text3); font-weight:700; letter-spacing:.06em; text-transform:uppercase; margin-top:2px; }
+.hd-prog-wrap { height:6px; background:var(--surface3); border-radius:999px; overflow:hidden; margin-bottom:6px; }
+.hd-prog { height:100%; background:linear-gradient(90deg,var(--gold),#c69a4e); border-radius:999px; width:0%; animation:progFill 4s ease-out .5s forwards; }
+@keyframes progFill { to { width:72%; } }
+.hd-prog-txt { font-size:10px; color:var(--text3); display:flex; justify-content:space-between; }
+
+@media(max-width:768px){
+  .hd-wrap { gap:20px; }
+  .phone { width:240px; transform:rotate(-3deg); }
+  .phone-screen { min-height:480px; }
+  .phone-chat { min-height:340px; }
+  .hd-dash { width:100%; max-width:340px; transform:rotate(0); }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  STATS ANIMADOS (contador)                                                 */
+/* ═════════════════════════════════════════════════════════════════════════ */
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-top:48px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px 24px; text-align:center; box-shadow:var(--sh-sm); transition:transform .35s, box-shadow .35s; }
+.stat-card:hover { transform:translateY(-4px); box-shadow:0 10px 30px -10px rgba(185,141,65,.25); }
+.stat-big { font-size:clamp(32px,4vw,48px); font-weight:800; letter-spacing:-.04em; background:var(--gold-g); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.05; }
+.stat-suffix { font-size:.55em; margin-left:2px; }
+.stat-small { font-size:12px; color:var(--text2); margin-top:6px; line-height:1.4; font-weight:500; }
+@media(max-width:768px){ .stats-grid { grid-template-columns:1fr 1fr; } }
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  CARROSSEL DE LOGOS (esteira infinita)                                     */
+/* ═════════════════════════════════════════════════════════════════════════ */
+.logos-wrap { margin-top:40px; padding:24px 0; overflow:hidden; position:relative; mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%); -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10%,#000 90%,transparent 100%); }
+.logos-track { display:flex; gap:48px; width:max-content; animation:logosScroll 32s linear infinite; }
+.logo-item { flex-shrink:0; display:flex; align-items:center; gap:10px; padding:10px 20px; border:1px solid var(--border); border-radius:14px; background:var(--surface); color:var(--text2); font-weight:700; font-size:13px; letter-spacing:-.01em; white-space:nowrap; box-shadow:var(--sh-sm); }
+.logo-item svg { color:var(--gold); flex-shrink:0; }
+@keyframes logosScroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+.logos-label { text-align:center; font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--text3); }
+
+/* ═════════════════════════════════════════════════════════════════════════ */
+/*  ANTES x DEPOIS                                                            */
+/* ═════════════════════════════════════════════════════════════════════════ */
+.compare-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:20px; align-items:stretch; margin-top:52px; }
+.compare-col { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px 28px; position:relative; overflow:hidden; }
+.compare-col.bad { border-color:rgba(199,61,50,.2); }
+.compare-col.good { border-color:rgba(185,141,65,.28); background:linear-gradient(135deg,rgba(185,141,65,.05),var(--surface)); box-shadow:0 20px 50px -20px rgba(185,141,65,.25); }
+.compare-hd { display:flex; align-items:center; gap:10px; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+.compare-ico { width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.compare-col.bad .compare-ico { background:rgba(199,61,50,.08); color:var(--red); }
+.compare-col.good .compare-ico { background:var(--gold-bg); color:var(--gold); }
+.compare-t { font-size:14px; font-weight:800; letter-spacing:-.02em; }
+.compare-col.bad .compare-t { color:var(--red); }
+.compare-col.good .compare-t { color:var(--gold); }
+.compare-list { display:flex; flex-direction:column; gap:12px; }
+.compare-li { display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:1.55; color:var(--text2); }
+.compare-li .compare-mark { width:18px; height:18px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:10px; margin-top:1px; }
+.compare-col.bad .compare-mark { background:rgba(199,61,50,.12); color:var(--red); }
+.compare-col.good .compare-mark { background:rgba(31,154,82,.12); color:var(--green); }
+.compare-arrow { align-self:center; width:44px; height:44px; border-radius:50%; background:var(--gold); color:#111; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(185,141,65,.35); }
+@media(max-width:768px){
+  .compare-grid { grid-template-columns:1fr; }
+  .compare-arrow { transform:rotate(90deg); justify-self:center; }
+}
 </style>
 </head>
 <body>
@@ -262,6 +389,7 @@ footer a:hover { color:var(--text2); }
   <div class="nav-links">
     <a href="#feat">Funcionalidades</a>
     <a href="#steps">Como funciona</a>
+    <a href="#usos">Para quem é</a>
     <a href="#planos">Planos</a>
     <a href="#faq">FAQ</a>
   </div>
@@ -287,12 +415,47 @@ footer a:hover { color:var(--text2); }
   </div>
 </section>
 
+<!-- Hero display: celular + dashboard flutuando -->
+<section class="hero-display reveal" aria-hidden="true">
+  <div class="hd-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-header">
+          <div class="phone-avatar">🍕</div>
+          <div>
+            <div class="phone-name">Pizzaria do João</div>
+            <div class="phone-status">online</div>
+          </div>
+        </div>
+        <div class="phone-chat">
+          <div class="phone-msg">Olá <strong>Maria</strong>! 👋<br>Hoje é sexta e a promoção tá imperdível: pizza grande + refri 2L por <strong>R$ 59,90</strong>. Quer garantir a sua?<div class="phone-msg-time">18:42 ✓✓</div></div>
+          <div class="phone-msg mine">Quero sim! Pode mandar a de calabresa 🙏<div class="phone-msg-time">18:43</div></div>
+          <div class="phone-msg">Perfeito, Maria! Saindo do forno em 30min e chegando quentinha aí 🚀<div class="phone-msg-time">18:43</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="hd-dash">
+      <div class="hd-dash-hd">
+        <div class="hd-dash-dot"></div>
+        <div class="hd-dash-t">Campanha Sexta Promo</div>
+        <div class="hd-dash-badge">Ao vivo</div>
+      </div>
+      <div class="hd-dash-stats">
+        <div class="hd-stat"><div class="hd-stat-val g" data-count="347">0</div><div class="hd-stat-lbl">Entregues</div></div>
+        <div class="hd-stat"><div class="hd-stat-val a" data-count="482">0</div><div class="hd-stat-lbl">Total</div></div>
+      </div>
+      <div class="hd-prog-wrap"><div class="hd-prog"></div></div>
+      <div class="hd-prog-txt"><span>72% concluído</span><span>~4 min restantes</span></div>
+    </div>
+  </div>
+</section>
+
 <section class="divider-sec" id="feat" aria-labelledby="feat-title">
 <div class="sec">
   <div class="sec-label">Funcionalidades</div>
-  <h2 id="feat-title" class="sec-title">Recursos do disparador de WhatsApp profissional</h2>
-  <p class="sec-sub">Tudo que você precisa para enviar mensagens em massa com qualidade.</p>
-  <div class="feat-grid">
+  <h2 id="feat-title" class="sec-title reveal">Recursos do disparador de WhatsApp profissional</h2>
+  <p class="sec-sub reveal reveal-delay-1">Tudo que você precisa para enviar mensagens em massa com qualidade.</p>
+  <div class="feat-grid reveal reveal-delay-2">
     <article class="feat"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3 class="feat-t">Disparo inteligente e humanizado</h3><p class="feat-d">Intervalos variáveis entre envios e pausas automáticas para simular comportamento humano e reduzir risco de bloqueio do WhatsApp.</p></article>
     <article class="feat"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><h3 class="feat-t">Listas segmentadas e reutilizáveis</h3><p class="feat-d">Importe CSV, edite contatos, salve listas com nome e reuse em quantas campanhas quiser sem reimportar.</p></article>
     <article class="feat"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h3 class="feat-t">Agendamento automático de disparos</h3><p class="feat-d">Programe envios para data específica ou toda semana. O sistema executa no horário certo sem precisar abrir o computador.</p></article>
@@ -306,8 +469,8 @@ footer a:hover { color:var(--text2); }
 <section class="divider-sec" id="steps" aria-labelledby="steps-title">
 <div class="sec">
   <div class="sec-label">Como funciona</div>
-  <h2 id="steps-title" class="sec-title">Como funciona o disparador de WhatsApp</h2>
-  <div class="steps">
+  <h2 id="steps-title" class="sec-title reveal">Como funciona o disparador de WhatsApp</h2>
+  <div class="steps reveal reveal-delay-1">
     <div class="step-r"><div class="step-n">01</div><div><div class="step-t">Crie sua conta e escolha o plano</div><div class="step-d">Crie sua conta com e-mail e senha e escolha o plano. O acesso é liberado assim que o pagamento for confirmado.</div></div></div>
     <div class="step-r"><div class="step-n">02</div><div><div class="step-t">Conecte seu WhatsApp</div><div class="step-d">Aponte a câmera do celular para o QR Code no sistema. Feito isso, a sessão fica salva no seu perfil.</div></div></div>
     <div class="step-r"><div class="step-n">03</div><div><div class="step-t">Configure a campanha</div><div class="step-d">Escreva a mensagem, coloque o nome do contato como variável se quiser, selecione a lista e defina o ritmo de envio.</div></div></div>
@@ -316,11 +479,145 @@ footer a:hover { color:var(--text2); }
 </div>
 </section>
 
+<!-- Stats animados + logos esteira -->
+<section class="divider-sec" id="stats" aria-label="Números e clientes" style="background:var(--bg2)">
+<div class="sec">
+  <div class="sec-label">Resultados</div>
+  <h2 class="sec-title reveal">Números que falam por si</h2>
+  <p class="sec-sub reveal reveal-delay-1">Plataforma usada diariamente por negócios locais no Brasil para vender mais pelo WhatsApp.</p>
+
+  <div class="stats-grid">
+    <div class="stat-card reveal"><div class="stat-big"><span data-count="1200000">0</span><span class="stat-suffix">+</span></div><div class="stat-small">mensagens<br>disparadas</div></div>
+    <div class="stat-card reveal reveal-delay-1"><div class="stat-big"><span data-count="850">0</span><span class="stat-suffix">+</span></div><div class="stat-small">negócios<br>usando agora</div></div>
+    <div class="stat-card reveal reveal-delay-2"><div class="stat-big"><span data-count="97">0</span><span class="stat-suffix">%</span></div><div class="stat-small">taxa de<br>entrega</div></div>
+    <div class="stat-card reveal reveal-delay-3"><div class="stat-big"><span data-count="5">0</span><span class="stat-suffix"> min</span></div><div class="stat-small">pra configurar<br>e disparar</div></div>
+  </div>
+
+  <div class="logos-wrap reveal">
+    <div class="logos-label" style="margin-bottom:18px">Restaurantes e negócios que usam o ChatMOVE</div>
+    <div class="logos-track">
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 22h20L12 2z"/></svg> Pizzaria do João</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="7" rx="8" ry="2.5"/><path d="M4 10c0 1.5 3.6 3 8 3s8-1.5 8-3"/><ellipse cx="12" cy="17" rx="8" ry="2.5"/></svg> Burger da Esquina</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12c0-4 3.5-7 8-7s8 3 8 7v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3z"/></svg> Padaria Pão Dourado</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="6" r="4"/><path d="M8 10l4 12 4-12"/></svg> Açaí Gelato</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/></svg> Barber Shop Elite</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2"/><line x1="6" y1="13" x2="6" y2="22"/></svg> Marmitaria Saudável</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Hamburgueria Central</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/></svg> Pet Shop AmigoFiel</div>
+      <!-- Duplicado pra looping infinito sem corte -->
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 22h20L12 2z"/></svg> Pizzaria do João</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="7" rx="8" ry="2.5"/><path d="M4 10c0 1.5 3.6 3 8 3s8-1.5 8-3"/><ellipse cx="12" cy="17" rx="8" ry="2.5"/></svg> Burger da Esquina</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12c0-4 3.5-7 8-7s8 3 8 7v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3z"/></svg> Padaria Pão Dourado</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="6" r="4"/><path d="M8 10l4 12 4-12"/></svg> Açaí Gelato</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/></svg> Barber Shop Elite</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2"/><line x1="6" y1="13" x2="6" y2="22"/></svg> Marmitaria Saudável</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/></svg> Hamburgueria Central</div>
+      <div class="logo-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/></svg> Pet Shop AmigoFiel</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="divider-sec" id="usos" aria-labelledby="usos-title">
+<div class="sec">
+  <div class="sec-label">Para quem é</div>
+  <h2 id="usos-title" class="sec-title reveal">Disparador de WhatsApp para negócios locais</h2>
+  <p class="sec-sub reveal reveal-delay-1">Dispare promoções, cardápios e avisos com o <strong>nome de cada cliente</strong>. Ideal pra quem vende todo dia e precisa lotar a casa sem gastar com anúncio.</p>
+  <div class="feat-grid reveal reveal-delay-2">
+
+    <article class="feat">
+      <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="1.2" fill="currentColor"/><circle cx="9" cy="18" r="1.2" fill="currentColor"/><circle cx="15" cy="18" r="1.2" fill="currentColor"/></svg></div>
+      <h3 class="feat-t">Pizzaria</h3>
+      <p class="feat-d">Dispare a promoção de sexta com o nome de cada cliente fidelizado. Movimento das noites fracas sobe sem gastar em anúncio pago.</p>
+    </article>
+
+    <article class="feat">
+      <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="7" rx="8" ry="2.5"/><path d="M4 10c0 1.5 3.6 3 8 3s8-1.5 8-3"/><path d="M4 14c0 1.5 3.6 3 8 3s8-1.5 8-3"/><ellipse cx="12" cy="17" rx="8" ry="2.5"/></svg></div>
+      <h3 class="feat-t">Hamburgueria e lanchonete</h3>
+      <p class="feat-d">Combo do dia, cupom de desconto e lançamentos direto no WhatsApp de quem já comprou. Ticket médio sobe e cliente volta.</p>
+    </article>
+
+    <article class="feat">
+      <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2"/><line x1="6" y1="13" x2="6" y2="22"/><path d="M18 2c-2 0-4 2-4 5v4c0 1 1 2 2 2h2v9"/></svg></div>
+      <h3 class="feat-t">Restaurante e marmitaria</h3>
+      <p class="feat-d">Envie o cardápio do dia pra sua base toda às 10h da manhã. Os pedidos começam a chegar antes do almoço, sem depender de iFood.</p>
+    </article>
+
+    <article class="feat">
+      <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12c0-4 3.5-7 8-7s8 3 8 7v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3z"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="16" y1="10" x2="16" y2="14"/></svg></div>
+      <h3 class="feat-t">Padaria e confeitaria</h3>
+      <p class="feat-d">Avise sobre encomendas de bolo, datas sazonais (Páscoa, Dia das Mães) e café da manhã do fim de semana. Cliente pede antes e você produz certo.</p>
+    </article>
+
+    <article class="feat">
+      <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6" r="4"/><path d="M8 10l4 12 4-12"/></svg></div>
+      <h3 class="feat-t">Açaí e sorveteria</h3>
+      <p class="feat-d">Dia quente? Dispare promoção na hora pra quem mora no bairro. Novos sabores, combos e cupom de entrega grátis chegam direto no WhatsApp.</p>
+    </article>
+
+    <article class="feat">
+      <div class="feat-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></div>
+      <h3 class="feat-t">Barbearia e salão de beleza</h3>
+      <p class="feat-d">Lembre o cliente de agendar o próximo corte, dispare promoção de segunda e terça (dias fracos) e ofereça serviços novos pra base ativa.</p>
+    </article>
+
+  </div>
+  <div style="margin-top:28px;text-align:center">
+    <p style="font-size:13px;color:var(--text3);max-width:600px;margin:0 auto;line-height:1.7">Também usado por <strong>pet shops, mercadinhos, salões de festa, academias, lojas de roupas e estúdios de estética</strong> — qualquer negócio que tenha uma base de clientes no WhatsApp e precise vender mais sem queimar verba em tráfego pago.</p>
+  </div>
+</div>
+</section>
+
+<!-- Antes x Depois -->
+<section class="divider-sec" id="compare" aria-labelledby="compare-title">
+<div class="sec">
+  <div class="sec-label">Antes vs. Depois</div>
+  <h2 id="compare-title" class="sec-title reveal">O que muda no seu negócio com o ChatMOVE</h2>
+  <p class="sec-sub reveal reveal-delay-1">A diferença entre enviar manualmente um por um e disparar pra toda sua base com o nome de cada cliente.</p>
+
+  <div class="compare-grid">
+    <div class="compare-col bad reveal">
+      <div class="compare-hd">
+        <div class="compare-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        <div class="compare-t">Sem ChatMOVE</div>
+      </div>
+      <div class="compare-list">
+        <div class="compare-li"><span class="compare-mark">✕</span>Copia e cola a mesma mensagem pra cada cliente na mão</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Gasta 2-3 horas pra disparar 200 mensagens (e ainda esquece contatos)</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Não consegue personalizar com o nome do cliente em escala</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Sem agendamento — precisa lembrar toda sexta de disparar</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>WhatsApp banido por enviar rápido demais sem pausa</div>
+        <div class="compare-li"><span class="compare-mark">✕</span>Sem controle de quem abriu, respondeu ou comprou</div>
+      </div>
+    </div>
+
+    <div class="compare-arrow reveal reveal-delay-1">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>
+
+    <div class="compare-col good reveal reveal-delay-2">
+      <div class="compare-hd">
+        <div class="compare-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="compare-t">Com ChatMOVE</div>
+      </div>
+      <div class="compare-list">
+        <div class="compare-li"><span class="compare-mark">✓</span>Importa a lista e dispara pra todo mundo com 2 cliques</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Envia 500 mensagens em ~20 minutos com pausas inteligentes</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Cada cliente recebe a mensagem com o próprio nome ("Olá Maria!")</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Agenda toda sexta 18h — o sistema dispara sozinho</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Intervalos variáveis + pausas reduzem drasticamente risco de bloqueio</div>
+        <div class="compare-li"><span class="compare-mark">✓</span>Relatório completo chega no seu WhatsApp ao fim da campanha</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
 <section class="divider-sec" id="planos" style="background:var(--bg2)" aria-labelledby="planos-title">
 <div class="sec" style="text-align:center;max-width:1100px">
   <div class="sec-label">Planos</div>
-  <h2 id="planos-title" class="sec-title">Planos do disparador de WhatsApp</h2>
-  <p style="color:var(--text2);font-size:14px;margin-top:8px">Sem contrato · cancele quando quiser.</p>
+  <h2 id="planos-title" class="sec-title reveal">Planos do disparador de WhatsApp</h2>
+  <p class="reveal reveal-delay-1" style="color:var(--text2);font-size:14px;margin-top:8px">Sem contrato · cancele quando quiser.</p>
 
   <div style="display:flex;justify-content:center;margin-top:18px">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:7px 16px;background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.22);border-radius:999px;font-size:12.5px;line-height:1.4;color:var(--text2)">
@@ -406,7 +703,7 @@ footer a:hover { color:var(--text2); }
 <section class="divider-sec" id="faq" aria-labelledby="faq-title">
 <div class="sec" style="max-width:720px">
   <div class="sec-label">FAQ</div>
-  <h2 id="faq-title" class="sec-title">Perguntas frequentes sobre disparo de WhatsApp</h2>
+  <h2 id="faq-title" class="sec-title reveal">Perguntas frequentes sobre disparo de WhatsApp</h2>
   <div class="faq-list">
     <div class="faq-item"><div class="faq-q" onclick="tf(this)">Preciso instalar algum programa? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Não. Funciona no navegador. Só precisa ter o Google Chrome instalado na máquina.</div></div>
     <div class="faq-item"><div class="faq-q" onclick="tf(this)">Meu WhatsApp pode ser banido? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Qualquer ferramenta de disparo tem esse risco. O sistema usa intervalos variáveis e pausas para reduzir as chances. Respeitar o limite do plano ajuda bastante.</div></div>
@@ -496,6 +793,60 @@ window.setCiclo = function(ciclo) {
     if (txt) txt.style.display = 'none';
   });
 })();
+
+// ═════════════════════════════════════════════════════════════════════════
+//  SCROLL REVEAL — elementos com .reveal animam ao entrar no viewport
+// ═════════════════════════════════════════════════════════════════════════
+(function() {
+  if (!('IntersectionObserver' in window)) {
+    // Fallback: mostra tudo de uma vez em navegadores antigos
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+        // Dispara contadores quando o elemento fica visível
+        entry.target.querySelectorAll('[data-count]').forEach(animateCounter);
+        if (entry.target.matches('[data-count]')) animateCounter(entry.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:'0px 0px -60px 0px' });
+  document.querySelectorAll('.reveal, [data-count]').forEach(function(el){ io.observe(el); });
+})();
+
+// Contador animado — conta de 0 até o valor em data-count em ~1.6s
+function animateCounter(el) {
+  if (el.dataset.done) return;
+  el.dataset.done = '1';
+  var target = parseInt(el.dataset.count, 10) || 0;
+  var duration = 1600;
+  var start = performance.now();
+  function tick(now) {
+    var p = Math.min(1, (now - start) / duration);
+    // easeOutQuart pra desacelerar no fim
+    var eased = 1 - Math.pow(1 - p, 4);
+    var val = Math.round(target * eased);
+    el.textContent = val >= 1000 ? val.toLocaleString('pt-BR') : val;
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// Smooth scroll com offset do nav fixo (60px) — evita título cortado pela barra
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click', function(e){
+    var href = a.getAttribute('href');
+    if (!href || href === '#') return;
+    var target = document.querySelector(href);
+    if (!target) return;
+    e.preventDefault();
+    var top = target.getBoundingClientRect().top + window.scrollY - 72;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  });
+});
 </script></script>
 </body>
 </html>
