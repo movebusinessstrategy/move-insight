@@ -37,6 +37,8 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
 .p-feats{list-style:none;padding:0;margin:10px 0 0 0;font-size:11px;color:var(--text2)}
 .p-feats li{padding:4px 0 4px 16px;position:relative;line-height:1.35}
 .p-feats li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:800}
+.p-feats li.off{color:var(--text3)}
+.p-feats li.off::before{content:'✗';color:var(--text3)}
 .pop-b{position:absolute;top:10px;right:10px;font-size:8px;font-weight:800;letter-spacing:.1em;background:var(--gold);color:#111;padding:3px 8px;border-radius:999px;z-index:1}
 .trial-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(48,209,88,.1),rgba(48,209,88,.04));border:1px solid rgba(48,209,88,.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;line-height:1.45;color:var(--text2)}
 .trial-banner .tb-icon{flex-shrink:0;width:28px;height:28px;border-radius:8px;background:rgba(48,209,88,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
@@ -133,8 +135,9 @@ input.invalid{border-color:var(--red)}
         <ul class="p-feats">
           <li>100 envios/dia</li>
           <li>1 número de WhatsApp</li>
-          <li>Listas e contatos ilimitados</li>
-          <li>Mensagens com nome do cliente</li>
+          <li>Imagem e PDF nas campanhas</li>
+          <li class="off">Agendamento de campanhas</li>
+          <li class="off">Agendamento recorrente</li>
         </ul>
       </label>
       <label class="plano-opt on" id="optP">
@@ -146,10 +149,11 @@ input.invalid{border-color:var(--red)}
         <div class="p-anual-sub" data-plano="premium"></div>
         <div class="p-desc">Restaurantes com base ativa de clientes</div>
         <ul class="p-feats">
-          <li>500 envios/dia</li>
+          <li><strong>500 envios/dia</strong> (5× o Básico)</li>
           <li>Até 2 números de WhatsApp</li>
-          <li>Agendamento de campanhas</li>
-          <li>Tudo do Básico</li>
+          <li>Imagem e PDF nas campanhas</li>
+          <li><strong>Agendamento de campanhas</strong></li>
+          <li class="off">Agendamento recorrente</li>
         </ul>
       </label>
       <label class="plano-opt" id="optPro">
@@ -160,10 +164,11 @@ input.invalid{border-color:var(--red)}
         <div class="p-anual-sub" data-plano="pro"></div>
         <div class="p-desc">Franquias e redes de restaurantes</div>
         <ul class="p-feats">
-          <li>1.000 envios/dia</li>
+          <li><strong>1.000 envios/dia</strong> (10× o Básico)</li>
           <li>Até 5 números de WhatsApp</li>
-          <li>Agendamento recorrente (ex: toda sexta 18h)</li>
-          <li>Tudo do Premium</li>
+          <li>Imagem e PDF nas campanhas</li>
+          <li>Agendamento de campanhas</li>
+          <li><strong>Agendamento recorrente</strong> (toda sexta 18h, etc)</li>
         </ul>
       </label>
     </div>

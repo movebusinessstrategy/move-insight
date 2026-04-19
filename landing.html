@@ -320,7 +320,12 @@ footer a:hover { color:var(--text2); }
 <div class="sec" style="text-align:center;max-width:1100px">
   <div class="sec-label">Planos</div>
   <h2 id="planos-title" class="sec-title">Planos do disparador de WhatsApp</h2>
-  <p style="color:var(--text2);font-size:14px;margin-top:8px">Sem contrato. Cancele quando quiser.</p>
+  <p style="color:var(--text2);font-size:14px;margin-top:8px">7 dias grátis · sem contrato · cancele quando quiser.</p>
+
+  <div style="display:inline-flex;align-items:center;gap:12px;margin:24px auto 0;padding:14px 22px;background:linear-gradient(135deg,rgba(48,209,88,.1),rgba(48,209,88,.04));border:1px solid rgba(48,209,88,.3);border-radius:14px;max-width:620px;text-align:left">
+    <div style="flex-shrink:0;width:36px;height:36px;border-radius:10px;background:rgba(48,209,88,.18);color:var(--green,#16a34a);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800">✓</div>
+    <div style="font-size:13px;line-height:1.5;color:var(--text2)"><strong style="color:var(--green,#16a34a);font-weight:700">7 dias grátis para testar.</strong> Você cadastra o cartão mas a primeira cobrança só acontece no 8º dia. Cancele antes e não paga nada.</div>
+  </div>
 
   <div id="cicloToggle" style="display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin-top:24px">
     <button type="button" class="ciclo-btn on" data-ciclo="mensal" onclick="setCiclo('mensal')" style="border:none;background:var(--gold);color:#111;padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Mensal</button>
@@ -334,6 +339,7 @@ footer a:hover { color:var(--text2); }
       <div class="p-nome">Básico</div>
       <div class="p-preco" data-plano="basico"><sup>R$</sup><span class="p-valor-int">39</span><span class="p-valor-cent" style="font-size:22px;font-weight:600">,90</span></div>
       <div class="p-per p-per-dyn">por mês</div>
+      <div class="p-anual-sub" style="display:none;font-size:12px;color:var(--text3);margin-top:4px;line-height:1.4"></div>
       <div class="p-desc">Para quem está começando ou tem volume baixo de envios.</div>
       <div class="p-itens">
         <div class="p-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>100 envios por dia</div>
@@ -352,6 +358,7 @@ footer a:hover { color:var(--text2); }
       <div class="p-nome">Premium</div>
       <div class="p-preco" data-plano="premium" style="color:var(--gold2)"><sup>R$</sup><span class="p-valor-int">79</span><span class="p-valor-cent" style="font-size:22px;font-weight:600">,90</span></div>
       <div class="p-per p-per-dyn">por mês</div>
+      <div class="p-anual-sub" style="display:none;font-size:12px;color:var(--text3);margin-top:4px;line-height:1.4"></div>
       <div class="p-desc">Para quem gerencia clientes e precisa de mais volume.</div>
       <div class="p-itens">
         <div class="p-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>500 envios por dia</div>
@@ -369,6 +376,7 @@ footer a:hover { color:var(--text2); }
       <div class="p-nome">Pro</div>
       <div class="p-preco" data-plano="pro"><sup>R$</sup><span class="p-valor-int">149</span><span class="p-valor-cent" style="font-size:22px;font-weight:600">,90</span></div>
       <div class="p-per p-per-dyn">por mês</div>
+      <div class="p-anual-sub" style="display:none;font-size:12px;color:var(--text3);margin-top:4px;line-height:1.4"></div>
       <div class="p-desc">Escala máxima com agendamento automático de campanhas.</div>
       <div class="p-itens">
         <div class="p-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>1.000 envios por dia</div>
@@ -431,6 +439,11 @@ function fmtReais(cents) {
   var cent = String(cents % 100).padStart(2, '0');
   return { int: int.toLocaleString('pt-BR'), cent: cent };
 }
+function fmtReaisFull(cents) {
+  var int = Math.floor(cents / 100).toLocaleString('pt-BR');
+  var cent = String(cents % 100).padStart(2, '0');
+  return 'R$ ' + int + ',' + cent;
+}
 window.setCiclo = function(ciclo) {
   document.querySelectorAll('#cicloToggle .ciclo-btn').forEach(function(b) {
     var on = b.dataset.ciclo === ciclo;
@@ -440,12 +453,27 @@ window.setCiclo = function(ciclo) {
   });
   document.querySelectorAll('.p-preco[data-plano]').forEach(function(el) {
     var p = el.dataset.plano;
-    var v = fmtReais(PRECOS[p][ciclo]);
+    // Anual: mostra VALOR MENSAL EQUIVALENTE grande (protagonismo do mensal)
+    var valorDisplay = ciclo === 'anual' ? Math.round(PRECOS[p].anual / 12) : PRECOS[p].mensal;
+    var v = fmtReais(valorDisplay);
     el.querySelector('.p-valor-int').textContent = v.int;
     el.querySelector('.p-valor-cent').textContent = ',' + v.cent;
+    // Sub-texto do card com o valor anual total e economia
+    var card = el.closest('.plano');
+    var sub = card ? card.querySelector('.p-anual-sub') : null;
+    if (sub) {
+      if (ciclo === 'anual') {
+        var anual = PRECOS[p].anual;
+        var economia = PRECOS[p].mensal * 12 - anual;
+        sub.innerHTML = fmtReaisFull(anual) + '/ano · <strong style="color:var(--green,#16a34a);font-weight:700">economize ' + fmtReaisFull(economia) + '</strong>';
+        sub.style.display = 'block';
+      } else {
+        sub.style.display = 'none';
+      }
+    }
   });
   document.querySelectorAll('.p-per-dyn').forEach(function(el) {
-    el.textContent = ciclo === 'anual' ? 'por ano · 2 meses grátis' : 'por mês';
+    el.textContent = 'por mês';
   });
   document.querySelectorAll('a.btn-plano[data-plano]').forEach(function(a) {
     a.href = '/registro?plano=' + a.dataset.plano + '&ciclo=' + ciclo;
