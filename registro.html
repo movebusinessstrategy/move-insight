@@ -22,62 +22,77 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
 .step-dots{display:flex;gap:6px;margin-bottom:20px}
 .sdot{height:3px;border-radius:999px;background:var(--border3);transition:all var(--ease);flex:1}
 .sdot.on{background:var(--gold)}
-/* Planos — padrão Apple: ar, tipografia hero, acento discreto */
-.planos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+/* Planos — reset do label + design Apple refinado */
+.planos-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:28px 0 24px; align-items:stretch; }
+
 .plano-opt{
-  border:1px solid var(--border);
-  border-radius:18px;
-  padding:22px 20px 20px;
-  cursor:pointer;
-  transition:transform .3s cubic-bezier(.2,.6,.2,1), border-color .2s, box-shadow .3s, background .2s;
+  /* reset explícito de props herdadas do seletor global `label` */
+  text-transform:none; letter-spacing:normal; font-weight:400; font-size:14px;
+  color:var(--text); display:block; margin:0;
+
   position:relative;
   background:var(--surface);
-  display:flex; flex-direction:column;
-  box-shadow:0 1px 2px rgba(0,0,0,.03);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:26px 22px 24px;
+  cursor:pointer;
+  transition:transform .4s cubic-bezier(.2,.6,.2,1), border-color .25s, box-shadow .4s, background .25s;
+  box-shadow:0 1px 2px rgba(0,0,0,.04);
 }
 .plano-opt:hover{
   border-color:var(--border3);
-  transform:translateY(-2px);
-  box-shadow:0 2px 4px rgba(0,0,0,.04), 0 12px 24px -8px rgba(0,0,0,.08);
+  transform:translateY(-3px);
+  box-shadow:0 2px 4px rgba(0,0,0,.04), 0 16px 32px -10px rgba(0,0,0,.12);
 }
 .plano-opt.on{
   border-color:var(--gold);
-  background:linear-gradient(180deg, var(--gold-bg), var(--surface));
-  box-shadow:0 0 0 2px rgba(198,169,107,.2), 0 2px 4px rgba(185,141,65,.08), 0 16px 40px -12px rgba(185,141,65,.25);
+  box-shadow:0 0 0 2px rgba(198,169,107,.25), 0 20px 44px -14px rgba(185,141,65,.3);
 }
-.plano-opt input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.plano-opt input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
 
+/* Nome do plano: clean, em title case, sem caps */
 .p-nome{
-  font-size:12px; font-weight:700; letter-spacing:-.01em;
-  color:var(--text2); margin-bottom:10px;
+  font-size:13px; font-weight:600; letter-spacing:-.005em;
+  color:var(--text2); margin:0 0 14px;
+  text-transform:none;
 }
-.plano-opt.on .p-nome{ color:var(--gold); }
+.plano-opt.on .p-nome{ color:var(--gold); font-weight:700; }
 
+/* Preço: protagonista do card */
 .p-val{
-  font-size:28px; font-weight:800; letter-spacing:-.04em; line-height:1;
-  color:var(--text);
+  font-size:32px; font-weight:800; letter-spacing:-.045em; line-height:1;
+  color:var(--text); text-transform:none;
 }
+.p-val .pv-cent{ font-size:16px !important; font-weight:700; letter-spacing:-.02em; opacity:.7; }
 .p-val.gold{ color:var(--gold); }
-.p-per{ font-size:11px; color:var(--text3); margin-top:4px; font-weight:500; }
+.p-per{ font-size:12px; color:var(--text3); margin-top:5px; font-weight:500; text-transform:none; letter-spacing:normal; }
 .p-anual-sub{
-  display:none; font-size:10.5px; color:var(--text3); margin-top:6px;
-  line-height:1.45; padding-top:6px; border-top:1px dashed var(--border);
+  display:none; font-size:11px; color:var(--text3); margin-top:8px;
+  line-height:1.5; text-transform:none; letter-spacing:normal;
 }
 .p-anual-sub strong{ color:var(--green); font-weight:700; }
 
+/* Descrição: sem border-top compartimentalizando; só espaçamento natural */
 .p-desc{
-  font-size:11.5px; color:var(--text2); margin-top:16px;
-  line-height:1.5; min-height:32px; padding-top:14px; border-top:1px solid var(--border);
+  font-size:12.5px; color:var(--text2); margin:22px 0 0;
+  line-height:1.5; min-height:36px; text-transform:none; letter-spacing:normal; font-weight:400;
 }
 
-.p-feats{ list-style:none; padding:0; margin:12px 0 0 0; font-size:11.5px; color:var(--text2); display:flex; flex-direction:column; gap:7px; }
+/* Features: clean, sem caps, com ícones SVG via data URI */
+.p-feats{
+  list-style:none; padding:0; margin:18px 0 0;
+  font-size:12.5px; color:var(--text2); font-weight:400;
+  display:flex; flex-direction:column; gap:9px;
+  text-transform:none; letter-spacing:normal;
+}
 .p-feats li{
-  padding:2px 0 2px 22px; position:relative; line-height:1.4;
+  padding:0 0 0 22px; position:relative; line-height:1.5;
+  text-transform:none; letter-spacing:normal;
 }
 .p-feats li::before{
   content:''; position:absolute; left:0; top:4px;
   width:14px; height:14px;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f9a52' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
   background-size:contain; background-repeat:no-repeat;
 }
 .p-feats li.off{ color:var(--text3); opacity:.55; }
@@ -85,14 +100,15 @@ h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'><line x1='18' y1='6' x2='6' y2='18'/><line x1='6' y1='6' x2='18' y2='18'/></svg>");
   top:5px; width:12px; height:12px;
 }
-.p-feats li strong{ color:var(--text); font-weight:700; }
+.p-feats li strong{ color:var(--text); font-weight:600; }
 
+/* Popular badge: pill refinado flutuando acima */
 .pop-b{
-  position:absolute; top:-10px; left:50%; transform:translateX(-50%);
-  font-size:9px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+  font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
   background:var(--gold); color:#111;
-  padding:5px 12px; border-radius:999px; z-index:2;
-  box-shadow:0 4px 14px rgba(198,169,107,.4);
+  padding:5px 14px; border-radius:999px; z-index:2;
+  box-shadow:0 4px 14px rgba(198,169,107,.45), 0 0 0 3px var(--surface);
   white-space:nowrap;
 }
 .trial-banner{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(48,209,88,.1),rgba(48,209,88,.04));border:1px solid rgba(48,209,88,.25);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12px;line-height:1.45;color:var(--text2)}
