@@ -188,6 +188,34 @@ body::after {
   body::after { animation:none; }
   .cursor-spot { transition:none; }
 }
+
+/* Botão flutuante WhatsApp */
+.wa-float {
+  position:fixed; bottom:24px; right:24px; z-index:50;
+  display:inline-flex; align-items:center; gap:10px;
+  padding:14px 20px 14px 16px; border-radius:999px;
+  background:#25D366; color:#fff; text-decoration:none;
+  font-family:'Inter',sans-serif; font-size:14px; font-weight:700; letter-spacing:-.01em;
+  box-shadow:0 8px 22px rgba(37,211,102,.35), 0 2px 6px rgba(0,0,0,.12);
+  transition:transform .3s cubic-bezier(.2,.6,.2,1), box-shadow .3s, gap .3s;
+}
+.wa-float:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 12px 32px rgba(37,211,102,.5), 0 4px 10px rgba(0,0,0,.16); }
+.wa-float::before {
+  content:''; position:absolute; inset:-4px; border-radius:999px;
+  background:rgba(37,211,102,.3); z-index:-1;
+  animation:waPulse 2.4s ease-out infinite;
+}
+@keyframes waPulse {
+  0% { transform:scale(.9); opacity:.7; }
+  70% { transform:scale(1.15); opacity:0; }
+  100% { transform:scale(1.2); opacity:0; }
+}
+.wa-float svg { flex-shrink:0; }
+.wa-float-lbl { white-space:nowrap; }
+@media(max-width:640px) {
+  .wa-float { bottom:16px; right:16px; padding:14px; }
+  .wa-float-lbl { display:none; } /* só o ícone no mobile */
+}
 /* Garante que o conteúdo fique acima do background */
 nav, section, footer { position:relative; z-index:1; }
 
@@ -583,6 +611,12 @@ footer a:hover { color:var(--text2); }
 <!-- Background interativo: spotlight do cursor -->
 <div class="cursor-spot" aria-hidden="true"></div>
 
+<!-- Botão flutuante de WhatsApp (suporte direto) -->
+<a href="https://wa.me/5543996255556?text=Oi!%20Vim%20da%20p%C3%A1gina%20do%20ChatMOVE%20e%20tenho%20uma%20d%C3%BAvida." target="_blank" rel="noopener" class="wa-float" aria-label="Falar com suporte no WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 3.5a12 12 0 0 0-17 0c-3.15 3.2-3.83 8.03-1.85 11.94L1 22l6.67-1.75a12 12 0 0 0 5.83 1.5h.01c6.62 0 12-5.38 12-12a11.9 11.9 0 0 0-3.5-8.5zM12 20.15a10 10 0 0 1-5.1-1.4l-.36-.22-3.77.99 1-3.67-.24-.38a10 10 0 1 1 8.48 4.68zM17.47 14.45c-.3-.15-1.78-.88-2.06-.98s-.48-.15-.68.15-.78.98-.96 1.18-.36.22-.66.07c-.3-.15-1.28-.47-2.43-1.5-.9-.8-1.5-1.79-1.68-2.09s-.02-.46.13-.61c.13-.13.3-.36.45-.53s.2-.3.3-.5.05-.38-.03-.53c-.07-.15-.68-1.63-.93-2.23-.24-.58-.5-.5-.68-.51-.17-.01-.38-.01-.58-.01-.2 0-.53.08-.8.38s-1.05 1.03-1.05 2.5 1.08 2.9 1.23 3.1 2.11 3.22 5.11 4.52c.71.3 1.27.48 1.7.62.71.23 1.36.19 1.87.12.57-.08 1.78-.72 2.03-1.43.25-.7.25-1.3.18-1.43-.07-.13-.27-.2-.57-.35z"/></svg>
+  <span class="wa-float-lbl">Fale conosco</span>
+</a>
+
 <nav aria-label="Menu principal">
   <a href="/" class="nav-logo" aria-label="ChatMOVE · Página inicial">
     <img src="logosilversun.png" alt="Logo ChatMOVE" id="navLogo" style="height:36px;width:auto;display:none">
@@ -941,8 +975,8 @@ footer a:hover { color:var(--text2); }
   </div>
 
   <div id="cicloToggle" style="display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:4px;margin-top:20px">
-    <button type="button" class="ciclo-btn on" data-ciclo="mensal" onclick="setCiclo('mensal')" style="border:none;background:var(--gold);color:#111;padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Mensal</button>
-    <button type="button" class="ciclo-btn" data-ciclo="anual" onclick="setCiclo('anual')" style="border:none;background:transparent;color:var(--text2);padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px">Anual <span style="background:var(--green,#16a34a);color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:800">2 MESES GRÁTIS</span></button>
+    <button type="button" class="ciclo-btn on" data-ciclo="anual" onclick="setCiclo('anual')" style="border:none;background:var(--gold);color:#111;padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px">Anual <span style="background:rgba(0,0,0,.14);color:#0d6b33;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700">2 meses grátis</span></button>
+    <button type="button" class="ciclo-btn" data-ciclo="mensal" onclick="setCiclo('mensal')" style="border:none;background:transparent;color:var(--text2);padding:8px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Mensal</button>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:44px;text-align:left">
@@ -1019,11 +1053,16 @@ footer a:hover { color:var(--text2); }
   <div class="sec-label">FAQ</div>
   <h2 id="faq-title" class="sec-title reveal">Perguntas frequentes sobre disparo de WhatsApp</h2>
   <div class="faq-list">
-    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Preciso instalar algum programa? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Não. Funciona no navegador. Só precisa ter o Google Chrome instalado na máquina.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Meu WhatsApp pode ser banido? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Qualquer ferramenta de disparo tem esse risco. O sistema usa intervalos variáveis e pausas para reduzir as chances. Respeitar o limite do plano ajuda bastante.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Como funciona o agendamento? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">No Premium você define mensagem, lista e horário de envio. O sistema cuida do resto, mesmo com o computador fechado.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Posso cancelar quando quiser? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Sim. Cancela quando quiser e fica com acesso até o fim do período já pago.</div></div>
-    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Posso usar para vários clientes? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Sim. No Premium você conecta até 5 números cada um com suas próprias listas e campanhas.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Como funciona o teste grátis de 7 dias? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Você cria a conta e cadastra o cartão, mas a primeira cobrança só acontece no 8º dia. Durante os 7 dias você usa tudo sem limite. Se não gostar, cancela antes e não paga nada. Nenhum valor é descontado.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Preciso instalar algum programa no computador? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Não. O ChatMOVE roda 100% pelo navegador. Só precisa do Google Chrome aberto no PC na hora do disparo. Não precisa baixar nada, não precisa de técnico, não mexe no celular.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Como cada cliente recebe a mensagem com o próprio nome? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Você escreve a mensagem usando <strong>{nome}</strong> no lugar do nome. Na hora de disparar, o sistema troca automaticamente pelo nome de cada cliente da sua lista. Ex: "Oi {nome}!" vira "Oi Maria!", "Oi João!", e assim por diante. Cada cliente recebe como se fosse exclusivo.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Meu WhatsApp pode ser bloqueado? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Qualquer ferramenta de disparo tem esse risco. O ChatMOVE usa <strong>intervalos variáveis</strong> entre os envios e <strong>pausas automáticas</strong> a cada grupo de mensagens, simulando comportamento humano. Respeitar o limite diário do seu plano reduz drasticamente a chance de bloqueio.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Como importo minha lista de clientes? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Você baixa o modelo de planilha (formato CSV) direto no painel, preenche nome e telefone de cada cliente, e importa em 1 clique. O sistema valida e corrige os números automaticamente (DDD, 9 extra, traços e parênteses). Também dá pra adicionar contatos um a um ou colar direto de uma lista que você já tenha.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Consigo agendar disparos pra toda sexta de forma automática? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Sim, no plano <strong>Pro</strong>. Você escolhe os dias da semana e o horário (ex: toda sexta às 18h), e o sistema dispara automaticamente, mesmo com o computador fechado. No <strong>Premium</strong> o agendamento é pontual (uma data/hora específica).</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Posso conectar mais de um WhatsApp? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Sim. O plano Básico conecta 1 número, o Premium até 2 e o Pro até 5. Cada número tem suas próprias listas e campanhas, independentes. Ótimo pra quem tem mais de uma loja ou quer separar vendas/atendimento.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">O que acontece quando a campanha termina? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Assim que o último envio é concluído, você recebe no seu próprio WhatsApp um resumo completo: quantas mensagens foram entregues, quantas falharam, quantas foram puladas (números inválidos ou duplicados) e o tempo total. Tudo auditável depois no histórico do painel.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Posso cancelar quando quiser? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Sim, 1 clique no painel e pronto. Sem contrato, sem multa, sem pegadinha. Você mantém acesso até o fim do período já pago e depois a conta fica inativa.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="tf(this)">Vocês dão suporte se eu tiver dúvida? <div class="faq-chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div></div><div class="faq-a">Sim, falamos direto no WhatsApp: <a href="https://wa.me/5543996255556?text=Oi!%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20ChatMOVE" target="_blank" class="link" style="color:var(--gold);text-decoration:none;font-weight:600">(43) 99625-5556</a> ou no e-mail <strong>contato@movebusiness.com.br</strong>. Dentro do painel também tem o botão de suporte com atendimento direto.</div></div>
   </div>
 </div>
 </section>
@@ -1092,6 +1131,8 @@ window.setCiclo = function(ciclo) {
     a.href = '/registro?plano=' + a.dataset.plano + '&ciclo=' + ciclo;
   });
 };
+// Inicializa com ciclo anual (protagonismo do mensal equivalente + economia visível)
+document.addEventListener('DOMContentLoaded', function(){ window.setCiclo('anual'); });
 </script>
 
 <script>

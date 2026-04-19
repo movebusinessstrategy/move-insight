@@ -11,7 +11,9 @@
 [data-theme="dark"]{--bg:#1c1c1e;--bg2:#2c2c2e;--surface:#252527;--surface2:#303032;--surface3:#3a3a3c;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.11);--border3:rgba(255,255,255,.18);--text:#f5f5f7;--text2:rgba(245,245,247,.64);--text3:rgba(245,245,247,.36);--gold:#c6a96b;--gold2:#d9be86;--gold-bg:rgba(198,169,107,.09);--red:#ff5f57;--green:#30d158;--sh:0 2px 12px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.22)}
 body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
 .glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(ellipse,rgba(198,169,107,.07) 0%,transparent 70%);pointer-events:none}
-.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:36px;width:100%;max-width:520px;position:relative;z-index:1;box-shadow:var(--sh)}
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px 36px;width:100%;max-width:520px;position:relative;z-index:1;box-shadow:var(--sh);transition:max-width .3s cubic-bezier(.2,.6,.2,1)}
+/* No passo dos planos, o card expande pra cards respirarem */
+.card.wide{max-width:780px}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--gold) 40%,var(--gold2) 60%,transparent 90%);opacity:.5;border-radius:20px 20px 0 0}
 .logo-area{text-align:center;margin-bottom:20px}
 .logo-img{max-width:120px;max-height:40px;object-fit:contain;display:block;margin:0 auto}
@@ -485,9 +487,15 @@ function buscarCEP(){
   }).catch(function(){});
 }
 
+function _toggleCardWidth(ativo){
+  var card=document.querySelector('.card');
+  if(!card) return;
+  if(ativo) card.classList.add('wide'); else card.classList.remove('wide');
+}
 function irS2(){
   document.getElementById('s1').style.display='none';
   document.getElementById('s2').style.display='';
+  _toggleCardWidth(false);
   var suf=ci==='anual'?'ano · 2 meses grátis':'mês';
   document.getElementById('plLabel').textContent=NOMES[pl]+' · '+fmtReaisFull(PRECOS[pl][ci])+'/'+suf;
   window.scrollTo(0,0);
@@ -496,11 +504,13 @@ function irS3(){
   if(!validarS2())return;
   document.getElementById('s2').style.display='none';
   document.getElementById('s3').style.display='';
+  _toggleCardWidth(false);
   window.scrollTo(0,0);
 }
 function voltar(n){
   ['s1','s2','s3'].forEach(function(id){document.getElementById(id).style.display='none';});
   document.getElementById('s'+n).style.display='';
+  _toggleCardWidth(n==1);
   window.scrollTo(0,0);
 }
 function show(t,c,box){var b=document.getElementById(box||'msgBox3');b.textContent=t;b.className='msg '+c;b.style.display='block';}
@@ -611,6 +621,8 @@ async function registrar(){
   var c=q.get('ciclo');
   // Se veio ?ciclo=mensal na URL, respeita; caso contrário, força anual (default)
   selCiclo(c==='mensal'?'mensal':'anual');
+  // Card largo no passo 1 (planos lado a lado)
+  _toggleCardWidth(true);
 })();
 
 // Modo "completar cadastro" (usuário logado via Google com cadastroCompleto=false)
