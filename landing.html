@@ -419,11 +419,11 @@ footer a:hover { color:var(--text2); }
 .hs-line.flat { stroke:var(--red); opacity:.9; transition:opacity .4s; }
 .hs-line.rise { stroke:var(--gold); stroke-dasharray:700; stroke-dashoffset:700; filter:drop-shadow(0 2px 4px rgba(185,141,65,.4)); }
 #hsWrap.fired .hs-line.flat { opacity:0; }
-#hsWrap.fired .hs-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 4s cubic-bezier(.2,.6,.2,1) .4s; }
-.hs-area { fill:url(#hsGrad); opacity:0; transition:opacity 1.2s 2s; }
+#hsWrap.fired .hs-line.rise { stroke-dashoffset:0; transition:stroke-dashoffset 6.5s cubic-bezier(.2,.6,.2,1) .8s; }
+.hs-area { fill:url(#hsGrad); opacity:0; transition:opacity 1.8s 3.5s; }
 #hsWrap.fired .hs-area { opacity:.4; }
 .hs-dot { fill:var(--gold); opacity:0; }
-#hsWrap.fired .hs-dot { opacity:1; animation:hsDotPop .5s cubic-bezier(.34,1.56,.64,1) 4.2s forwards; }
+#hsWrap.fired .hs-dot { opacity:1; animation:hsDotPop .6s cubic-bezier(.34,1.56,.64,1) 7s forwards; }
 @keyframes hsDotPop { from{r:0;} to{r:5;} }
 
 .hs-fat { margin-top:auto; padding:13px 14px; background:linear-gradient(135deg, rgba(185,141,65,.08), transparent); border:1px solid rgba(185,141,65,.22); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; transition:all .5s; }
@@ -525,54 +525,56 @@ footer a:hover { color:var(--text2); }
 /* ═════════════════════════════════════════════════════════════════════════ */
 /*  ANTES x DEPOIS                                                            */
 /* ═════════════════════════════════════════════════════════════════════════ */
-/* Grid duas colunas, sem botão do meio */
-.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:stretch; margin-top:52px; position:relative; }
+/* ───── COMPARE redesign padrão Apple: whitespace, tipografia hero, menos ruído ───── */
+.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:60px; }
 
-/* Coluna base */
-.compare-col { background:var(--surface); border:1px solid var(--border); border-radius:22px; padding:0; position:relative; overflow:hidden; display:flex; flex-direction:column; transition:transform .4s; }
-.compare-col:hover { transform:translateY(-3px); }
+.compare-col {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:48px 44px 44px;
+  display:flex; flex-direction:column;
+  box-shadow:0 1px 2px rgba(0,0,0,.02), 0 10px 28px -12px rgba(0,0,0,.06);
+  transition:transform .5s cubic-bezier(.2,.6,.2,1), box-shadow .5s cubic-bezier(.2,.6,.2,1);
+  position:relative;
+}
+.compare-col:hover { transform:translateY(-4px); box-shadow:0 2px 4px rgba(0,0,0,.03), 0 24px 48px -16px rgba(0,0,0,.12); }
 
-/* Ribbon do topo: "ANTES" / "DEPOIS" */
-.compare-ribbon { padding:14px 22px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
-.compare-col.bad .compare-ribbon { background:linear-gradient(135deg, rgba(199,61,50,.08), rgba(199,61,50,.02)); }
-.compare-col.good .compare-ribbon { background:linear-gradient(135deg, rgba(185,141,65,.12), rgba(185,141,65,.03)); }
-.compare-tag { font-size:10px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; padding:3px 10px; border-radius:999px; }
-.compare-col.bad .compare-tag { background:rgba(199,61,50,.14); color:var(--red); border:1px solid rgba(199,61,50,.25); }
-.compare-col.good .compare-tag { background:var(--gold); color:#111; box-shadow:0 2px 10px rgba(185,141,65,.35); }
-.compare-title { font-size:15px; font-weight:800; letter-spacing:-.02em; }
-.compare-col.bad .compare-title { color:var(--red); }
-.compare-col.good .compare-title { color:var(--gold); }
+/* Tag pequena e discreta no topo */
+.compare-tag {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--text3); margin-bottom:32px;
+}
+.compare-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.6; }
+.compare-col.bad .compare-tag { color:var(--red); }
+.compare-col.good .compare-tag { color:var(--gold); }
 
-/* Métrica hero: tempo/volume em destaque */
-.compare-metric { padding:24px 24px 18px; border-bottom:1px solid var(--border); display:flex; align-items:baseline; gap:8px; }
-.compare-col.bad .compare-metric { background:linear-gradient(180deg, rgba(199,61,50,.03), transparent); }
-.compare-col.good .compare-metric { background:linear-gradient(180deg, rgba(185,141,65,.04), transparent); }
-.compare-m-val { font-size:40px; font-weight:800; letter-spacing:-.04em; line-height:1; }
+/* Métrica hero: numero gigante que carrega a mensagem */
+.compare-metric { margin-bottom:36px; }
+.compare-m-val { font-size:clamp(52px,6vw,72px); font-weight:800; letter-spacing:-.045em; line-height:.95; }
 .compare-col.bad .compare-m-val { color:var(--red); }
 .compare-col.good .compare-m-val { color:var(--gold); }
-.compare-m-sub { font-size:12px; color:var(--text2); line-height:1.4; font-weight:500; }
-.compare-m-sub strong { color:var(--text); font-weight:700; }
+.compare-m-sub { font-size:15px; color:var(--text2); line-height:1.55; margin-top:14px; max-width:380px; }
+.compare-m-sub strong { color:var(--text); font-weight:600; }
 
-/* Lista */
-.compare-list { display:flex; flex-direction:column; gap:12px; padding:22px 24px 26px; }
-.compare-li { display:flex; align-items:flex-start; gap:11px; font-size:13px; line-height:1.55; color:var(--text2); }
-.compare-li .compare-mark { width:20px; height:20px; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; margin-top:1px; }
-.compare-col.bad .compare-mark { background:rgba(199,61,50,.1); color:var(--red); border:1px solid rgba(199,61,50,.2); }
-.compare-col.good .compare-mark { background:rgba(31,154,82,.12); color:var(--green); border:1px solid rgba(31,154,82,.2); }
+/* Divisor sutil entre métrica e lista */
+.compare-sep { height:1px; background:var(--border); margin:0 0 28px; }
 
-/* Destaque do DEPOIS (card dourado ganha mais protagonismo) */
-.compare-col.good { border-color:rgba(185,141,65,.35); box-shadow:0 24px 60px -24px rgba(185,141,65,.3), 0 0 0 1px rgba(185,141,65,.12); }
-.compare-col.good::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); }
+/* Lista limpa, sem badges coloridos nos marks, só um ícone minimalista */
+.compare-list { display:flex; flex-direction:column; gap:14px; margin:0; padding:0; list-style:none; }
+.compare-li { display:flex; align-items:flex-start; gap:14px; font-size:14px; line-height:1.55; color:var(--text2); }
+.compare-li-ic { flex-shrink:0; width:16px; height:16px; margin-top:3px; }
+.compare-col.bad .compare-li-ic { color:var(--red); opacity:.55; }
+.compare-col.good .compare-li-ic { color:var(--green); opacity:.85; }
 
-/* "VS" sutil no meio do gap (visível só em desktop) */
-.compare-vs { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2; width:42px; height:42px; border-radius:50%; background:var(--surface); border:1px solid rgba(185,141,65,.3); box-shadow:0 4px 14px rgba(0,0,0,.08), 0 0 20px rgba(185,141,65,.15); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; letter-spacing:.1em; color:var(--gold); pointer-events:none; }
+/* Realce sutil no card DEPOIS, sem virar carnaval */
+.compare-col.good { border-color:rgba(185,141,65,.22); box-shadow:0 2px 4px rgba(185,141,65,.04), 0 16px 40px -16px rgba(185,141,65,.2); }
 
 @media(max-width:768px){
-  .compare-grid { grid-template-columns:1fr; gap:16px; }
-  .compare-vs { display:none; }
-  .compare-metric { padding:20px 20px 16px; }
-  .compare-m-val { font-size:32px; }
-  .compare-list { padding:18px 20px 22px; }
+  .compare-grid { grid-template-columns:1fr; gap:16px; margin-top:40px; }
+  .compare-col { padding:36px 28px 32px; }
+  .compare-m-val { font-size:48px; }
 }
 </style>
 </head>
@@ -888,47 +890,38 @@ footer a:hover { color:var(--text2); }
   <p class="sec-sub reveal reveal-delay-1">A diferença entre enviar manualmente um por um e disparar pra toda sua base com o nome de cada cliente.</p>
 
   <div class="compare-grid">
-    <!-- ANTES: sem ChatMOVE -->
+    <!-- ANTES -->
     <div class="compare-col bad reveal">
-      <div class="compare-ribbon">
-        <span class="compare-tag">Antes</span>
-        <span class="compare-title">Sem ChatMOVE</span>
-      </div>
+      <div class="compare-tag">Sem ChatMOVE</div>
       <div class="compare-metric">
-        <div class="compare-m-val">1 dia</div>
-        <div class="compare-m-sub">pra enviar <strong>100 mensagens</strong> manualmente, uma por uma</div>
+        <div class="compare-m-val">1 dia inteiro</div>
+        <div class="compare-m-sub">pra enviar <strong>100 mensagens</strong> manualmente, trocando o nome na mão uma por uma.</div>
       </div>
-      <div class="compare-list">
-        <div class="compare-li"><span class="compare-mark">✕</span>Passa o dia inteiro copiando e colando a mesma mensagem, trocando o nome na mão 100 vezes</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Esquece contato no meio do caminho e precisa conferir a planilha toda de novo</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Sem agendamento, precisa lembrar toda sexta de sentar e disparar</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Risco alto de ban por enviar rápido demais, sem pausa e sem variação</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Não sabe quantas mensagens chegaram nem quantas falharam</div>
-        <div class="compare-li"><span class="compare-mark">✕</span>Dispara de um número só: se quiser usar outro WhatsApp, começa tudo do zero</div>
-      </div>
+      <div class="compare-sep"></div>
+      <ul class="compare-list">
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Copia e cola a mesma mensagem, trocando o nome na mão cem vezes</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Esquece contato no caminho e confere a planilha toda de novo</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Precisa lembrar toda sexta de sentar e disparar sem falhar</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Risco alto de ban por enviar rápido demais, sem pausa</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Não sabe quantas mensagens chegaram nem quais falharam</li>
+      </ul>
     </div>
 
-    <!-- Badge "VS" flutuante -->
-    <div class="compare-vs" aria-hidden="true">VS</div>
-
-    <!-- DEPOIS: com ChatMOVE -->
+    <!-- DEPOIS -->
     <div class="compare-col good reveal reveal-delay-1">
-      <div class="compare-ribbon">
-        <span class="compare-tag">Depois</span>
-        <span class="compare-title">Com ChatMOVE</span>
-      </div>
+      <div class="compare-tag">Com ChatMOVE</div>
       <div class="compare-metric">
-        <div class="compare-m-val">~20 min</div>
-        <div class="compare-m-sub">pra disparar <strong>500 mensagens</strong> personalizadas automaticamente</div>
+        <div class="compare-m-val">~20 minutos</div>
+        <div class="compare-m-sub">pra disparar <strong>500 mensagens</strong> personalizadas com o nome de cada cliente.</div>
       </div>
-      <div class="compare-list">
-        <div class="compare-li"><span class="compare-mark">✓</span>Importa a lista uma vez e dispara pra todo mundo com 2 cliques</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Cada cliente recebe a mensagem com o próprio nome automaticamente</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Agenda toda sexta 18h, o sistema dispara sozinho sem ninguém precisar estar no PC</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Intervalos variáveis + pausas inteligentes reduzem muito o risco de bloqueio</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Relatório completo chega no seu WhatsApp ao fim da campanha</div>
-        <div class="compare-li"><span class="compare-mark">✓</span>Até 5 números de WhatsApp conectados, cada um com suas campanhas</div>
-      </div>
+      <div class="compare-sep"></div>
+      <ul class="compare-list">
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Importa a lista uma vez e dispara pra todo mundo com 2 cliques</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Cada cliente recebe a mensagem com o próprio nome automaticamente</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Agenda toda sexta 18h e o sistema dispara sozinho, sem ninguém no PC</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Intervalos variáveis e pausas reduzem drasticamente o risco de ban</li>
+        <li class="compare-li"><svg class="compare-li-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Relatório completo chega no seu WhatsApp ao fim da campanha</li>
+      </ul>
     </div>
   </div>
 </div>
@@ -1270,27 +1263,27 @@ function animateCounter(el) {
     btnTxt.textContent = 'Disparando...';
     narr.innerHTML = '<strong>Disparo em andamento.</strong> Cada cliente recebe a mensagem com o próprio nome. Olha o <strong>{nome}</strong> mudando na mensagem.';
 
-    // Timings mais lentos pra poder acompanhar (~7s total)
-    // 1) Barra de progresso 0 → 600 em 5.5s
-    animProgress(5500);
+    // Timings bem lentos pra acompanhar com calma (~11s total)
+    // 1) Barra de progresso 0 → 600 em 9s
+    animProgress(9000);
 
-    // 2) {nome} cicla pelos primeiros 8 nomes reais (1 a cada 600ms, começa em 500ms)
-    for (var n = 0; n < 8; n++) cycleName(nomesCiclo[n], 500 + n * 600);
+    // 2) {nome} cicla pelos 12 nomes reais (1 a cada 800ms, começa em 600ms)
+    for (var n = 0; n < 12; n++) cycleName(nomesCiclo[n], 600 + n * 800);
 
-    // 3) Notificações de pedido chegando: 12 ao longo de ~6s (cada 500ms, começa em 800ms)
-    for (var i = 0; i < 12; i++) addNotif(i, 800 + i * 500);
+    // 3) Notificações: 12 pedidos cada 650ms (começa em 1s, termina em ~8.8s)
+    for (var i = 0; i < 12; i++) addNotif(i, 1000 + i * 650);
 
-    // 4) Contadores de pedidos/faturamento (começam em 1.2s, duram 4.8s)
-    setTimeout(function(){ animCounter(pedidos, TOTAL_PED, 4800); }, 1200);
-    setTimeout(function(){ animCounter(fatPed, TOTAL_PED, 4800); }, 1200);
-    setTimeout(function(){ animCounter(fat, FAT_FINAL, 5200, fmtBR); }, 1200);
+    // 4) Contadores de pedidos/faturamento (começam em 1.5s, duram 8s)
+    setTimeout(function(){ animCounter(pedidos, TOTAL_PED, 8000); }, 1500);
+    setTimeout(function(){ animCounter(fatPed, TOTAL_PED, 8000); }, 1500);
+    setTimeout(function(){ animCounter(fat, FAT_FINAL, 8500, fmtBR); }, 1500);
 
-    // 5) Narrativa final (em 7.2s)
+    // 5) Narrativa final (em ~10.5s)
     setTimeout(function(){
       narr.innerHTML = '<strong>600 mensagens enviadas com o nome de cada cliente. 47 pedidos. R$ 2.914 de faturamento.</strong> Uma terça que seria morta virou receita.';
       btn.disabled = false;
       btnTxt.textContent = 'Simular de novo';
-    }, 7200);
+    }, 10500);
   }
 
   function reset(){
