@@ -849,13 +849,18 @@ app.post("/api/assinatura/trocar-ciclo", authMiddleware, async (req, res) => {
 });
 
 // ── LIMITES ───────────────────────────────────────────────────────────────────
+// Data "hoje" em timezone Brasil (America/Sao_Paulo), formato estável "DD/MM/AAAA".
+// Evita bug de reset quando o servidor está em UTC: lá a virada de dia acontece 21h Brasil.
+function hojeBR() {
+  return new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
+}
 function verificarLimite(userId) {
   const user  = lerUsuario(userId);
   if (!user) return { ok: false, erro: "Usuário não encontrado" };
   const plano = PLANOS[user.plano] || PLANOS.basico;
   // Owner e admin não têm limite
   if (user.admin || user.plano === "owner") return { ok: true, restantes: 999999 };
-  const hoje  = new Date().toDateString();
+  const hoje  = hojeBR();
   if (user.ultimoEnvioData !== hoje) {
     atualizarUsuario(userId, { enviosHoje: 0, ultimoEnvioData: hoje });
     return { ok: true, restantes: plano.limiteEnviosDia };
@@ -877,7 +882,7 @@ function verificarLimite(userId) {
 function contarEnvio(userId, quantidade) {
   const user = lerUsuario(userId);
   if (!user) return;
-  const hoje = new Date().toDateString();
+  const hoje = hojeBR();
   const atual = user.ultimoEnvioData === hoje ? (user.enviosHoje || 0) : 0;
   atualizarUsuario(userId, { enviosHoje: atual + quantidade, ultimoEnvioData: hoje });
 }

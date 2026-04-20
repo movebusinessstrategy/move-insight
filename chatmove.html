@@ -3299,10 +3299,7 @@ window.carregarHistorico = function() {
       var d = new Date(h.dataEnvio);
       var ds = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
       var taxa = h.total>0 ? Math.round(h.enviados/h.total*100) : 0;
-      var temSnapshot = !!(h.config || h.mensagem);
-      var btnRepetir = temSnapshot
-        ? '<button class="btn btn-ghost" style="height:30px;font-size:11px;padding:0 12px;gap:6px" onclick="repetirDisparo(\''+h.id+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Repetir</button>'
-        : '';
+      var btnRepetir = '<button class="btn btn-ghost" style="height:30px;font-size:11px;padding:0 12px;gap:6px" onclick="repetirDisparo(\''+h.id+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Repetir</button>';
       return '<div class="trow" style="flex-direction:column;align-items:flex-start;gap:8px">' +
         '<div style="display:flex;width:100%;align-items:center;gap:10px">' +
         '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">' + h.nome + '</div>' +
@@ -3322,12 +3319,22 @@ window.carregarHistorico = function() {
 // ─── Repetir disparo do histórico ─────────────────────────────────────────────
 window._repetirHistId = null;
 window.repetirDisparo = function(histId) {
-  // Pega histórico + contas + listas pra montar o modal
-  Promise.all([ authFetch('/api/historico'), authFetch('/api/contas'), authFetch('/api/listas') ]).then(function(res){
-    var hist = res[0] || [], contas = res[1] || [], listas = res[2] || [];
+  // Pega histórico + contas + listas + config atual (fallback pra campanhas antigas sem snapshot)
+  Promise.all([
+    authFetch('/api/historico'),
+    authFetch('/api/contas'),
+    authFetch('/api/listas'),
+    authFetch('/api/config')
+  ]).then(function(res){
+    var hist = res[0] || [], contas = res[1] || [], listas = res[2] || [], cfgAtual = res[3] || {};
     var h = hist.find(function(x){ return x.id === histId; });
     if (!h) { toast('Campanha não encontrada','erro'); return; }
     window._repetirHistId = histId;
+
+    // Usa snapshot da campanha se tiver; senão cai pra config atual
+    var mensagem = h.mensagem !== undefined && h.mensagem !== '' ? h.mensagem : (cfgAtual.mensagem || '');
+    var cfg = h.config || cfgAtual;
+    var usaSnapshot = !!(h.mensagem || h.config);
 
     var conectadas = contas.filter(function(c){ return c.conectado; });
     var contaSel = (h.contaId && contas.find(function(c){ return c.id===h.contaId && c.conectado; })) ? h.contaId : (conectadas[0] && conectadas[0].id);
@@ -3346,12 +3353,14 @@ window.repetirDisparo = function(histId) {
     }).join('');
 
     document.getElementById('repCampNome').textContent = h.nome;
-    document.getElementById('repMsgPreview').textContent = (h.mensagem || '(mensagem vazia)').slice(0, 240) + ((h.mensagem||'').length > 240 ? '...' : '');
+    document.getElementById('repMsgPreview').textContent = mensagem ? (mensagem.slice(0, 240) + (mensagem.length > 240 ? '...' : '')) : '(nenhuma mensagem configurada · ajuste em Mensagem antes de disparar)';
     document.getElementById('repContaSel').innerHTML = contasOpts;
     document.getElementById('repListaSel').innerHTML = listasOpts;
-    var dl = h.config && h.config.delayMin ? (h.config.delayMin/1000).toFixed(0) : '?';
-    var dm = h.config && h.config.delayMax ? (h.config.delayMax/1000).toFixed(0) : '?';
-    document.getElementById('repConfigInfo').textContent = 'Intervalo '+dl+'-'+dm+'s · pausa a cada ' + (h.config && h.config.pausarACada || '?') + ' msgs' + (h.config && h.config.enviarImagem ? ' · com mídia' : '');
+    var dl = cfg.delayMin ? (cfg.delayMin/1000).toFixed(0) : '?';
+    var dm = cfg.delayMax ? (cfg.delayMax/1000).toFixed(0) : '?';
+    var cfgLabel = 'Intervalo '+dl+'-'+dm+'s · pausa a cada ' + (cfg.pausarACada || '?') + ' msgs' + (cfg.enviarImagem ? ' · com mídia' : '');
+    if (!usaSnapshot) cfgLabel += ' · (config atual do sistema, campanha antiga sem snapshot)';
+    document.getElementById('repConfigInfo').textContent = cfgLabel;
     document.getElementById('repOverlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
   });
