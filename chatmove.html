@@ -910,6 +910,30 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 }
 .t-item strong { color:var(--text); font-weight:600; }
 
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Botões de tom do modal IA */
+.ia-tom {
+  background:var(--surface2); border:1px solid var(--border); color:var(--text2);
+  font-family:inherit; font-size:11.5px; font-weight:600; letter-spacing:-.005em;
+  padding:7px 14px; border-radius:999px; cursor:pointer; transition:all var(--ease);
+}
+.ia-tom:hover { border-color:var(--border2); color:var(--text); }
+.ia-tom.on { background:var(--gold); color:#111; border-color:var(--gold); }
+
+/* Card de variação de mensagem */
+.ia-var {
+  background:var(--surface2); border:1px solid var(--border); border-radius:12px;
+  padding:14px 16px; transition:all .25s; cursor:pointer;
+}
+.ia-var:hover { border-color:rgba(185,141,65,.4); background:var(--gold-bg); transform:translateY(-1px); box-shadow:0 4px 14px rgba(185,141,65,.15); }
+.ia-var-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.ia-var-tag { font-size:9px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); background:var(--gold-bg); padding:3px 9px; border-radius:999px; }
+.ia-var-len { font-size:10px; color:var(--text3); font-variant-numeric:tabular-nums; }
+.ia-var-msg { font-size:13px; line-height:1.55; color:var(--text); white-space:pre-wrap; margin-bottom:10px; }
+.ia-var-msg strong { color:var(--gold); font-weight:700; }
+.ia-var-cta { font-size:11px; color:var(--gold); font-weight:700; display:inline-flex; align-items:center; gap:6px; }
+
 /* Checkbox único de aceite */
 .t-accept {
   display:flex; align-items:flex-start; gap:12px;
@@ -1059,6 +1083,51 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
     <div class="upgrade-btns">
       <a href="/registro?plano=pro&upgrade=1" class="btn-upgrade gold">Fazer upgrade para Pro</a>
       <button class="btn-upgrade ghost" onclick="fecharUpgrade()">Continuar no Básico</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL IA: gera 3 variações de mensagem com Claude baseado num briefing -->
+<div id="iaOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:550;padding:24px;overflow-y:auto" role="dialog" onclick="if(event.target===this)fecharModalIA()">
+  <div style="max-width:580px;margin:40px auto;background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:28px 28px 24px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:var(--gold-bg);border:1px solid rgba(185,141,65,.25);display:flex;align-items:center;justify-content:center;color:var(--gold)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.14em;text-transform:uppercase">Assistente de mensagem</div>
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--text);margin-top:2px">Deixa a IA escrever pra você</div>
+      </div>
+      <button onclick="fecharModalIA()" style="background:none;border:1px solid var(--border2);color:var(--text2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;flex-shrink:0">×</button>
+    </div>
+
+    <p style="font-size:12.5px;line-height:1.6;color:var(--text2);margin:0 0 16px">Conta em 1-2 frases o que você quer promover (inclua valor, horário, o diferencial). A IA gera 3 variações com <strong>{nome}</strong> automático. Você escolhe uma e aplica.</p>
+
+    <div class="fg" style="margin-bottom:14px">
+      <label>Briefing</label>
+      <textarea id="iaPrompt" placeholder="Ex: Combo família pizza grande + refri 2L por R$62 pra sexta à noite. Enfatizar delivery rápido." style="width:100%;min-height:90px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:12px 14px;outline:none;resize:vertical;line-height:1.5" maxlength="1000"></textarea>
+      <div style="display:flex;justify-content:space-between;margin-top:4px"><span class="hint" style="margin:0">Mínimo 10 caracteres</span><span id="iaPromptCount" style="font-size:10px;color:var(--text3)">0 / 1000</span></div>
+    </div>
+
+    <div class="fg" style="margin-bottom:14px">
+      <label>Tom desejado (opcional)</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="ia-tom" data-tom="descontraído">Descontraído</button>
+        <button type="button" class="ia-tom" data-tom="direto">Direto</button>
+        <button type="button" class="ia-tom" data-tom="carinhoso">Carinhoso</button>
+        <button type="button" class="ia-tom" data-tom="urgente">Urgente</button>
+      </div>
+    </div>
+
+    <button class="btn btn-gold" id="iaGerarBtn" onclick="gerarMensagemIA()" style="width:100%">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+      Gerar 3 variações
+    </button>
+
+    <div id="iaResultado" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">Escolha uma variação</div>
+      <div id="iaVariacoes" style="display:flex;flex-direction:column;gap:10px"></div>
+      <button class="btn btn-ghost" onclick="gerarMensagemIA()" style="width:100%;margin-top:12px;height:36px;font-size:12px">Gerar outras 3 variações</button>
     </div>
   </div>
 </div>
@@ -1425,7 +1494,16 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
       </div>
 
       <div class="card">
-        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Mensagem</div></div>
+        <div class="card-hd">
+          <div class="card-dot"></div>
+          <div class="card-title">Mensagem</div>
+          <div class="card-aside">
+            <button class="btn btn-outline" style="height:32px;font-size:11px;padding:0 14px;gap:7px;border-color:rgba(185,141,65,.3);color:var(--gold)" onclick="abrirModalIA()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+              Gerar com IA
+            </button>
+          </div>
+        </div>
         <div class="fg">
           <label>Corpo da mensagem</label>
           <div class="emoji-wrap">
@@ -1438,7 +1516,7 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
               <div class="emoji-grid" id="emojiGrid"></div>
             </div>
           </div>
-          <div class="hint">*negrito*  _itálico_  ~tachado~</div>
+          <div class="hint">*negrito*  _itálico_  ~tachado~ · ou clique em <strong style="color:var(--gold)">Gerar com IA</strong> pra escrever com um briefing</div>
         </div>
         <div class="fg">
           <label>Variáveis</label>
@@ -3320,6 +3398,89 @@ window.carregarHistorico = function() {
         '</div>';
     }).join('');
   });
+};
+
+// ─── Assistente de mensagem com IA (Claude) ──────────────────────────────────
+window._iaTomSel = '';
+
+window.abrirModalIA = function(){
+  document.getElementById('iaOverlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  document.getElementById('iaResultado').style.display = 'none';
+  document.getElementById('iaPrompt').focus();
+};
+window.fecharModalIA = function(){
+  document.getElementById('iaOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+};
+
+// Contador de caracteres + binding dos botões de tom
+document.addEventListener('DOMContentLoaded', function(){
+  var prompt = document.getElementById('iaPrompt');
+  var count = document.getElementById('iaPromptCount');
+  if (prompt && count) {
+    prompt.addEventListener('input', function(){ count.textContent = prompt.value.length + ' / 1000'; });
+  }
+  document.querySelectorAll('.ia-tom').forEach(function(b){
+    b.addEventListener('click', function(){
+      var jaAtivo = b.classList.contains('on');
+      document.querySelectorAll('.ia-tom').forEach(function(x){ x.classList.remove('on'); });
+      if (!jaAtivo) { b.classList.add('on'); window._iaTomSel = b.dataset.tom; }
+      else { window._iaTomSel = ''; }
+    });
+  });
+});
+
+// Fecha com Esc
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') {
+    var ia = document.getElementById('iaOverlay');
+    if (ia && ia.style.display === 'block') fecharModalIA();
+  }
+});
+
+window.gerarMensagemIA = function(){
+  var prompt = (document.getElementById('iaPrompt').value || '').trim();
+  if (prompt.length < 10) { toast('Descreva em pelo menos 10 caracteres o que quer disparar', 'erro'); return; }
+  var btn = document.getElementById('iaGerarBtn');
+  var orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" opacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Gerando...';
+
+  post('/api/ai/gerar-mensagem', { prompt: prompt, tom: window._iaTomSel || null }).then(function(r){
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    if (!r || !r.ok) {
+      toast(r && r.erro || 'Erro ao gerar', 'erro');
+      return;
+    }
+    var variacoes = r.variacoes || [];
+    if (!variacoes.length) { toast('IA não gerou nenhuma variação', 'erro'); return; }
+
+    var container = document.getElementById('iaVariacoes');
+    container.innerHTML = variacoes.map(function(v, i){
+      var msgEsc = (v.mensagem || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return '<div class="ia-var" onclick="aplicarVariacaoIA('+i+')">' +
+        '<div class="ia-var-hd"><span class="ia-var-tag">'+(v.abordagem||'Variação '+(i+1))+'</span><span class="ia-var-len">'+(v.mensagem||'').length+' chars</span></div>' +
+        '<div class="ia-var-msg">'+msgEsc+'</div>' +
+        '<div class="ia-var-cta">Usar esta mensagem →</div>' +
+      '</div>';
+    }).join('');
+    window._iaVariacoes = variacoes;
+    document.getElementById('iaResultado').style.display = 'block';
+  });
+};
+
+window.aplicarVariacaoIA = function(idx){
+  var v = (window._iaVariacoes || [])[idx];
+  if (!v) return;
+  var ta = document.getElementById('msgTxt');
+  if (ta) {
+    ta.value = v.mensagem;
+    ta.dispatchEvent(new Event('input')); // atualiza preview
+  }
+  fecharModalIA();
+  toast('Mensagem aplicada · revise e salve', 'ok');
 };
 
 // ─── Repetir disparo do histórico ─────────────────────────────────────────────

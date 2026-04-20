@@ -77,6 +77,7 @@ tbody tr:hover td{background:var(--gold-bg2)}
 .bx.premium{color:var(--gold);border-color:rgba(198,169,107,.22);background:var(--gold-bg)}
 .bx.basico{color:var(--text2);border-color:var(--border2)}
 .bx.pro{color:var(--gold);border-color:rgba(198,169,107,.35);background:var(--gold-bg)}
+.bx.agencia{color:#fff;border-color:rgba(48,209,88,.4);background:rgba(48,209,88,.18)}
 .bx.owner{color:#111;border-color:var(--gold);background:var(--gold)}
 .bx.red{color:var(--red);border-color:rgba(199,61,50,.25);background:rgba(199,61,50,.08)}
 .act-row{display:flex;gap:5px}
@@ -312,7 +313,7 @@ async function excluir(id,email){
   loadUsers();
 }
 async function trocarPlano(id,atual){
-  var planos=['basico','premium','pro','owner'];
+  var planos=['basico','premium','pro','agencia','owner'];
   var opts=planos.map(function(p){return '<option value="'+p+'"'+(p===atual?' selected':'')+'>'+p.charAt(0).toUpperCase()+p.slice(1)+'</option>';}).join('');
   var sel=document.createElement('select');
   sel.innerHTML=opts;

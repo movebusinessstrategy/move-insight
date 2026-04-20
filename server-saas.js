@@ -196,6 +196,25 @@ const PLANOS = {
       "Tudo que o Premium oferece"
     ]
   },
+  // Plano Agência: exclusivo B2B, não aparece no pricing público. Liberado pelo admin
+  // via /api/admin/usuarios/:id/plano após contato comercial via WhatsApp.
+  agencia: {
+    id: "agencia", nome: "Agência",
+    precoMensal: 0, precoAnual: 0, // valor negociado caso a caso pelo admin
+    limiteEnviosDia: 5000,
+    contasWhatsApp: 15,
+    agendamento: true,
+    recorrente: true,
+    descricao: "Plano exclusivo para agências que operam múltiplos clientes",
+    features: [
+      "5.000 envios por dia",
+      "Até 15 números de WhatsApp conectados",
+      "Agendamento pontual e recorrente",
+      "Suporte prioritário via WhatsApp",
+      "Condições comerciais negociadas caso a caso"
+    ],
+    oculto: true
+  },
   owner: {
     id: "owner", nome: "Owner",
     precoMensal: 0, precoAnual: 0,
@@ -204,7 +223,8 @@ const PLANOS = {
     agendamento: true,
     recorrente: true,
     descricao: "Acesso total do proprietário",
-    features: []
+    features: [],
+    oculto: true
   }
 };
 function precoDo(plano, ciclo) {
@@ -698,7 +718,9 @@ app.get("/api/assinatura", authMiddleware, (req, res) => {
     canceladoEm: u.canceladoEm || null,
     upgradePendente: u.upgradePendente || null,
     precoAtual: precoDo(u.plano, u.ciclo || "mensal"),
-    planos: Object.fromEntries(Object.entries(PLANOS).filter(([k]) => k !== "owner").map(([k, v]) => [k, {
+    // Esconde planos marcados como oculto (owner, agencia) do pricing público.
+    // Esses só podem ser atribuídos manualmente pelo admin.
+    planos: Object.fromEntries(Object.entries(PLANOS).filter(([,v]) => !v.oculto).map(([k, v]) => [k, {
       nome: v.nome, precoMensal: v.precoMensal, precoAnual: v.precoAnual,
       limiteEnviosDia: v.limiteEnviosDia, contasWhatsApp: v.contasWhatsApp,
       agendamento: v.agendamento, recorrente: v.recorrente, descricao: v.descricao
@@ -1052,6 +1074,105 @@ app.get("/api/config", authMiddleware, (req, res) => {
 app.post("/api/config", authMiddleware, (req, res) => {
   salvarUser(req.userId, "chatmove.config.json", req.body);
   res.json({ ok: true });
+});
+
+// ── IA: gera 3 variações de mensagem de WhatsApp pra restaurante ──────────────
+// Usa Claude Haiku 4.5 (rápido e barato). Rate limit: 20 chamadas/24h por usuário.
+const AI_LIMITE_DIARIO = 20;
+const AI_SYSTEM_PROMPT = `Você é um copywriter especialista em marketing de restaurante pelo WhatsApp no Brasil.
+
+Sua tarefa: gerar EXATAMENTE 3 variações de mensagem de WhatsApp baseado no briefing que o dono do negócio vai passar.
+
+REGRAS OBRIGATÓRIAS:
+- Cada mensagem tem NO MÁXIMO 280 caracteres
+- Use SEMPRE {nome} onde o nome do cliente entra (será substituído automaticamente no disparo)
+- Português brasileiro, tom próximo e direto, como um atendente simpático do bairro (nunca "COMPRE AGORA!!!" ou corporativo)
+- Inclua 1-2 emojis relevantes no máximo, nunca mais
+- CTA claro e simples (responde aqui, passa no balcão, manda a palavra X, etc)
+- Seja específico: número, hora, data, valor se o briefing trouxer
+- Evite palavras "promocionais" demais que aumentam risco de flag (URGENTE, IMPERDÍVEL, OFERTA LIMITADA)
+- NÃO invente dados que o briefing não trouxe
+
+FORMATO DA RESPOSTA: retorne APENAS um JSON válido neste formato, sem markdown, sem comentários:
+{"variacoes":[{"abordagem":"Direta","mensagem":"..."},{"abordagem":"Emocional","mensagem":"..."},{"abordagem":"Criativa","mensagem":"..."}]}`;
+
+app.post("/api/ai/gerar-mensagem", authMiddleware, async (req, res) => {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ erro: "IA ainda não configurada. Avise o admin." });
+  }
+  const { prompt, tom, tipo } = req.body || {};
+  if (!prompt || typeof prompt !== "string" || prompt.trim().length < 10) {
+    return res.status(400).json({ erro: "Descreva em pelo menos 10 caracteres o que quer disparar." });
+  }
+  if (prompt.length > 1000) {
+    return res.status(400).json({ erro: "Briefing longo demais. Limite: 1000 caracteres." });
+  }
+
+  // Rate limit: 20 chamadas nas últimas 24h por usuário (admin sem limite)
+  if (!req.user.admin) {
+    const audit = lerUser(req.userId, "audit.json", []);
+    const cutoff = Date.now() - 86400000;
+    const ult24h = audit.filter(a => a.tipo === "ai_gerar_msg" && new Date(a.em || a.iniciadoEm || 0).getTime() >= cutoff).length;
+    if (ult24h >= AI_LIMITE_DIARIO) {
+      return res.status(429).json({ erro: `Você chegou no limite de ${AI_LIMITE_DIARIO} gerações nas últimas 24h. Volte mais tarde.` });
+    }
+  }
+
+  const userMsg =
+    `Briefing do dono:\n${prompt.trim()}` +
+    (tom ? `\nTom desejado: ${tom}` : "") +
+    (tipo ? `\nTipo de mensagem: ${tipo}` : "") +
+    `\n\nGere 3 variações em JSON conforme instruído.`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1200,
+        system: AI_SYSTEM_PROMPT,
+        messages: [{ role: "user", content: userMsg }]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      console.error("Claude API erro:", data);
+      return res.status(502).json({ erro: "IA indisponível: " + (data.error?.message || "tente de novo em 1 min") });
+    }
+    const text = (data.content?.[0]?.text || "").trim();
+    // A IA pode ocasionalmente devolver com ```json ... ```, extrai o bloco
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return res.status(502).json({ erro: "IA retornou formato inesperado. Tente de novo." });
+    let parsed;
+    try { parsed = JSON.parse(match[0]); }
+    catch { return res.status(502).json({ erro: "IA retornou JSON inválido. Tente de novo." }); }
+    const variacoes = (parsed.variacoes || []).filter(v => v && v.mensagem).slice(0, 3);
+    if (!variacoes.length) return res.status(502).json({ erro: "IA não gerou variações. Tente reformular o briefing." });
+
+    // Registra no audit pro rate limit e auditoria geral
+    salvarAuditoria(req.userId, {
+      id: "aud_" + Date.now(),
+      tipo: "ai_gerar_msg",
+      em: new Date().toISOString(),
+      iniciadoEm: new Date().toISOString(),
+      promptLen: prompt.length,
+      ip: getClientIp(req),
+      ua: getClientUa(req),
+      modelo: "claude-haiku-4-5",
+      tokensIn: data.usage?.input_tokens || null,
+      tokensOut: data.usage?.output_tokens || null
+    });
+
+    res.json({ ok: true, variacoes });
+  } catch (e) {
+    console.error("IA gerar-mensagem:", e.message);
+    res.status(500).json({ erro: "Erro ao consultar a IA. Tente novamente." });
+  }
 });
 app.post("/api/csv", authMiddleware, (req, res) => {
   const { conteudo } = req.body;
