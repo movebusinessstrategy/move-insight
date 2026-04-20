@@ -679,10 +679,15 @@ app.get("/api/home", authMiddleware, (req, res) => {
   const temMsg = !!(cfg && cfg.mensagem && cfg.mensagem.trim().length > 0);
   const temDisparo = hist.length > 0;
 
+  // Envios de hoje: se o ultimoEnvioData não é hoje, o contador do user está
+  // "travado" no valor de ontem — aqui tratamos como 0 pra UI mostrar o valor certo.
+  // O reset real no disco acontece no próximo verificarLimite (ao iniciar campanha).
+  const enviadosHoje = user.ultimoEnvioData === hojeBR() ? (user.enviosHoje || 0) : 0;
+
   res.json({
     nome: user.nome || "",
     planoNome: plano.nome,
-    envioRestanteHoje: Math.max(0, plano.limiteEnviosDia - (user.enviosHoje || 0)),
+    envioRestanteHoje: Math.max(0, plano.limiteEnviosDia - enviadosHoje),
     limiteEnviosDia: plano.limiteEnviosDia,
     stats: {
       totalEnviados30d,
