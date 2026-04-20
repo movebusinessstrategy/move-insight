@@ -1568,11 +1568,19 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
       <select id="repContaSel" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;cursor:pointer"></select>
     </div>
 
-    <div class="fg" style="margin-bottom:18px">
+    <div class="fg" style="margin-bottom:14px">
       <label>Qual lista de clientes?</label>
-      <select id="repListaSel" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;cursor:pointer"></select>
+      <select id="repListaSel" onchange="window.repAtualizarExcluir && window.repAtualizarExcluir()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;cursor:pointer"></select>
       <div style="font-size:10.5px;color:var(--text3);margin-top:6px;letter-spacing:.02em">"Manter a lista atual" usa os contatos já importados. Escolha uma lista salva pra trocar os destinatários.</div>
     </div>
+
+    <label id="repExcluirWrap" style="display:none;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--gold-bg);border:1px solid rgba(198,169,107,.25);border-radius:11px;cursor:pointer;margin-bottom:18px">
+      <input type="checkbox" id="repExcluirJa" checked style="margin-top:2px;width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0">
+      <div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text)">Não repetir contatos já disparados nesta campanha</div>
+        <div id="repExcluirInfo" style="font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5">Ignora os números que já receberam a mensagem original.</div>
+      </div>
+    </label>
 
     <div style="display:flex;gap:10px">
       <button class="btn btn-ghost" onclick="fecharRepetir()" style="flex:1">Cancelar</button>
@@ -2912,6 +2920,8 @@ window.loadCsv    = function(e) {
       seen[np] = true;
       return { nome: c.nome, phone: c.phone, np: np, st: 'ok' };
     });
+    // CSV importado → não é mais uma lista salva conhecida
+    window._S.listaId = null; window._S.listaNome = null;
     renderCt(); showStats(); sincronizarCSV();
   };
   rd.readAsText(f, 'utf-8');
@@ -3945,7 +3955,7 @@ window.iniciarDisparo = function() {
     var ca=document.getElementById('connArea');
     if(ca) ca.innerHTML='<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">O Chrome abrirá automaticamente.</div></div>';
     var mb=document.getElementById('monBtn'); if(mb) mb.style.display='block';
-    post('/api/iniciar',{nomeCampanha:nomeCampanha,contaId:conta.id}).then(function(r){
+    post('/api/iniciar',{nomeCampanha:nomeCampanha,contaId:conta.id,listaId:window._S.listaId||null,listaNome:window._S.listaNome||null}).then(function(r){
       if(r&&r.ok){ var rb=document.getElementById('runBadge'); if(rb) rb.style.display='block'; goTo(6); updateMon(); addLog('ok','Disparo: '+nomeCampanha+' · '+valid.length+' contatos · '+conta.nome); return; }
       // Backend disse que o termo tá pendente (fallback se o estado local estiver desatualizado)
       if (r && r.termoPendente) {
@@ -3997,10 +4007,13 @@ window.carregarHistorico = function() {
         badgeResp = '<span style="color:var(--gold);font-weight:700" title="Respostas captadas nas 2h após o disparo">💬 '+h.respostas+' resposta'+(h.respostas!==1?'s':'')+' ('+taxaResp+'%)</span>';
         if (h.optOuts > 0) badgeResp += '<span style="color:var(--text3);font-size:11px" title="Opt-outs que viraram blacklist automática">· '+h.optOuts+' opt-out'+(h.optOuts!==1?'s':'')+'</span>';
       }
+      var linhaLista = h.listaNome
+        ? '<span style="color:var(--gold);font-weight:600" title="Lista usada nessa campanha"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-right:3px"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' + h.listaNome + '</span>'
+        : '';
       return '<div class="trow" style="flex-direction:column;align-items:flex-start;gap:8px">' +
         '<div style="display:flex;width:100%;align-items:center;gap:10px">' +
         '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">' + h.nome + '</div>' +
-        '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + ds + ' · ' + (h.conta||'Padrão') + '</div></div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">' + ds + ' · ' + (h.conta||'Padrão') + (linhaLista ? ' · ' + linhaLista : '') + '</div></div>' +
         btnRepetir +
         '<button class="del-btn" onclick="excluirHistorico(\'' + h.id + '\')">×</button></div>' +
         '<div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap;align-items:center">' +
@@ -4159,9 +4172,32 @@ window.repetirDisparo = function(histId) {
     };
     renderRepMidia();
 
+    // Guarda info da campanha (nome da lista original + quantos já foram enviados) pra mostrar no checkbox
+    window._repHistInfo = {
+      listaNomeOriginal: h.listaNome || '',
+      jaEnviados: Array.isArray(h.numerosEnviados) ? h.numerosEnviados.length : 0
+    };
+    window.repAtualizarExcluir();
+
     document.getElementById('repOverlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
   });
+};
+
+// Mostra/esconde o checkbox "não repetir" conforme a seleção da nova lista
+window.repAtualizarExcluir = function() {
+  var wrap = document.getElementById('repExcluirWrap');
+  if (!wrap) return;
+  var novaListaId = document.getElementById('repListaSel').value;
+  var info = window._repHistInfo || {};
+  // Só faz sentido se (a) trocou de lista e (b) temos registro de números enviados
+  if (!novaListaId || !info.jaEnviados) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  var txt = document.getElementById('repExcluirInfo');
+  if (txt) {
+    txt.textContent = 'Ignora os ' + info.jaEnviados + ' número(s) que já receberam a mensagem original' +
+      (info.listaNomeOriginal ? ' (lista "' + info.listaNomeOriginal + '")' : '') + '.';
+  }
 };
 
 // Renderiza a área de mídia do modal com base em window._repMidia
@@ -4227,32 +4263,40 @@ window.confirmarRepetir = function(){
   if (!histId) return;
   var contaId = document.getElementById('repContaSel').value;
   var listaId = document.getElementById('repListaSel').value || null;
+  var excluirJa = !!document.getElementById('repExcluirJa').checked && !!listaId;
   if (!contaId) { toast('Selecione uma conta conectada','erro'); return; }
   var btn = document.getElementById('repConfirmBtn');
   btn.disabled = true; btn.textContent = 'Preparando...';
-  post('/api/historico/'+histId+'/repetir', { listaId: listaId, imagem: window._repMidia || null }).then(function(r){
+  post('/api/historico/'+histId+'/repetir', {
+    listaId: listaId, imagem: window._repMidia || null, excluirJaEnviados: excluirJa
+  }).then(function(r){
     if (!r || !r.ok) { btn.disabled=false; btn.textContent='Repetir agora'; toast(r&&r.erro||'Erro ao preparar repetição','erro'); return; }
-    // Aplica a conta escolhida como ativa (carregarContas no goTo vai popular o dropdown com ela selecionada)
     _contaAtiva = contaId;
-    // Refresh do _S.contacts pra iniciarDisparo passar na validação "tem contato válido"
     if (listaId) {
-      // Se trocou a lista, precisa recarregar contacts localmente pro iniciarDisparo saber
+      // Backend já devolve os contatos filtrados (quando excluirJaEnviados) em r.contatos
       window._S = window._S || {}; window._S.contacts = [];
-      // O backend já salvou os contatos em clientes.csv, mas iniciarDisparo valida window._S.contacts.
-      // Vamos buscar a lista e popular local:
-      authFetch('/api/listas').then(function(lists){
-        var lista = (lists||[]).find(function(l){ return l.id===listaId; });
-        if (lista && lista.contatos) {
-          window._S.contacts = lista.contatos.map(function(c){
-            var phone = c.phone || c.telefone || '';
-            var np = phone.replace(/\D/g,'');
-            return { nome: c.nome || '', phone: phone, np: np, st: np ? 'ok' : 'inv' };
-          });
-        }
+      window._S.listaId = listaId;
+      var listaSelecionadaEl = document.getElementById('repListaSel');
+      window._S.listaNome = listaSelecionadaEl ? (listaSelecionadaEl.options[listaSelecionadaEl.selectedIndex]||{}).text || null : null;
+      var base = Array.isArray(r.contatos) ? r.contatos : null;
+      var prep = function(contatos) {
+        window._S.contacts = contatos.map(function(c){
+          var phone = c.phone || c.telefone || '';
+          var np = phone.replace(/\D/g,'');
+          return { nome: c.nome || '', phone: phone, np: np, st: np ? 'ok' : 'inv' };
+        });
+        if (r.excluidosCount) toast(r.excluidosCount + ' contato(s) já disparados foram ignorados', 'ok');
         fecharRepetir();
         goTo(6);
         setTimeout(function(){ window.iniciarDisparo && window.iniciarDisparo(); }, 450);
-      });
+      };
+      if (base) prep(base);
+      else {
+        authFetch('/api/listas').then(function(lists){
+          var lista = (lists||[]).find(function(l){ return l.id===listaId; });
+          prep((lista && lista.contatos) || []);
+        });
+      }
     } else {
       fecharRepetir();
       goTo(6);
@@ -5234,6 +5278,10 @@ window.carregarLista = function(id) {
       seen[np] = true;
       return { nome: c.nome||'', phone: c.phone||c.telefone||'', np: np, st: 'ok' };
     });
+
+    // Memoriza qual lista foi carregada — vai pro histórico no momento do disparo
+    window._S.listaId = lista.id;
+    window._S.listaNome = lista.nome;
 
     renderCt(); showStats(); sincronizarCSV();
     toast('Lista "' + lista.nome + '" carregada · ' + lista.total + ' contatos', 'ok');

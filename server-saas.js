@@ -1096,7 +1096,7 @@ app.post("/api/historico/:id/repetir", authMiddleware, (req, res) => {
     };
   }
   // Override de mídia vindo do modal: { enviarImagem: bool, imagemNome: string }
-  const { listaId, imagem } = req.body || {};
+  const { listaId, imagem, excluirJaEnviados } = req.body || {};
   if (imagem && typeof imagem === "object") {
     novaCfg = {
       ...novaCfg,
@@ -1110,10 +1110,29 @@ app.post("/api/historico/:id/repetir", authMiddleware, (req, res) => {
     }
   }
   salvarUser(uid, "chatmove.config.json", novaCfg);
+  let contatosEscolhidos = null;
+  let excluidosCount = 0;
   if (listaId) {
     const lista = lerUser(uid, "listas.json", []).find(l => l.id === listaId);
     if (!lista) return res.status(404).json({ erro: "Lista escolhida não encontrada" });
-    const csv = "nome,telefone\n" + (lista.contatos || []).map(c => `${c.nome || ""},${c.phone || c.telefone || ""}`).join("\n");
+    let contatos = lista.contatos || [];
+    // Reenvio sem repetir: exclui números que já receberam essa campanha
+    if (excluirJaEnviados && Array.isArray(h.numerosEnviados) && h.numerosEnviados.length) {
+      const jaEnviados = new Set(h.numerosEnviados.map(n => String(n).replace(/\D/g, "")));
+      const antes = contatos.length;
+      contatos = contatos.filter(c => {
+        const num = String(c.phone || c.telefone || "").replace(/\D/g, "");
+        // Considera também o alternativo (com/sem 9) pra não deixar passar
+        const alt = num.length === 13 ? num.slice(0,4) + num.slice(5)
+                  : num.length === 12 ? num.slice(0,4) + "9" + num.slice(4)
+                  : null;
+        return !jaEnviados.has(num) && !(alt && jaEnviados.has(alt));
+      });
+      excluidosCount = antes - contatos.length;
+      if (!contatos.length) return res.status(400).json({ erro: "Todos os contatos dessa lista já foram disparados na campanha original. Escolha outra lista." });
+    }
+    contatosEscolhidos = contatos;
+    const csv = "nome,telefone\n" + contatos.map(c => `${c.nome || ""},${c.phone || c.telefone || ""}`).join("\n");
     fs.writeFileSync(userFile(uid, "clientes.csv"), csv, "utf8");
   }
   // Retorna info pra o cliente poder montar a tela de Monitor já com os dados certos
@@ -1122,6 +1141,8 @@ app.post("/api/historico/:id/repetir", authMiddleware, (req, res) => {
     ok: true,
     nomeCampanhaSugerido: h.nome + " (repetido)",
     contaIdOriginal: h.contaId || null,
+    excluidosCount,
+    contatos: contatosEscolhidos,
     listas: lerUser(uid, "listas.json", []).map(l => ({ id: l.id, nome: l.nome, total: l.total })),
     contas: contas.map(c => ({ id: c.id, nome: c.nome, numero: c.numero, conectado: c.conectado || false }))
   });
@@ -1712,11 +1733,19 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
     return res.status(403).json({ erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia });
   }
 
-  const { nomeCampanha, contaId } = req.body;
+  const { nomeCampanha, contaId, listaId, listaNome } = req.body;
   const cfg     = lerUser(uid, "chatmove.config.json", {});
+  // Se passou listaId, valida e resolve o nome atual da lista
+  let listaIdFinal = null, listaNomeFinal = null;
+  if (listaId) {
+    const lista = lerUser(uid, "listas.json", []).find(l => l.id === listaId);
+    if (lista) { listaIdFinal = lista.id; listaNomeFinal = lista.nome; }
+  }
+  if (!listaIdFinal && listaNome) listaNomeFinal = String(listaNome).slice(0, 120);
   campanhas[uid] = {
     enviados: [], erros: [], pulados: [], total: 0,
     nome: nomeCampanha||"Campanha", contaId,
+    listaId: listaIdFinal, listaNome: listaNomeFinal,
     // Snapshot pra auditoria: config no momento do disparo + contexto do usuário
     configSnapshot: {
       delayMin: cfg.delayMin, delayMax: cfg.delayMax,
@@ -2128,7 +2157,11 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
         : 0;
       hist.unshift({
         id: histId, nome: camp.nome, conta: conta?.nome||"Padrão", contaId: camp.contaId,
+        // Lista usada (permite reenviar pra outra lista sem repetir contatos)
+        listaId: camp.listaId || null, listaNome: camp.listaNome || null,
         dataEnvio: iniciadoEm.toISOString(), enviados: camp.enviados.length, falhas: camp.erros.length, total: camp.total,
+        // Números realmente enviados — usado pelo "reenviar sem repetir"
+        numerosEnviados: (camp.enviados || []).map(e => e.numero),
         // Snapshot pra conseguir repetir depois, mesmo que a config atual mude
         mensagem: cfgAtual.mensagem || "",
         config: {
