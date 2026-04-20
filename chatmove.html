@@ -1084,6 +1084,12 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
     </div>
 
     <div class="fg" style="margin-bottom:14px">
+      <label>Mídia anexada (imagem ou PDF)</label>
+      <div id="repMidiaArea" style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"></div>
+      <input type="file" id="repFileInput" accept="image/*,application/pdf" style="display:none" onchange="repTrocarMidia(this)">
+    </div>
+
+    <div class="fg" style="margin-bottom:14px">
       <label>Qual conta WhatsApp usar?</label>
       <select id="repContaSel" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;cursor:pointer"></select>
     </div>
@@ -3358,12 +3364,74 @@ window.repetirDisparo = function(histId) {
     document.getElementById('repListaSel').innerHTML = listasOpts;
     var dl = cfg.delayMin ? (cfg.delayMin/1000).toFixed(0) : '?';
     var dm = cfg.delayMax ? (cfg.delayMax/1000).toFixed(0) : '?';
-    var cfgLabel = 'Intervalo '+dl+'-'+dm+'s · pausa a cada ' + (cfg.pausarACada || '?') + ' msgs' + (cfg.enviarImagem ? ' · com mídia' : '');
+    var cfgLabel = 'Intervalo '+dl+'-'+dm+'s · pausa a cada ' + (cfg.pausarACada || '?') + ' msgs';
     if (!usaSnapshot) cfgLabel += ' · (config atual do sistema, campanha antiga sem snapshot)';
     document.getElementById('repConfigInfo').textContent = cfgLabel;
+
+    // Estado da mídia no modal
+    window._repMidia = {
+      enviarImagem: !!cfg.enviarImagem,
+      imagemNome: cfg.imagemNome || ''
+    };
+    renderRepMidia();
+
     document.getElementById('repOverlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
   });
+};
+
+// Renderiza a área de mídia do modal com base em window._repMidia
+window.renderRepMidia = function(){
+  var m = window._repMidia || { enviarImagem:false, imagemNome:'' };
+  var area = document.getElementById('repMidiaArea');
+  if (!area) return;
+  var temMidia = m.enviarImagem && m.imagemNome;
+  if (temMidia) {
+    var ext = (m.imagemNome.split('.').pop()||'').toLowerCase();
+    var isPdf = ext === 'pdf';
+    var icon = isPdf
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+    area.innerHTML =
+      '<div style="flex-shrink:0;width:36px;height:36px;border-radius:9px;background:var(--gold-bg);border:1px solid rgba(198,169,107,.2);display:flex;align-items:center;justify-content:center">'+icon+'</div>' +
+      '<div style="flex:1;min-width:0"><div style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+m.imagemNome+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Será enviada junto com a mensagem</div></div>' +
+      '<div style="display:flex;gap:6px;flex-shrink:0">' +
+        '<button class="btn btn-ghost" style="height:30px;font-size:11px;padding:0 10px" onclick="document.getElementById(\'repFileInput\').click()">Trocar</button>' +
+        '<button class="btn btn-ghost" style="height:30px;font-size:11px;padding:0 10px;color:var(--red);border-color:rgba(255,95,87,.25)" onclick="repRemoverMidia()">Remover</button>' +
+      '</div>';
+  } else {
+    area.innerHTML =
+      '<div style="flex-shrink:0;width:36px;height:36px;border-radius:9px;background:var(--surface3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="3" x2="21" y2="21"/></svg></div>' +
+      '<div style="flex:1;min-width:0;color:var(--text3)">Sem mídia anexada</div>' +
+      '<button class="btn btn-outline" style="height:30px;font-size:11px;padding:0 12px" onclick="document.getElementById(\'repFileInput\').click()">Anexar imagem ou PDF</button>';
+  }
+};
+
+// Upload de mídia nova (via /api/imagem que já existe)
+window.repTrocarMidia = function(input){
+  var file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { toast('Arquivo muito grande (máx 10MB)','erro'); input.value=''; return; }
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var base64 = e.target.result;
+    post('/api/imagem', { nome: file.name, base64: base64 }).then(function(r){
+      if (r && r.ok) {
+        window._repMidia = { enviarImagem: true, imagemNome: file.name };
+        renderRepMidia();
+        toast('Mídia carregada','ok');
+      } else {
+        toast('Erro ao enviar mídia','erro');
+      }
+      input.value = '';
+    });
+  };
+  reader.readAsDataURL(file);
+};
+
+window.repRemoverMidia = function(){
+  window._repMidia = { enviarImagem: false, imagemNome: '' };
+  renderRepMidia();
 };
 window.fecharRepetir = function(){
   document.getElementById('repOverlay').style.display = 'none';
@@ -3378,7 +3446,7 @@ window.confirmarRepetir = function(){
   if (!contaId) { toast('Selecione uma conta conectada','erro'); return; }
   var btn = document.getElementById('repConfirmBtn');
   btn.disabled = true; btn.textContent = 'Preparando...';
-  post('/api/historico/'+histId+'/repetir', { listaId: listaId }).then(function(r){
+  post('/api/historico/'+histId+'/repetir', { listaId: listaId, imagem: window._repMidia || null }).then(function(r){
     if (!r || !r.ok) { btn.disabled=false; btn.textContent='Repetir agora'; toast(r&&r.erro||'Erro ao preparar repetição','erro'); return; }
     // Aplica a conta escolhida como ativa (carregarContas no goTo vai popular o dropdown com ela selecionada)
     _contaAtiva = contaId;

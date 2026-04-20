@@ -958,17 +958,30 @@ app.post("/api/historico/:id/repetir", authMiddleware, (req, res) => {
   const h = hist.find(x => x.id === req.params.id);
   if (!h) return res.status(404).json({ erro: "Campanha do histórico não encontrada" });
   // Aplica config+mensagem do snapshot como a config atual
+  const cfgAtual = lerUser(uid, "chatmove.config.json", {});
+  let novaCfg = cfgAtual;
   if (h.config || h.mensagem) {
-    const cfgAtual = lerUser(uid, "chatmove.config.json", {});
-    const novaCfg = {
+    novaCfg = {
       ...cfgAtual,
       mensagem: h.mensagem !== undefined ? h.mensagem : cfgAtual.mensagem,
       ...(h.config || {})
     };
-    salvarUser(uid, "chatmove.config.json", novaCfg);
   }
-  // Se cliente mandou listaId, copia os contatos daquela lista pro CSV ativo
-  const { listaId } = req.body || {};
+  // Override de mídia vindo do modal: { enviarImagem: bool, imagemNome: string }
+  const { listaId, imagem } = req.body || {};
+  if (imagem && typeof imagem === "object") {
+    novaCfg = {
+      ...novaCfg,
+      enviarImagem: !!imagem.enviarImagem,
+      imagemNome: imagem.imagemNome || ""
+    };
+    // Se ligou imagem mas o arquivo não existe no disco, falha cedo pra não disparar sem mídia
+    if (novaCfg.enviarImagem && novaCfg.imagemNome) {
+      const img = path.join(userDir(uid), "imagens", novaCfg.imagemNome);
+      if (!fs.existsSync(img)) return res.status(400).json({ erro: "Arquivo de mídia não encontrado no servidor. Anexe de novo antes de disparar." });
+    }
+  }
+  salvarUser(uid, "chatmove.config.json", novaCfg);
   if (listaId) {
     const lista = lerUser(uid, "listas.json", []).find(l => l.id === listaId);
     if (!lista) return res.status(404).json({ erro: "Lista escolhida não encontrada" });
