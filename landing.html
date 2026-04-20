@@ -170,31 +170,15 @@ body::after {
 }
 @keyframes vortexSpin { to { transform:rotate(360deg); } }
 
-/* Camada 3: SPOTLIGHT do cursor — efeito "peso no tecido cósmico" (massa + curvatura do grid) */
+/* Camada 3: SPOTLIGHT do cursor — halo dourado suave, simples e discreto */
 .cursor-spot {
-  position:fixed; top:0; left:0; width:220px; height:220px;
+  position:fixed; top:0; left:0; width:360px; height:360px; border-radius:50%;
+  background:radial-gradient(circle, rgba(185,141,65,.12) 0%, rgba(185,141,65,.04) 35%, transparent 65%);
   pointer-events:none; z-index:0;
   transform:translate(var(--mx,50vw), var(--my,50vh)) translate(-50%,-50%);
-  opacity:0; transition:opacity .35s ease;
+  opacity:0; transition:opacity .4s ease;
 }
 .cursor-spot.on { opacity:1; }
-/* Anel de grid intensificado (a "curvatura" do tecido) */
-.cursor-spot::before {
-  content:''; position:absolute; inset:0;
-  background-image:
-    linear-gradient(rgba(185,141,65,.22) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(185,141,65,.22) 1px, transparent 1px);
-  background-size:20px 20px;
-  -webkit-mask-image:radial-gradient(circle, transparent 16%, #000 38%, rgba(0,0,0,.3) 65%, transparent 82%);
-  mask-image:radial-gradient(circle, transparent 16%, #000 38%, rgba(0,0,0,.3) 65%, transparent 82%);
-}
-/* Núcleo denso no centro (a "massa" puxando o tecido) */
-.cursor-spot::after {
-  content:''; position:absolute; top:50%; left:50%;
-  width:38px; height:38px; margin:-19px 0 0 -19px; border-radius:50%;
-  background:radial-gradient(circle, rgba(185,141,65,.55) 0%, rgba(185,141,65,.2) 45%, transparent 75%);
-  filter:blur(1.5px);
-}
 
 @media(max-width:768px) {
   .cursor-spot { display:none; } /* touch devices não têm cursor */
@@ -356,15 +340,16 @@ body::after {
 /* Linha de "extras" menores abaixo dos 3 cards principais */
 .ia-extras {
   display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  align-items:start;
   margin-top:28px; padding:22px 26px;
   background:var(--surface2); border:1px solid var(--border);
   border-radius:14px;
 }
 .ia-extra {
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:flex-start; gap:12px;
   font-size:13px; color:var(--text2); line-height:1.5;
 }
-.ia-extra svg { flex-shrink:0; }
+.ia-extra svg { flex-shrink:0; margin-top:3px; }
 .ia-extra strong { color:var(--text); font-weight:600; }
 
 @media(max-width:900px){
@@ -590,8 +575,8 @@ h1 { font-size:clamp(36px,5.5vw,72px); font-weight:800; letter-spacing:-.04em; l
 
 .sec { padding:96px 52px; max-width:1180px; margin:0 auto; }
 .sec-label { font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:12px; }
-.sec-title { font-size:clamp(26px,3.5vw,46px); font-weight:800; letter-spacing:-.03em; line-height:1.1; margin-bottom:14px; }
-.sec-sub { font-size:15px; color:var(--text2); max-width:460px; line-height:1.65; }
+.sec-title { font-size:clamp(26px,3.5vw,46px); font-weight:800; letter-spacing:-.03em; line-height:1.1; margin-bottom:14px; text-wrap:balance; }
+.sec-sub { font-size:15px; color:var(--text2); max-width:620px; line-height:1.65; text-wrap:pretty; }
 .divider-sec { border-top:1px solid var(--border); }
 
 .feat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border-radius:20px; overflow:hidden; box-shadow:var(--sh); margin-top:52px; }
