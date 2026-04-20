@@ -583,6 +583,8 @@ textarea { min-height: 140px; line-height: 1.7; }
   transition: all var(--ease);
 }
 .chip:hover { background: var(--gold-bg); color: var(--gold); border-color: rgba(198,169,107,.2); }
+.chip.spin-chip { background: var(--gold-bg); border-color: rgba(185,141,65,.22); color: var(--gold); }
+.chip.spin-chip:hover { background: rgba(185,141,65,.18); border-color: rgba(185,141,65,.45); }
 
 /* ── PREVIEW ── */
 .prev-box {
@@ -1967,12 +1969,23 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
             <span class="chip" onclick="ins('{telefone}')">+ telefone</span>
             <span class="chip" onclick="ins('{data}')">+ data</span>
             <span class="chip" onclick="ins('{hora}')">+ hora</span>
-            <span class="chip" onclick="ins('{Oi|Olá|Bom dia}')" style="background:rgba(185,141,65,.12);border-color:rgba(185,141,65,.3);color:var(--gold)">🎲 {A|B|C}</span>
           </div>
-          <div class="hint" style="margin-top:8px;padding:10px 12px;background:var(--gold-bg);border:1px solid rgba(185,141,65,.2);border-radius:10px;line-height:1.55">
-            <strong style="color:var(--gold)">🛡️ Anti-ban · variações automáticas</strong><br>
-            Coloque alternativas entre <code style="background:var(--surface3);padding:1px 5px;border-radius:4px">{ }</code> separadas por <code style="background:var(--surface3);padding:1px 5px;border-radius:4px">|</code> — cada cliente recebe uma combinação diferente.<br>
-            Ex: <code style="background:var(--surface3);padding:1px 5px;border-radius:4px">{Oi|Olá|E aí} {nome}, {tudo bem|tudo certo}?</code> → 6 versões únicas. Reduz <strong>muito</strong> a chance de restrição por mensagem repetida.
+        </div>
+
+        <div class="fg">
+          <label style="display:flex;align-items:center;gap:8px">
+            🛡️ Anti-restrição · variações automáticas
+            <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);background:var(--gold-bg);border:1px solid rgba(185,141,65,.25);padding:2px 7px;border-radius:999px">recomendado</span>
+          </label>
+          <div class="hint" style="margin-bottom:10px">Insira blocos prontos com 1 clique — cada cliente recebe uma combinação diferente, reduzindo muito o risco de ban por mensagem repetida.</div>
+          <div class="chips">
+            <span class="chip spin-chip" onclick="ins('{Oi|Olá}')">🎲 Oi / Olá</span>
+            <span class="chip spin-chip" onclick="ins('{Bom dia|Boa tarde|Boa noite}')">🎲 Bom dia / tarde / noite</span>
+            <span class="chip spin-chip" onclick="ins('{Tudo bem?|Como está?|Como vai?}')">🎲 Tudo bem? / Como está?</span>
+            <span class="chip spin-chip" onclick="ins('{Tudo certo?|Está tudo bem?}')">🎲 Tudo certo? / Está tudo bem?</span>
+            <span class="chip spin-chip" onclick="ins('{Passando aqui|Passando pra|Só passando pra}')">🎲 Passando aqui / pra</span>
+            <span class="chip spin-chip" onclick="ins('{Um abraço|Até mais|Obrigado pela atenção}')">🎲 Abraço / Até mais / Obrigado</span>
+            <span class="chip spin-chip" onclick="ins('{A|B|C}')" style="background:rgba(185,141,65,.18);border-color:rgba(185,141,65,.4);color:var(--gold);font-weight:700">+ personalizar</span>
           </div>
         </div>
       </div>
