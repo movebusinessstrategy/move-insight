@@ -948,9 +948,13 @@ function verificarLimite(userId) {
 }
 // Aplica o cap de warmup SOBRE o resultado de verificarLimite. Retorna
 // o limite EFETIVO pra este disparo considerando plano + warmup + envios do dia.
+// Warmup só entra em jogo se o dono da conta tiver ligado warmupAtivo:true.
 function verificarLimiteComWarmup(uid, contaId) {
   const base = verificarLimite(uid);
   if (!base.ok) return base;
+  if (!contaId) return base;
+  const conta = lerUser(uid, "contas.json", []).find(c => c.id === contaId);
+  if (!conta || !conta.warmupAtivo) return base;
   const w = calcularWarmupConta(uid, contaId);
   if (!w.emWarmup || !w.cap) return base;  // fora de warmup → só plano
   const jaEnviou = getEnviosContaHoje(uid, contaId);
@@ -994,6 +998,7 @@ app.get("/api/contas",     authMiddleware, (req, res) => {
     const w = calcularWarmupConta(req.userId, c.id);
     return {
       ...c, conectado,
+      warmupAtivo: !!c.warmupAtivo,
       warmup: conectado ? {
         emWarmup: w.emWarmup,
         idadeDias: w.idadeDias,
@@ -1004,6 +1009,16 @@ app.get("/api/contas",     authMiddleware, (req, res) => {
     };
   });
   res.json(enriched);
+});
+
+// Liga/desliga warmup por conta
+app.put("/api/contas/:id/warmup", authMiddleware, (req, res) => {
+  const contas = lerUser(req.userId, "contas.json", []);
+  const i = contas.findIndex(c => c.id === req.params.id);
+  if (i === -1) return res.status(404).json({ erro: "Conta não encontrada" });
+  contas[i].warmupAtivo = !!req.body.ativo;
+  salvarUser(req.userId, "contas.json", contas);
+  res.json({ ok: true, warmupAtivo: contas[i].warmupAtivo });
 });
 app.post("/api/contas",    authMiddleware, (req, res) => {
   const { nome, numero } = req.body;

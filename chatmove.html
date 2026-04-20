@@ -3824,22 +3824,50 @@ function carregarContas() {
           var statusBadge = c.conectado
             ? '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.25);color:var(--green)"><span class="st-dot on"></span>Conectado</span>'
             : '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(255,95,87,.06);border:1px solid rgba(255,95,87,.15);color:var(--text3)"><span class="st-dot off"></span>Desconectado</span>';
-          // Banner de warmup (só aparece se a conta está em período protegido)
+          // Card de warmup: sempre visível (opt-in com explicação)
           var warmupBanner = '';
-          if (c.warmup && c.warmup.emWarmup) {
-            var w = c.warmup;
-            var restantes = Math.max(0, (w.cap || 0) - (w.usadoHoje || 0));
-            var pct = w.cap > 0 ? Math.min(100, Math.round(w.usadoHoje / w.cap * 100)) : 0;
-            var diasTxt = w.idadeDias === 0 ? 'ativada hoje' : ('dia ' + (w.idadeDias + 1) + ' desde a ativação');
+          if (c.conectado) {
+            var w = c.warmup || {};
+            var ligado = !!c.warmupAtivo;
+            var diasTxt = (w.idadeDias === null || w.idadeDias === undefined) ? ''
+                        : w.idadeDias === 0 ? 'ativada hoje'
+                        : ('dia ' + (w.idadeDias + 1) + ' desde a ativação');
+            var barra = '';
+            if (ligado && w.emWarmup && w.cap) {
+              var pct = Math.min(100, Math.round((w.usadoHoje || 0) / w.cap * 100));
+              barra =
+                '<div style="margin-top:10px">' +
+                  '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
+                    '<span style="font-size:10.5px;color:var(--text3);font-weight:600">' + diasTxt + '</span>' +
+                    '<span style="font-size:11px;color:var(--text);font-weight:700">' + (w.usadoHoje||0) + ' / ' + w.cap + ' hoje</span>' +
+                  '</div>' +
+                  '<div style="height:4px;background:var(--surface3);border-radius:999px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:var(--gold);border-radius:999px;transition:width .3s"></div></div>' +
+                '</div>';
+            } else if (ligado && !w.emWarmup) {
+              barra = '<div style="margin-top:10px;font-size:11px;color:var(--green);font-weight:600">✓ Conta já está madura (' + (w.idadeDias || '14+') + ' dias) — warmup não aplica cap extra.</div>';
+            }
+            var switchBg = ligado ? 'background:var(--gold);border-color:var(--gold)' : 'background:var(--surface3)';
+            var dot = ligado ? 'transform:translateX(17px);background:#fff' : 'background:var(--text3)';
             warmupBanner =
-              '<div style="flex-basis:100%;margin-top:8px;padding:10px 12px;background:var(--gold-bg);border:1px solid rgba(185,141,65,.25);border-radius:10px">' +
-                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
-                  '<span style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.04em">🛡️ Warmup ativo</span>' +
-                  '<span style="font-size:10.5px;color:var(--text3);font-weight:500">' + diasTxt + '</span>' +
-                  '<span style="margin-left:auto;font-size:11px;color:var(--text);font-weight:700">' + (w.usadoHoje||0) + ' / ' + w.cap + ' hoje</span>' +
+              '<div style="flex-basis:100%;margin-top:10px;padding:12px 14px;background:var(--gold-bg);border:1px solid rgba(185,141,65,.22);border-radius:12px">' +
+                '<div style="display:flex;align-items:flex-start;gap:12px">' +
+                  '<div style="flex:1;min-width:0">' +
+                    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+                      '<span style="font-size:12px;font-weight:700;color:var(--gold);letter-spacing:-.01em">🛡️ Modo Warmup (anti-restrição)</span>' +
+                      (ligado ? '<span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);background:rgba(185,141,65,.18);padding:2px 6px;border-radius:4px">ativo</span>' : '') +
+                    '</div>' +
+                    '<div style="font-size:11.5px;color:var(--text2);line-height:1.55">' +
+                      'Limita o volume diário automaticamente enquanto a conta é nova, pra não disparar o antispam do WhatsApp. ' +
+                      'Progressão: <strong>0-2 dias</strong> 30 msgs · <strong>3-6 dias</strong> 100 · <strong>7-13 dias</strong> 250 · <strong>14+ dias</strong> sem cap (libera o limite do seu plano).' +
+                    '</div>' +
+                  '</div>' +
+                  '<label style="flex-shrink:0;position:relative;display:inline-block;width:40px;height:23px;cursor:pointer">' +
+                    '<input type="checkbox" ' + (ligado?'checked':'') + ' onchange="toggleWarmup(\'' + c.id + '\',this.checked)" style="opacity:0;width:0;height:0;position:absolute">' +
+                    '<span style="position:absolute;inset:0;border-radius:999px;border:1px solid var(--border);transition:all var(--ease);' + switchBg + '"></span>' +
+                    '<span style="position:absolute;width:15px;height:15px;border-radius:50%;top:3px;left:3px;transition:all var(--ease);box-shadow:0 1px 3px rgba(0,0,0,.2);' + dot + '"></span>' +
+                  '</label>' +
                 '</div>' +
-                '<div style="height:4px;background:var(--surface3);border-radius:999px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:var(--gold);border-radius:999px;transition:width .3s"></div></div>' +
-                '<div style="font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.5">Conta nova. Limite do dia aumenta automaticamente: 30 → 100 → 250 → sem cap (15+ dias).</div>' +
+                barra +
               '</div>';
           }
           return '<div class="trow" style="gap:10px;flex-wrap:wrap"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:180px">' +
@@ -3888,6 +3916,19 @@ window.excluirConta = function(id) {
 window.desconectarConta = function(id) {
   if (!confirm('Desconectar esta conta?')) return;
   post('/api/contas/'+id+'/desconectar',{}).then(function(){ toast('Desconectado','warn'); });
+};
+
+window.toggleWarmup = function(id, ativo) {
+  fetch('/api/contas/'+id+'/warmup', {
+    method: 'PUT',
+    headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify({ ativo: !!ativo })
+  }).then(function(r){ return r.json(); }).then(function(r){
+    if (r && r.ok) {
+      toast(ativo ? 'Warmup ativado nessa conta' : 'Warmup desativado', 'ok');
+      carregarContas();
+    } else { toast((r&&r.erro)||'Erro ao atualizar warmup', 'erro'); }
+  }).catch(function(){ toast('Erro de conexão', 'erro'); });
 };
 
 function getContaSelecionada(nome) {
