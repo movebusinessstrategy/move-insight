@@ -1503,6 +1503,11 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
         <div class="step-info"><div class="step-name">Agendamento</div><div class="step-sub">Disparos programados</div></div>
       </div>
 
+      <div class="step" onclick="goTo(12)" data-s="12" data-tooltip="Relatórios · métricas por período">
+        <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-5"/></svg></div>
+        <div class="step-info"><div class="step-name">Relatórios</div><div class="step-sub">Métricas por período</div></div>
+      </div>
+
       <div class="step" onclick="goTo(11)" data-s="11" data-tooltip="Assinatura · plano e cobrança">
         <div class="step-icon-wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
         <div class="step-info"><div class="step-name">Assinatura</div><div class="step-sub">Plano e cobrança</div></div>
@@ -2106,6 +2111,7 @@ Carlos Mendes,5543900001003" style="min-height:160px;font-size:12px;font-family:
         <div class="stat-c hi"><div class="s-num green" id="mSent">0</div><div class="s-lbl">Enviados</div></div>
         <div class="stat-c"><div class="s-num red"      id="mFail">0</div><div class="s-lbl">Falhas</div></div>
         <div class="stat-c"><div class="s-num dim"      id="mSkip">0</div><div class="s-lbl">Pulados</div></div>
+        <div class="stat-c"><div class="s-num gold"     id="mResp">0</div><div class="s-lbl">Respostas<br><span id="mRespTaxa" style="font-size:9px;color:var(--text3);font-weight:500;letter-spacing:0;text-transform:none">—</span></div></div>
       </div>
 
       <div class="card">
@@ -2265,6 +2271,19 @@ Carlos Mendes,5543900001003" style="min-height:160px;font-size:12px;font-family:
           <div class="card-aside"><span id="blCount" style="font-size:10px;color:var(--text3);font-weight:700">0</span></div>
         </div>
         <div id="blacklistLista"><div class="empty-nice"><div class="en-ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div><div class="en-title">Blacklist vazia</div><div class="en-desc">Números aqui <strong>não</strong> recebem suas campanhas. Útil pra descadastros e clientes que pediram pra não receber mais.</div></div></div>
+      </div>
+
+      <!-- Candidatos sugeridos: 10+ campanhas sem nenhuma resposta -->
+      <div class="card" id="candCard" style="display:none">
+        <div class="card-hd">
+          <div class="card-dot"></div>
+          <div class="card-title">Sugestão · não respondem há tempo</div>
+          <div class="card-aside"><span id="candCount" style="font-size:10px;color:var(--text3);font-weight:700">0</span></div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:14px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+          Esses contatos receberam <strong>10 ou mais campanhas</strong> nas últimas semanas e <strong>nunca responderam</strong>. Podem ser números inativos, trocados ou clientes que perderam interesse. Revise e bloqueie os que fizerem sentido.
+        </div>
+        <div id="candLista"></div>
       </div>
     </div>
 
@@ -2430,6 +2449,73 @@ Carlos Mendes,5543900001003" style="min-height:160px;font-size:12px;font-family:
         <div class="card-hd"><div class="card-dot" style="background:var(--red)"></div><div class="card-title" style="color:var(--red)">Cancelar assinatura</div></div>
         <p style="font-size:13px;color:var(--text2);margin:8px 0 14px;line-height:1.5">Ao cancelar você mantém acesso até o fim do período já pago. Depois disso sua conta fica inativa até assinar novamente.</p>
         <button class="btn btn-ghost" id="btnCancelarAss" onclick="cancelarAssinatura()" style="border-color:rgba(255,95,87,.3);color:var(--red);height:38px;font-size:12px">Cancelar minha assinatura</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PAGE 12: RELATÓRIOS ═══════════════ -->
+    <div class="page" id="p12">
+      <div class="page-header">
+        <div class="ph-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-5"/></svg></div>
+        <div class="ph-text"><div class="ph-title">Relatórios</div><div class="ph-desc">Métricas das suas campanhas por período. Envie o resumo pelo WhatsApp.</div></div>
+      </div>
+
+      <!-- Filtro de período -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Período</div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px">
+          <button class="btn btn-ghost rel-preset" data-range="7"  onclick="relSetRange(7)"  style="height:32px;font-size:11px;padding:0 12px">Últimos 7 dias</button>
+          <button class="btn btn-ghost rel-preset" data-range="30" onclick="relSetRange(30)" style="height:32px;font-size:11px;padding:0 12px">Últimos 30 dias</button>
+          <button class="btn btn-ghost rel-preset" data-range="mes" onclick="relSetRange('mes')" style="height:32px;font-size:11px;padding:0 12px">Este mês</button>
+          <button class="btn btn-ghost rel-preset" data-range="mesant" onclick="relSetRange('mesant')" style="height:32px;font-size:11px;padding:0 12px">Mês passado</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end">
+          <div style="flex:1;min-width:140px">
+            <label style="display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600">De</label>
+            <input type="date" id="relDe" class="inp" style="height:38px">
+          </div>
+          <div style="flex:1;min-width:140px">
+            <label style="display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600">Até</label>
+            <input type="date" id="relAte" class="inp" style="height:38px">
+          </div>
+          <button class="btn btn-primary" onclick="relCarregar()" style="height:38px;min-width:120px">Aplicar</button>
+        </div>
+      </div>
+
+      <!-- Cards de métricas -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Resumo do período</div><span id="relPeriodoLabel" style="margin-left:auto;font-size:11px;color:var(--text3);font-weight:600"></span></div>
+        <div id="relStatsWrap" style="margin-top:12px">
+          <div class="empty">Selecione um período para ver os dados.</div>
+        </div>
+      </div>
+
+      <!-- Lista de campanhas do período -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Campanhas no período</div></div>
+        <div id="relCamps" style="margin-top:10px">
+          <div class="empty">Nenhum dado carregado.</div>
+        </div>
+      </div>
+
+      <!-- Enviar via WhatsApp -->
+      <div class="card">
+        <div class="card-hd"><div class="card-dot"></div><div class="card-title">Enviar relatório pelo WhatsApp</div></div>
+        <p style="font-size:12px;color:var(--text2);margin:4px 0 12px;line-height:1.5">Receba o resumo do período direto no seu WhatsApp (ou envie pra um sócio/cliente).</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600">Enviar de qual conta</label>
+            <select id="relContaSel" class="inp" style="height:38px"></select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600">Enviar para (DDD + número)</label>
+            <input type="text" id="relDestino" class="inp" placeholder="43996255556" style="height:38px">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="relEnviarWhats()" id="btnRelEnviar" style="height:42px;margin-top:12px;width:100%">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px;vertical-align:-3px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884"/></svg>
+          Enviar relatório pelo WhatsApp
+        </button>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4">O envio roda em segundo plano. Você recebe uma notificação quando chegar.</p>
       </div>
     </div>
 
@@ -2680,7 +2766,7 @@ window.atualizarEstadoStartCamp = function() {
 window.iniciarDisparo = function() {
   var valid = window._S.contacts.filter(function(c) { return c.st === 'ok'; });
   if (!valid.length) { toast('Nenhum contato válido', 'erro'); return; }
-  window._S.mon = { total: 0, sent: 0, fail: 0, skip: 0 };
+  window._S.mon = { total: 0, sent: 0, fail: 0, skip: 0, resp: 0 };
   var ca = document.getElementById('connArea');
   if (ca) ca.innerHTML = '<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">Conectando ao WhatsApp...</div></div>';
   var mb = document.getElementById('monBtn'); if (mb) mb.style.display = 'block';
@@ -2869,6 +2955,16 @@ function updateMon() {
   var m = window._S.mon, done = m.sent + m.fail, pct = m.total > 0 ? Math.round(done / m.total * 100) : 0;
   var t = function(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
   t('mTot', m.total); t('mSent', m.sent); t('mFail', m.fail); t('mSkip', m.skip);
+  t('mResp', m.resp || 0);
+  var tx = document.getElementById('mRespTaxa');
+  if (tx) {
+    if (m.sent > 0 && (m.resp || 0) > 0) {
+      var taxa = Math.round((m.resp / m.sent) * 100);
+      tx.textContent = 'Taxa ' + taxa + '%';
+    } else {
+      tx.textContent = '—';
+    }
+  }
   t('progDone', done); t('progTotal', m.total);
   var pb = document.getElementById('progBar'); if (pb) pb.style.width = Math.min(pct, 100) + '%';
   var r = Math.max(0, m.total - done);
@@ -2975,6 +3071,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (d.tipo === 'enviado')    { window._S.mon.sent  = d.total;  updateMon(); return; }
       if (d.tipo === 'erro_envio') { window._S.mon.fail  = d.total;  updateMon(); return; }
       if (d.tipo === 'pulado')     { window._S.mon.skip  = d.total;  updateMon(); return; }
+      if (d.tipo === 'resposta')   { window._S.mon.resp  = d.total;  updateMon(); return; }
       if (d.tipo === 'finalizado') {
         var rb = document.getElementById('runBadge'); if (rb) rb.style.display = 'none';
         var er = document.getElementById('exportRow'); if (er) er.style.display = 'flex';
@@ -3589,7 +3686,7 @@ window.iniciarDisparo = function() {
     if (!conta.conectado) { toast('A conta "'+conta.nome+'" não está conectada.','erro'); return; }
     var msg = 'Disparar usando a conta:\n\n📱 ' + conta.nome + (conta.numero ? ' (' + conta.numero + ')' : '') + '\n\n' + valid.length + ' contato(s) · campanha: ' + nomeCampanha + '\n\nConfirmar?';
     if (!confirm(msg)) return;
-    window._S.mon = {total:0,sent:0,fail:0,skip:0};
+    window._S.mon = {total:0,sent:0,fail:0,skip:0,resp:0};
     var er=document.getElementById('exportRow'); if(er) er.style.display='none';
     var ca=document.getElementById('connArea');
     if(ca) ca.innerHTML='<div class="conn-center"><div class="cc-title">Iniciando...</div><div class="cc-desc">O Chrome abrirá automaticamente.</div></div>';
@@ -3639,16 +3736,25 @@ window.carregarHistorico = function() {
       var ds = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
       var taxa = h.total>0 ? Math.round(h.enviados/h.total*100) : 0;
       var btnRepetir = '<button class="btn btn-ghost" style="height:30px;font-size:11px;padding:0 12px;gap:6px" onclick="repetirDisparo(\''+h.id+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Repetir</button>';
+      // Badge de taxa de resposta (se a janela de escuta rodou)
+      var badgeResp = '';
+      if (typeof h.respostas === 'number' && h.respostas > 0) {
+        var taxaResp = h.taxaResposta != null ? h.taxaResposta : 0;
+        badgeResp = '<span style="color:var(--gold);font-weight:700" title="Respostas captadas nas 2h após o disparo">💬 '+h.respostas+' resposta'+(h.respostas!==1?'s':'')+' ('+taxaResp+'%)</span>';
+        if (h.optOuts > 0) badgeResp += '<span style="color:var(--text3);font-size:11px" title="Opt-outs que viraram blacklist automática">· '+h.optOuts+' opt-out'+(h.optOuts!==1?'s':'')+'</span>';
+      }
       return '<div class="trow" style="flex-direction:column;align-items:flex-start;gap:8px">' +
         '<div style="display:flex;width:100%;align-items:center;gap:10px">' +
         '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">' + h.nome + '</div>' +
         '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + ds + ' · ' + (h.conta||'Padrão') + '</div></div>' +
         btnRepetir +
         '<button class="del-btn" onclick="excluirHistorico(\'' + h.id + '\')">×</button></div>' +
-        '<div style="display:flex;gap:14px;font-size:12px">' +
+        '<div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap;align-items:center">' +
         '<span style="color:var(--green);font-weight:600">✓ ' + h.enviados + '</span>' +
         '<span style="color:var(--red)">✗ ' + h.falhas + '</span>' +
-        '<span style="color:var(--text3)">' + taxa + '% entregue</span></div>' +
+        '<span style="color:var(--text3)">' + taxa + '% entregue</span>' +
+        badgeResp +
+        '</div>' +
         '<div style="height:3px;width:100%;background:var(--bg2);border-radius:999px;overflow:hidden"><div style="height:100%;width:'+taxa+'%;background:var(--gold);border-radius:999px"></div></div>' +
         '</div>';
     }).join('');
@@ -3914,12 +4020,50 @@ function carregarBlacklist() {
     var lista=document.getElementById('blacklistLista'); if(!lista) return;
     if (!bl.length) { lista.innerHTML='<div class="empty">Nenhum número bloqueado</div>'; return; }
     lista.innerHTML = bl.map(function(b) {
-      return '<div class="trow"><div><div class="t-lbl">' + b.numero + '</div>' +
+      var tag = b.auto ? '<span style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);background:var(--gold-bg);padding:2px 7px;border-radius:999px;margin-left:8px">auto</span>' : '';
+      return '<div class="trow"><div><div class="t-lbl">' + b.numero + tag + '</div>' +
         (b.motivo?'<div class="t-sub">'+b.motivo+'</div>':'') + '</div>' +
         '<button class="del-btn" onclick="removerBlacklist(\'' + b.numero + '\')">Remover</button></div>';
     }).join('');
   });
+  carregarCandidatosBL();
 }
+
+// Candidatos sugeridos: 10+ disparos sem resposta
+function carregarCandidatosBL() {
+  authFetch('/api/blacklist/candidatos').then(function(r){
+    var cands = (r && r.candidatos) || [];
+    var card = document.getElementById('candCard');
+    var cnt = document.getElementById('candCount');
+    var lista = document.getElementById('candLista');
+    if (!card || !cnt || !lista) return;
+    if (!cands.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    cnt.textContent = cands.length + ' contato(s)';
+    lista.innerHTML = cands.map(function(c){
+      var nome = c.nome || '(sem nome)';
+      return '<div class="trow">' +
+        '<div style="flex:1"><div class="t-lbl">' + nome + ' · ' + c.numero + '</div>' +
+        '<div class="t-sub">' + c.recebidas + ' campanhas recebidas · 0 respostas</div></div>' +
+        '<div style="display:flex;gap:6px;flex-shrink:0">' +
+          '<button class="btn btn-ghost" style="height:28px;font-size:10px;padding:0 10px;color:var(--red);border-color:rgba(255,95,87,.25)" onclick="bloquearCandidato(\''+c.numero+'\',\''+(c.recebidas)+'\')">Bloquear</button>' +
+          '<button class="btn btn-ghost" style="height:28px;font-size:10px;padding:0 10px;color:var(--text3)" onclick="ignorarCandidato(\''+c.numero+'\')">Ignorar</button>' +
+        '</div></div>';
+    }).join('');
+  });
+}
+window.bloquearCandidato = function(numero, recebidas) {
+  post('/api/blacklist', { numero: numero, motivo: 'Sugerido: ' + recebidas + ' disparos sem resposta' }).then(function(){
+    toast('Adicionado à blacklist', 'ok');
+    carregarBlacklist();
+  });
+};
+window.ignorarCandidato = function(numero) {
+  // Reseta o contador dele pra não aparecer mais como candidato (marca como "conviveu")
+  post('/api/blacklist/candidatos/ignorar', { numero: numero }).then(function(){
+    carregarCandidatosBL();
+  });
+};
 window.adicionarBlacklist = function() {
   var num=(document.getElementById('blNumero')||{}).value||'';
   var mot=(document.getElementById('blMotivo')||{}).value||'';
@@ -4264,6 +4408,7 @@ window.goTo = function(n) {
   if(n===9) carregarBlacklist();
   if(n===10){ carregarSelectoresAg(); window.carregarAgendamentos(); }
   if(n===11) carregarAssinatura();
+  if(n===12) window.relInit && window.relInit();
   if(n===0) carregarHome();
 };
 
@@ -4572,6 +4717,126 @@ window.cancelarAssinatura = function() {
     if (!r || !r.ok) { toast((r && r.erro) || 'Erro ao cancelar', 'erro'); return; }
     toast(r.mensagem || 'Assinatura cancelada', 'warn');
     carregarAssinatura();
+  });
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RELATÓRIOS (dashboard por período)
+// ─────────────────────────────────────────────────────────────────────────────
+window._relDados = null;
+
+window.relInit = function() {
+  // Default: últimos 30 dias
+  var de = document.getElementById('relDe'), ate = document.getElementById('relAte');
+  if (de && !de.value) {
+    var hj = new Date(), ini = new Date(Date.now() - 29*86400000);
+    ate.value = hj.toISOString().slice(0,10);
+    de.value  = ini.toISOString().slice(0,10);
+  }
+  // Preenche select de contas conectadas
+  authFetch('/api/contas').then(function(r) {
+    var contas = Array.isArray(r) ? r : ((r && r.contas) || []);
+    var sel = document.getElementById('relContaSel'); if (!sel) return;
+    var conectadas = contas.filter(function(c){ return c.conectado === true; });
+    if (!conectadas.length) {
+      sel.innerHTML = '<option value="">Nenhuma conta conectada — conecte em Contas</option>';
+    } else {
+      sel.innerHTML = conectadas.map(function(c){
+        return '<option value="'+c.id+'">'+(c.nome||c.numero||c.id)+'</option>';
+      }).join('');
+    }
+  });
+  // Preenche destino padrão com o whatsapp do usuário
+  authFetch('/api/user/me').then(function(u){
+    var dest = document.getElementById('relDestino');
+    if (dest && u && u.whatsapp && !dest.value) dest.value = u.whatsapp;
+  });
+  window.relCarregar();
+};
+
+window.relSetRange = function(r) {
+  var de = document.getElementById('relDe'), ate = document.getElementById('relAte');
+  var hoje = new Date();
+  if (r === 7 || r === 30) {
+    ate.value = hoje.toISOString().slice(0,10);
+    de.value = new Date(Date.now() - (r-1)*86400000).toISOString().slice(0,10);
+  } else if (r === 'mes') {
+    de.value = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
+    ate.value = hoje.toISOString().slice(0,10);
+  } else if (r === 'mesant') {
+    var ini = new Date(hoje.getFullYear(), hoje.getMonth()-1, 1);
+    var fim = new Date(hoje.getFullYear(), hoje.getMonth(), 0);
+    de.value = ini.toISOString().slice(0,10);
+    ate.value = fim.toISOString().slice(0,10);
+  }
+  window.relCarregar();
+};
+
+window.relCarregar = function() {
+  var de  = document.getElementById('relDe').value;
+  var ate = document.getElementById('relAte').value;
+  if (!de || !ate) { toast('Informe as datas', 'erro'); return; }
+  var lbl = document.getElementById('relPeriodoLabel');
+  if (lbl) lbl.textContent = de.split('-').reverse().join('/') + ' → ' + ate.split('-').reverse().join('/');
+  authFetch('/api/relatorio?inicio='+de+'&fim='+ate).then(function(d){
+    if (!d) return;
+    window._relDados = d;
+    relRender(d);
+  });
+};
+
+function relRender(d) {
+  var wrap = document.getElementById('relStatsWrap');
+  var camps = document.getElementById('relCamps');
+  if (!wrap || !camps) return;
+
+  var s = d.resumo || {};
+  var taxa = s.enviados > 0 && s.respostas > 0 ? Math.round(s.respostas/s.enviados*100) : 0;
+  wrap.innerHTML =
+    '<div class="stats-row" style="grid-template-columns:repeat(3,1fr)">' +
+      '<div class="stat-c"><div class="s-num">'+ (s.campanhas||0) +'</div><div class="s-lbl">Campanhas</div></div>' +
+      '<div class="stat-c"><div class="s-num">'+ (s.enviados||0) +'</div><div class="s-lbl">Enviados</div></div>' +
+      '<div class="stat-c"><div class="s-num red">'+ (s.falhas||0) +'</div><div class="s-lbl">Falhas</div></div>' +
+      '<div class="stat-c"><div class="s-num">'+ (s.pulados||0) +'</div><div class="s-lbl">Pulados</div></div>' +
+      '<div class="stat-c"><div class="s-num gold">'+ (s.respostas||0) +'</div><div class="s-lbl">Respostas<br><span style="font-size:9px;color:var(--text3);font-weight:500">'+ (taxa?'Taxa '+taxa+'%':'—') +'</span></div></div>' +
+      '<div class="stat-c"><div class="s-num">'+ (s.optouts||0) +'</div><div class="s-lbl">Opt-outs</div></div>' +
+    '</div>';
+
+  var lista = d.campanhas || [];
+  if (!lista.length) {
+    camps.innerHTML = '<div class="empty">Nenhuma campanha nesse período.</div>';
+    return;
+  }
+  camps.innerHTML = lista.map(function(c){
+    var dt = new Date(c.em).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'});
+    var tx = c.enviados > 0 && c.respostas > 0 ? Math.round(c.respostas/c.enviados*100)+'%' : '—';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (c.nome || 'Campanha') + '</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + dt + '</div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--text2);text-align:right">' +
+        '<div><strong>' + (c.enviados||0) + '</strong> enviados</div>' +
+        '<div style="color:var(--gold);font-weight:600">' + (c.respostas||0) + ' resp · ' + tx + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+window.relEnviarWhats = function() {
+  var dados = window._relDados;
+  if (!dados) { toast('Aplique um período antes', 'erro'); return; }
+  var contaId = (document.getElementById('relContaSel')||{}).value;
+  var destino = (document.getElementById('relDestino')||{}).value;
+  if (!contaId) { toast('Selecione uma conta conectada', 'erro'); return; }
+  if (!destino || destino.replace(/\D/g,'').length < 10) { toast('Informe o número de destino', 'erro'); return; }
+  var de = document.getElementById('relDe').value, ate = document.getElementById('relAte').value;
+  var btn = document.getElementById('btnRelEnviar');
+  if (btn) { btn.disabled = true; btn.style.opacity='.6'; btn.textContent = 'Enviando...'; }
+  post('/api/relatorio/enviar', { contaId: contaId, destino: destino, inicio: de, fim: ate }).then(function(r){
+    if (btn) { btn.disabled = false; btn.style.opacity='1'; btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px;vertical-align:-3px"><path d="M20.52 3.449C12.831-3.984.106 1.407.101 11.893c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.652a11.882 11.882 0 005.683 1.448h.005c10.443 0 16.898-11.31 11.685-20.296z"/></svg> Enviar relatório pelo WhatsApp'; }
+    if (!r || !r.ok) { toast((r && r.erro) || 'Erro ao enviar', 'erro'); return; }
+    toast('Relatório enviado. Pode levar alguns segundos pra chegar.', 'ok');
   });
 };
 

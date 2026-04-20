@@ -956,6 +956,55 @@ app.delete("/api/listas/:id", authMiddleware, (req, res) => {
 });
 
 app.get("/api/blacklist",  authMiddleware, (req, res) => res.json(lerUser(req.userId, "blacklist.json", [])));
+
+// Candidatos sugeridos pra blacklist: 10+ campanhas recebidas sem NENHUMA resposta.
+// Não adiciona automático — só sugere pro dono revisar.
+app.get("/api/blacklist/candidatos", authMiddleware, (req, res) => {
+  const LIMITE = 10; // threshold: 10+ disparos sem resposta = candidato
+  const stats = lerUser(req.userId, "stats_contatos.json", {});
+  const blacklistAtual = new Set((lerUser(req.userId, "blacklist.json", [])).map(b => b.numero));
+  // Tenta achar nome no progresso atual ou em listas salvas
+  const listas = lerUser(req.userId, "listas.json", []);
+  const nomesPorNumero = {};
+  listas.forEach(l => (l.contatos || []).forEach(c => {
+    const n = String(c.phone || c.telefone || "").replace(/\D/g, "");
+    if (n && c.nome) nomesPorNumero[n] = nomesPorNumero[n] || c.nome;
+  }));
+
+  const candidatos = Object.entries(stats)
+    .filter(([num, s]) => !blacklistAtual.has(num) && s.recebidas >= LIMITE && s.respondidas === 0)
+    .map(([num, s]) => ({
+      numero: num,
+      nome: nomesPorNumero[num] || nomesPorNumero[numeroAlternativo(num) || ""] || "",
+      recebidas: s.recebidas,
+      respondidas: s.respondidas,
+      primeiraRecepcao: s.primeiraRecepcao,
+      ultimaRecepcao: s.ultimaRecepcao
+    }))
+    .sort((a, b) => b.recebidas - a.recebidas);
+  res.json({ candidatos, threshold: LIMITE });
+});
+// Ignora um candidato: reseta o contador de "recebidas sem resposta" pra ele parar de aparecer
+app.post("/api/blacklist/candidatos/ignorar", authMiddleware, (req, res) => {
+  const { numero } = req.body || {};
+  if (!numero) return res.status(400).json({ erro: "numero obrigatório" });
+  const stats = lerUser(req.userId, "stats_contatos.json", {});
+  if (stats[numero]) {
+    stats[numero].recebidas = 0; // zera pra recomeçar contagem
+    stats[numero].ignoradoEm = new Date().toISOString();
+    salvarUser(req.userId, "stats_contatos.json", stats);
+  }
+  res.json({ ok: true });
+});
+
+// Helper duplicado pra não depender do disparador (só conversão de formato do número)
+function numeroAlternativo(num) {
+  if (!num) return null;
+  const s = String(num);
+  if (s.length === 13) return s.slice(0, 4) + s.slice(5);
+  if (s.length === 12) return s.slice(0, 4) + "9" + s.slice(4);
+  return null;
+}
 app.post("/api/blacklist", authMiddleware, (req, res) => {
   const { numero, motivo } = req.body;
   if (!numero) return res.status(400).json({ erro: "Número obrigatório" });
@@ -1022,6 +1071,130 @@ app.post("/api/historico/:id/repetir", authMiddleware, (req, res) => {
 });
 app.delete("/api/historico/:id", authMiddleware, (req, res) => {
   salvarUser(req.userId, "historico.json", lerUser(req.userId, "historico.json", []).filter(h => h.id !== req.params.id));
+  res.json({ ok: true });
+});
+
+// ── Info do usuário logado (usado na aba Relatórios pra pré-preencher destino) ──
+app.get("/api/user/me", authMiddleware, (req, res) => {
+  const u = req.user || {};
+  res.json({
+    id: u.id, nome: u.nome || "", email: u.email || "",
+    whatsapp: u.whatsapp || "", plano: u.plano || "basico", admin: !!u.admin
+  });
+});
+
+// ── RELATÓRIOS por período ─────────────────────────────────────────────────────
+// Agrega o histórico no intervalo [inicio, fim] (YYYY-MM-DD, fuso Brasil).
+app.get("/api/relatorio", authMiddleware, (req, res) => {
+  const uid = req.userId;
+  const { inicio, fim } = req.query;
+  if (!inicio || !fim) return res.status(400).json({ erro: "Informe inicio e fim (YYYY-MM-DD)" });
+  // Datas inclusivas no fuso Brasil: 00:00 do início até 23:59:59 do fim
+  const iniDt = new Date(inicio + "T00:00:00-03:00");
+  const fimDt = new Date(fim    + "T23:59:59-03:00");
+  if (isNaN(iniDt) || isNaN(fimDt) || iniDt > fimDt) return res.status(400).json({ erro: "Período inválido" });
+
+  const hist = lerUser(uid, "historico.json", []);
+  const noPeriodo = hist.filter(h => {
+    const dt = new Date(h.dataEnvio || h.data || h.criadoEm || 0);
+    return dt >= iniDt && dt <= fimDt;
+  });
+
+  const resumo = noPeriodo.reduce((s, h) => {
+    s.campanhas += 1;
+    s.enviados  += Number(h.enviados  || 0);
+    s.falhas    += Number(h.falhas    || 0);
+    s.pulados   += Math.max(0, Number(h.total || 0) - Number(h.enviados || 0) - Number(h.falhas || 0));
+    s.respostas += Number(h.respostas || 0);
+    s.optouts   += Number(h.optOuts   || 0);
+    return s;
+  }, { campanhas:0, enviados:0, falhas:0, pulados:0, respostas:0, optouts:0 });
+
+  res.json({
+    periodo: { inicio, fim },
+    resumo,
+    campanhas: noPeriodo.map(h => ({
+      id: h.id, nome: h.nome, conta: h.conta,
+      em: h.dataEnvio || h.data || h.criadoEm,
+      enviados: h.enviados || 0, falhas: h.falhas || 0,
+      respostas: h.respostas || 0, optOuts: h.optOuts || 0,
+      taxaResposta: h.taxaResposta || 0
+    }))
+  });
+});
+
+// Envia o relatório pelo WhatsApp via worker separado (enviar_msg_avulsa.js)
+app.post("/api/relatorio/enviar", authMiddleware, (req, res) => {
+  const uid = req.userId;
+  const { contaId, destino, inicio, fim } = req.body || {};
+  if (!contaId || !destino || !inicio || !fim) return res.status(400).json({ erro: "Dados incompletos" });
+  if (processos[uid]) return res.status(400).json({ erro: "Aguarde — há um disparo em andamento" });
+
+  const conta = lerUser(uid, "contas.json", []).find(c => c.id === contaId);
+  if (!conta) return res.status(404).json({ erro: "Conta não encontrada" });
+
+  // Reaproveita o endpoint de relatório pra montar o resumo
+  const iniDt = new Date(inicio + "T00:00:00-03:00");
+  const fimDt = new Date(fim    + "T23:59:59-03:00");
+  if (isNaN(iniDt) || isNaN(fimDt) || iniDt > fimDt) return res.status(400).json({ erro: "Período inválido" });
+  const hist = lerUser(uid, "historico.json", []);
+  const noPeriodo = hist.filter(h => {
+    const dt = new Date(h.dataEnvio || h.data || h.criadoEm || 0);
+    return dt >= iniDt && dt <= fimDt;
+  });
+  const r = noPeriodo.reduce((s, h) => {
+    s.campanhas += 1; s.enviados += +h.enviados||0; s.falhas += +h.falhas||0;
+    s.pulados += Math.max(0, (+h.total||0) - (+h.enviados||0) - (+h.falhas||0));
+    s.respostas += +h.respostas||0; s.optouts += +h.optOuts||0;
+    return s;
+  }, { campanhas:0, enviados:0, falhas:0, pulados:0, respostas:0, optouts:0 });
+
+  const fmtDt = d => d.split("-").reverse().join("/");
+  const taxa = r.enviados > 0 && r.respostas > 0 ? Math.round(r.respostas/r.enviados*100) : 0;
+  const nomeUsuario = (req.user.nome || "").split(" ")[0] || "";
+  const linhas = [
+    `📊 *Relatório ChatMOVE*` + (nomeUsuario ? ` — ${nomeUsuario}` : ""),
+    `Período: ${fmtDt(inicio)} → ${fmtDt(fim)}`,
+    ``,
+    `*Campanhas:* ${r.campanhas}`,
+    `*Mensagens enviadas:* ${r.enviados}`,
+    `*Falhas:* ${r.falhas}`,
+    `*Pulados:* ${r.pulados}`,
+    `*Respostas:* ${r.respostas}${taxa ? `  (taxa ${taxa}%)` : ""}`,
+    `*Opt-outs:* ${r.optouts}`,
+    ``
+  ];
+  if (noPeriodo.length) {
+    linhas.push(`*Top campanhas:*`);
+    noPeriodo.slice(0, 5).forEach(h => {
+      const tx = h.enviados > 0 && h.respostas > 0 ? ` · ${Math.round(h.respostas/h.enviados*100)}% resp` : "";
+      linhas.push(`• ${h.nome}: ${h.enviados||0} env${tx}`);
+    });
+    linhas.push("");
+  }
+  linhas.push(`_Gerado em ${new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}_`);
+  const texto = linhas.join("\n");
+
+  const authDir = path.join(userDir(uid), ".wwebjs_auth_" + conta.id);
+  if (!fs.existsSync(path.join(authDir, ".wa-authenticated"))) {
+    return res.status(400).json({ erro: "Essa conta não está conectada. Abra a aba Contas e conecte antes." });
+  }
+
+  const proc = spawn("node", [path.join(ROOT, "enviar_msg_avulsa.js")], {
+    cwd: ROOT,
+    env: {
+      ...process.env,
+      AUTH_DIR_OVERRIDE: authDir,
+      MSG_DESTINO:       String(destino).replace(/\D/g, ""),
+      MSG_TEXTO:         texto
+    }
+  });
+  let saida = "";
+  proc.stdout.on("data", d => { saida += d.toString(); });
+  proc.stderr.on("data", d => { saida += d.toString(); });
+  proc.on("close", code => {
+    console.log(`[relatorio-enviar ${uid}] exit ${code}\n${saida.slice(0, 500)}`);
+  });
   res.json({ ok: true });
 });
 
@@ -1521,7 +1694,12 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
       BLACKLIST_FILE:          userFile(uid, "blacklist.json"),
       IMAGENS_DIR:             path.join(userDir(uid), "imagens"),
       PROGRESS_FILE_OVERRIDE:  userFile(uid, "progress.json"),
-      LIMITE_ENVIOS_DIA:       String(limite.restantes)
+      LIMITE_ENVIOS_DIA:       String(limite.restantes),
+      // Relatório + janela de escuta pós-campanha
+      WA_DONO:                 req.user.whatsapp || "",
+      NOME_DONO:               req.user.nome || "",
+      APP_URL:                 mpBaseUrl(),
+      ESCUTA_MIN:              "120"
     }
   });
   iniciarHandlers(uid, processos[uid], new Date());
@@ -1894,6 +2072,11 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
       const duracaoMin = Math.round(duracaoSeg / 60);
       const histId = "h_" + Date.now();
       const cfgAtual = lerUser(uid, "chatmove.config.json", {});
+      // Se a escuta rodou, usa os resultados. Senão, placeholders
+      const escuta = camp.escutaResumo || { respostas: 0, optOuts: 0, numerosQueResponderam: [] };
+      const taxaResposta = camp.enviados.length > 0
+        ? Math.round((escuta.respostas / camp.enviados.length) * 100 * 10) / 10
+        : 0;
       hist.unshift({
         id: histId, nome: camp.nome, conta: conta?.nome||"Padrão", contaId: camp.contaId,
         dataEnvio: iniciadoEm.toISOString(), enviados: camp.enviados.length, falhas: camp.erros.length, total: camp.total,
@@ -1904,9 +2087,16 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
           pausarACada: cfgAtual.pausarACada, duracaoPausa: cfgAtual.duracaoPausa,
           enviarImagem: cfgAtual.enviarImagem, modoCaption: cfgAtual.modoCaption,
           imagemNome: cfgAtual.imagemNome || ""
-        }
+        },
+        // Métricas de engajamento captadas na janela de escuta (2h pós-envio)
+        respostas: escuta.respostas,
+        optOuts: escuta.optOuts,
+        taxaResposta
       });
       salvarUser(uid, "historico.json", hist.slice(0, 100));
+
+      // Atualiza stats_contatos (base da recomendação de blacklist "10+ sem resposta")
+      atualizarStatsContatos(uid, camp.enviados.map(e => e.numero), new Set(escuta.numerosQueResponderam));
 
       // ── AUDITORIA: entrada detalhada pra defesa jurídica / abuso ──
       const msgsReais = camp.msgsReais || camp.enviados.length;
@@ -1954,6 +2144,55 @@ function processarEvento(uid, ev) {
     if (typeof ev.msgsReais === "number") camp.msgsReais = ev.msgsReais;
     broadcastUser(uid,{tipo:"finalizado",enviados:ev.enviados,erros:ev.invalidos,pulados:ev.pulados,limiteAtingido:ev.limiteAtingido});
   }
+  if (ev.tipo==="relatorio_enviado") {
+    broadcastUser(uid, { tipo:"log", nivel:"ok", msg:`📤 Relatório enviado pro seu WhatsApp (${ev.para})` });
+  }
+  if (ev.tipo==="escuta_iniciou") {
+    camp.escutando = true;
+    camp.escutaFimEm = ev.fimEm;
+    camp.respostas = camp.respostas || [];
+    // Evento silencioso: monitor usa pra atualizar contador, sem avisar o usuário
+    broadcastUser(uid, { tipo:"escuta_iniciou", fimEm: ev.fimEm, duracaoMin: ev.duracaoMin });
+  }
+  if (ev.tipo==="resposta") {
+    camp.respostas = camp.respostas || [];
+    camp.respostas.push({ numero: ev.numero, optOut: !!ev.optOut, em: ev.em });
+    broadcastUser(uid, { tipo:"resposta", numero: ev.numero, total: camp.respostas.length, optOut: !!ev.optOut });
+    // Auto-blacklist imediato em caso de opt-out
+    if (ev.optOut) {
+      const bl = lerUser(uid, "blacklist.json", []);
+      if (!bl.find(b => b.numero === ev.numero)) {
+        bl.push({ numero: ev.numero, motivo: "opt-out automático (resposta contém palavra de saída)", em: new Date().toISOString(), auto: true });
+        salvarUser(uid, "blacklist.json", bl);
+      }
+    }
+  }
+  if (ev.tipo==="escuta_fim") {
+    camp.escutando = false;
+    // Guarda resultados; o proc.on("close") vai gravar no histórico + stats_contatos
+    camp.escutaResumo = {
+      respostas: ev.respostas,
+      optOuts: ev.optOuts,
+      numerosQueResponderam: ev.numerosQueResponderam || []
+    };
+    broadcastUser(uid, { tipo:"escuta_fim", respostas: ev.respostas, optOuts: ev.optOuts });
+  }
+}
+
+// Stats por contato: quantas campanhas recebeu e respondeu. Base da recomendação de blacklist.
+function atualizarStatsContatos(uid, numerosEnviados, numerosResponderam) {
+  const stats = lerUser(uid, "stats_contatos.json", {});
+  const agora = new Date().toISOString();
+  numerosEnviados.forEach(n => {
+    if (!stats[n]) stats[n] = { recebidas: 0, respondidas: 0, primeiraRecepcao: agora, ultimaRecepcao: agora, ultimaResposta: null };
+    stats[n].recebidas += 1;
+    stats[n].ultimaRecepcao = agora;
+    if (numerosResponderam.has(n)) {
+      stats[n].respondidas += 1;
+      stats[n].ultimaResposta = agora;
+    }
+  });
+  salvarUser(uid, "stats_contatos.json", stats);
 }
 
 // ── AGENDADOR ─────────────────────────────────────────────────────────────────
@@ -1973,6 +2212,7 @@ function dispararAgendamento(uid, ag) {
   }
   const conta = ag.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === ag.contaId) : null;
   const authDir = path.join(userDir(uid), conta ? ".wwebjs_auth_" + conta.id : ".wwebjs_auth");
+  const user = lerUsuario(uid) || {};
   campanhas[uid] = { enviados: [], erros: [], pulados: [], total: 0, nome: ag.nome, contaId: ag.contaId };
   processos[uid] = spawn("node", [path.join(ROOT, "disparador2.js")], {
     cwd: ROOT,
@@ -1984,7 +2224,11 @@ function dispararAgendamento(uid, ag) {
       BLACKLIST_FILE:          userFile(uid, "blacklist.json"),
       IMAGENS_DIR:             path.join(userDir(uid), "imagens"),
       PROGRESS_FILE_OVERRIDE:  userFile(uid, "progress.json"),
-      LIMITE_ENVIOS_DIA:       String(limite.restantes)
+      LIMITE_ENVIOS_DIA:       String(limite.restantes),
+      WA_DONO:                 user.whatsapp || "",
+      NOME_DONO:               user.nome || "",
+      APP_URL:                 mpBaseUrl(),
+      ESCUTA_MIN:              "120"
     }
   });
   iniciarHandlers(uid, processos[uid], new Date());

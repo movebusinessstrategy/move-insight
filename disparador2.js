@@ -192,6 +192,9 @@ async function enviarComOuSemMidia(sock, jid, mensagem) {
 
 // ── Campanha ─────────────────────────────────────────────────────────────────
 async function enviarCampanha(sock) {
+  const inicioMs = Date.now();
+  const numerosEnviados = new Set(); // pra janela de escuta saber quem filtrar
+
   const csvPath = path.isAbsolute(ARQUIVO_LISTA) ? ARQUIVO_LISTA : path.join(__dirname, ARQUIVO_LISTA);
   if (!caminhoExiste(csvPath)) throw new Error("CSV não encontrado: " + ARQUIVO_LISTA);
 
@@ -267,6 +270,7 @@ async function enviarCampanha(sock) {
       const nMsgs = await enviarComOuSemMidia(sock, jid, mensagem);
       enviados++;
       msgsReais += nMsgs;
+      numerosEnviados.add(numeroE164);
       progress.sent[numeroE164] = { nome: contato.nome, when: new Date().toISOString() };
       progress.lastIndex = i + 1;
       saveProgress(progressFile);
@@ -295,6 +299,7 @@ async function enviarCampanha(sock) {
             const nMsgs = await enviarComOuSemMidia(sock, jidAlt, msgAlt);
             enviados++;
             msgsReais += nMsgs;
+            numerosEnviados.add(numAlt);
             progress.sent[numAlt] = { nome: contato.nome, when: new Date().toISOString() };
             progress.lastIndex = i + 1; saveProgress(progressFile);
             log(`✅ Enviado via alternativo (${numAlt})${nMsgs>1?` [${nMsgs} msgs]`:""}`);
@@ -315,8 +320,95 @@ async function enviarCampanha(sock) {
   }
 
   const limAting = (msgsReais + msgsPorContato > limiteHoje) && limiteHoje !== Infinity;
+  const duracaoMin = Math.max(1, Math.round((Date.now() - inicioMs) / 60000));
   log(`🏁 Finalizado. Enviados: ${enviados} contatos (${msgsReais} msgs reais) | Inválidos: ${invalidos} | Pulados: ${pulados}${limAting ? " | LIMITE ATINGIDO" : ""}`);
   emit("finalizado", { enviados, msgsReais, invalidos, pulados, limiteAtingido: limAting });
+  return { enviados, msgsReais, invalidos, pulados, limiteAtingido: limAting, duracaoMin, numerosEnviados, nome: CAMPANHA_ID };
+}
+
+// ── Relatório pós-campanha no WhatsApp do dono ────────────────────────────────
+async function enviarRelatorioDono(sock, stats) {
+  const doneRaw = process.env.WA_DONO;
+  if (!doneRaw) { log("ℹ️ WA_DONO não definido — pulando relatório."); return; }
+  const doneNum = normalizarNumeroE164(doneRaw);
+  if (!doneNum) { log(`⚠️ WA_DONO inválido: "${doneRaw}"`); return; }
+
+  const nome = (process.env.NOME_DONO || "").split(" ")[0];
+  const appUrl = process.env.APP_URL || "chat.movebusiness.com.br";
+  const partes = [];
+  partes.push("🎯 *Campanha finalizada*");
+  partes.push(nome ? `Opa ${nome}! Sua campanha "${stats.nome}" acabou de terminar.` : `Sua campanha "${stats.nome}" acabou de terminar.`);
+  partes.push("");
+  partes.push(`✅ Entregues: *${stats.enviados}*`);
+  if (stats.invalidos) partes.push(`❌ Falhas: ${stats.invalidos}`);
+  if (stats.pulados)   partes.push(`⏭️ Puladas: ${stats.pulados}`);
+  partes.push(`⏱ Duração: ${stats.duracaoMin} min`);
+  if (stats.msgsReais !== stats.enviados) partes.push(`📊 Volume real: ${stats.msgsReais} mensagens`);
+  if (stats.limiteAtingido) partes.push(`⚠️ Limite diário atingido — continua amanhã`);
+  partes.push("");
+  partes.push(`Detalhes em ${appUrl}`);
+
+  try {
+    await sleep(1500);
+    await sock.sendMessage(`${doneNum}@s.whatsapp.net`, { text: partes.join("\n") });
+    log(`📤 Relatório enviado para o dono (${doneNum})`);
+    emit("relatorio_enviado", { para: doneNum });
+  } catch (e) {
+    log(`⚠️ Falha ao enviar relatório pro dono: ${e?.message || e}`);
+  }
+}
+
+// ── Janela de escuta: captura respostas + opt-outs por N minutos ──────────────
+async function janelaDeEscuta(sock, numerosCampanha, duracaoMinutos) {
+  const duracaoMs = Math.max(1, duracaoMinutos) * 60 * 1000;
+  const fimEsperado = Date.now() + duracaoMs;
+  const OPT_OUT_REGEX = /\b(sair|parar|cancelar|remover|descadastr|chega|n[aã]o\s+quero\s+mais|n[aã]o\s+enviar|para\s+de\s+mandar)\b/i;
+  let respostas = 0, optOuts = 0;
+  const numerosQueResponderam = new Set();
+
+  log(`👂 Janela de escuta iniciada: ${duracaoMinutos} min (termina ~${new Date(fimEsperado).toLocaleTimeString("pt-BR")})`);
+  emit("escuta_iniciou", { fimEm: new Date(fimEsperado).toISOString(), duracaoMin: duracaoMinutos });
+
+  const handler = ({ messages }) => {
+    for (const msg of (messages || [])) {
+      try {
+        if (!msg.message) continue;
+        if (msg.key?.fromMe) continue;
+        const jid = String(msg.key?.remoteJid || "");
+        if (!jid.endsWith("@s.whatsapp.net")) continue; // só DM, ignora grupos
+        let numero = jid.split("@")[0].replace(/:.*/, "");
+        // Tenta match direto ou pelo formato alternativo (com/sem o 9)
+        let matchou = numerosCampanha.has(numero);
+        if (!matchou) {
+          const alt = numeroAlternativo(numero);
+          if (alt && numerosCampanha.has(alt)) { numero = alt; matchou = true; }
+        }
+        if (!matchou) continue;
+        if (numerosQueResponderam.has(numero)) continue; // só conta primeira resposta de cada contato
+
+        const texto = msg.message.conversation
+          || msg.message.extendedTextMessage?.text
+          || msg.message.buttonsResponseMessage?.selectedDisplayText
+          || msg.message.listResponseMessage?.title
+          || "";
+        const isOptOut = OPT_OUT_REGEX.test(texto);
+
+        numerosQueResponderam.add(numero);
+        respostas++;
+        if (isOptOut) optOuts++;
+
+        emit("resposta", { numero, optOut: isOptOut, em: new Date().toISOString() });
+        log(`💬 Resposta #${respostas} de ${numero}${isOptOut ? " [opt-out]" : ""}`);
+      } catch (_) {}
+    }
+  };
+  sock.ev.on("messages.upsert", handler);
+
+  await sleep(duracaoMs);
+
+  try { sock.ev.off("messages.upsert", handler); } catch (_) {}
+  log(`⏸ Janela de escuta encerrada. ${respostas} respostas captadas (${optOuts} opt-outs).`);
+  emit("escuta_fim", { respostas, optOuts, numerosQueResponderam: Array.from(numerosQueResponderam) });
 }
 
 // ── Main (Baileys) ───────────────────────────────────────────────────────────
@@ -442,8 +534,21 @@ async function main() {
 
     try {
       await sleep(3000);
-      await enviarCampanha(sock);
-      log("✅ Processo concluído!");
+      const stats = await enviarCampanha(sock);
+      log("✅ Envios concluídos.");
+
+      // Relatório pós-campanha no WhatsApp do dono (se WA_DONO veio do server)
+      await enviarRelatorioDono(sock, stats);
+
+      // Janela de escuta pós-campanha (default 120 min, configurável via ESCUTA_MIN)
+      const escutaMin = parseInt(process.env.ESCUTA_MIN, 10);
+      const duracao = Number.isFinite(escutaMin) ? escutaMin : 120;
+      if (duracao > 0 && stats.numerosEnviados && stats.numerosEnviados.size > 0) {
+        await janelaDeEscuta(sock, stats.numerosEnviados, duracao);
+      } else {
+        log("ℹ️ Escuta desativada ou nenhum número enviado — pulando janela.");
+      }
+
       try { sock.end(); } catch (_) {}
       return;
     } catch (e) {
