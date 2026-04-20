@@ -1298,7 +1298,7 @@ app.put("/api/agendamentos/:id", authMiddleware, (req, res) => {
   const ags = lerUser(req.userId, "agendamentos.json", []);
   const i = ags.findIndex(a => a.id === req.params.id);
   if (i === -1) return res.status(404).json({ erro: "Agendamento não encontrado" });
-  ags[i] = { ...ags[i], ...patch, id: ags[i].id, criadoEm: ags[i].criadoEm, status: "ativo" };
+  ags[i] = { ...ags[i], ...patch, id: ags[i].id, criadoEm: ags[i].criadoEm, status: "ativo", ultimoErro: null };
   salvarUser(req.userId, "agendamentos.json", ags);
   res.json({ ok: true });
 });
@@ -2140,6 +2140,19 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
   proc.on("close", code => {
     delete processos[uid];
     const camp = campanhas[uid] || {};
+    // Se a campanha terminou sem NENHUMA atividade (0 enviados, 0 falhas, 0 pulados),
+    // não polui o histórico com "0x 0x". Normalmente é agendamento que achou a conta
+    // desconectada ou falhou a autenticação no meio.
+    const semAtividade = (camp.enviados?.length || 0) === 0
+                      && (camp.erros?.length    || 0) === 0
+                      && (camp.pulados?.length  || 0) === 0;
+    if (camp.nome && semAtividade) {
+      broadcastUser(uid, { tipo: "log", nivel: "warn", msg: `⚠️ Campanha "${camp.nome}" encerrou sem enviar nada — verifique a conexão da conta.` });
+      try { fs.unlinkSync(userFile(uid, "progress.json")); } catch(_) {}
+      broadcastUser(uid, { tipo: "concluido", codigo: code });
+      delete campanhas[uid];
+      return;
+    }
     if (camp.nome) {
       const consumoLimite = camp.msgsReais || camp.enviados.length;
       contarEnvio(uid, consumoLimite);
@@ -2279,23 +2292,59 @@ function atualizarStatsContatos(uid, numerosEnviados, numerosResponderam) {
 
 // ── AGENDADOR ─────────────────────────────────────────────────────────────────
 function dispararAgendamento(uid, ag) {
+  // Helper pra marcar agendamento com erro sem spawnar nada inútil
+  const falhar = (motivo) => {
+    const all = lerUser(uid, "agendamentos.json", []);
+    const i = all.findIndex(a => a.id === ag.id);
+    if (i !== -1) {
+      all[i].ultimoErro = motivo;
+      all[i].ultimaTentativa = new Date().toISOString();
+      // once que falhou: sai do "ativo" pra não tentar de novo todo minuto. User pode editar/reativar.
+      if (all[i].tipo === "once") all[i].status = "falhou";
+      salvarUser(uid, "agendamentos.json", all);
+    }
+    broadcastUser(uid, { tipo: "log", nivel: "erro", msg: `⚠️ Agendamento "${ag.nome}" não foi disparado: ${motivo}` });
+    return { ok: false, erro: motivo };
+  };
+
   if (processos[uid]) return { ok: false, erro: "Disparo em andamento" };
   const limite = verificarLimite(uid);
-  if (!limite.ok) return { ok: false, erro: limite.erro };
+  if (!limite.ok) return falhar(limite.erro || "Limite diário atingido");
+
+  // ── Preflight: conta conectada? ──
+  const conta = ag.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === ag.contaId) : null;
+  if (ag.contaId && !conta) return falhar("Conta WhatsApp não existe mais");
+  const authDir = path.join(userDir(uid), conta ? ".wwebjs_auth_" + conta.id : ".wwebjs_auth");
+  if (!fs.existsSync(path.join(authDir, ".wa-authenticated"))) {
+    return falhar(`Conta "${conta?.nome || 'WhatsApp'}" está desconectada — reconecte em Contas e reagende`);
+  }
+
+  // ── Preflight: lista com contatos? ──
+  let listaNomeResolvido = null;
+  if (ag.listaId) {
+    const lista = lerUser(uid, "listas.json", []).find(l => l.id === ag.listaId);
+    if (!lista) return falhar("Lista selecionada não existe mais (foi removida)");
+    if (!lista.contatos || !lista.contatos.length) return falhar(`Lista "${lista.nome}" está vazia`);
+    listaNomeResolvido = lista.nome;
+    fs.writeFileSync(userFile(uid, "clientes.csv"), "nome,telefone\n" + lista.contatos.map(c => `${c.nome},${c.phone}`).join("\n"), "utf8");
+  } else {
+    // Sem listaId: usa o CSV atual. Se não existir ou estiver vazio, aborta.
+    const csvPath = userFile(uid, "clientes.csv");
+    if (!fs.existsSync(csvPath) || fs.statSync(csvPath).size < 20) {
+      return falhar("Nenhuma lista vinculada e o CSV atual está vazio");
+    }
+  }
+
+  if (ag.config) salvarUser(uid, "chatmove.config.json", ag.config);
+
+  // Só marca once como "executado" DEPOIS que passou em todos os preflights — assim, se falhar antes, dá pra retentar.
   if (ag.tipo === "once") {
     const all = lerUser(uid, "agendamentos.json", []);
     const i = all.findIndex(a => a.id === ag.id);
-    if (i !== -1) { all[i].status = "executado"; salvarUser(uid, "agendamentos.json", all); }
+    if (i !== -1) { all[i].status = "executado"; all[i].ultimoErro = null; salvarUser(uid, "agendamentos.json", all); }
   }
-  if (ag.config) salvarUser(uid, "chatmove.config.json", ag.config);
-  if (ag.listaId) {
-    const lista = lerUser(uid, "listas.json", []).find(l => l.id === ag.listaId);
-    if (lista?.contatos?.length) fs.writeFileSync(userFile(uid, "clientes.csv"), "nome,telefone\n" + lista.contatos.map(c => `${c.nome},${c.phone}`).join("\n"), "utf8");
-  }
-  const conta = ag.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === ag.contaId) : null;
-  const authDir = path.join(userDir(uid), conta ? ".wwebjs_auth_" + conta.id : ".wwebjs_auth");
   const user = lerUsuario(uid) || {};
-  campanhas[uid] = { enviados: [], erros: [], pulados: [], total: 0, nome: ag.nome, contaId: ag.contaId };
+  campanhas[uid] = { enviados: [], erros: [], pulados: [], total: 0, nome: ag.nome, contaId: ag.contaId, listaId: ag.listaId || null, listaNome: listaNomeResolvido };
   processos[uid] = spawn("node", [path.join(ROOT, "disparador2.js")], {
     cwd: ROOT,
     env: {

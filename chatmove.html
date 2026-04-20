@@ -4659,22 +4659,33 @@ window.carregarAgendamentos = function() {
   authFetch('/api/agendamentos').then(function(ags) {
     ags = ags || [];
     var lista = document.getElementById('agendamentosLista'); if (!lista) return;
-    var ativos = ags.filter(function(a){ return a.status === 'ativo'; });
-    if (!ativos.length) { lista.innerHTML = '<div class="empty">Nenhum agendamento ativo</div>'; return; }
+    // Mostra ativos E falhados (pra pessoa ver o motivo e reagendar). "executado" continua oculto.
+    var visiveis = ags.filter(function(a){ return a.status === 'ativo' || a.status === 'falhou'; });
+    if (!visiveis.length) { lista.innerHTML = '<div class="empty">Nenhum agendamento ativo</div>'; return; }
     var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    lista.innerHTML = ativos.map(function(a) {
+    lista.innerHTML = visiveis.map(function(a) {
       var quando = a.tipo === 'once'
         ? new Date(a.dataHora).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})
         : (a.diasSemana || []).map(function(d){ return dias[d]; }).join(', ') + ' às ' + a.horario;
-      var atrasado = a.tipo === 'once' && new Date(a.dataHora) < new Date();
-      return '<div class="trow" style="flex-wrap:wrap;gap:8px">' +
-        '<div style="flex:1;min-width:180px"><div class="t-lbl">' + a.nome + (atrasado ? ' <span style="font-size:9px;font-weight:700;color:#b45309;background:#fef3c7;padding:2px 6px;border-radius:4px;margin-left:6px">atrasado</span>' : '') + '</div>' +
-        '<div class="t-sub">' + (a.tipo === 'once' ? '📅 ' : '🔁 ') + quando + (a.contaId ? ' · ' + a.contaId : '') + '</div></div>' +
+      var atrasado = a.status === 'ativo' && a.tipo === 'once' && new Date(a.dataHora) < new Date();
+      var falhou = a.status === 'falhou';
+      var badgeFalhou = falhou ? ' <span style="font-size:9px;font-weight:700;color:var(--red);background:rgba(255,95,87,.12);padding:2px 6px;border-radius:4px;margin-left:6px;border:1px solid rgba(255,95,87,.3)">falhou</span>' : '';
+      var badgeAtrasado = atrasado ? ' <span style="font-size:9px;font-weight:700;color:#b45309;background:#fef3c7;padding:2px 6px;border-radius:4px;margin-left:6px">atrasado</span>' : '';
+      var erroLinha = (falhou && a.ultimoErro)
+        ? '<div style="flex-basis:100%;margin-top:6px;padding:8px 10px;background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);border-radius:8px;font-size:11px;color:var(--red);line-height:1.5">⚠️ ' + a.ultimoErro + '</div>'
+        : '';
+      return '<div class="trow" style="flex-wrap:wrap;gap:8px' + (falhou ? ';border-color:rgba(255,95,87,.22)' : '') + '">' +
+        '<div style="flex:1;min-width:180px"><div class="t-lbl">' + a.nome + badgeAtrasado + badgeFalhou + '</div>' +
+        '<div class="t-sub">' + (a.tipo === 'once' ? '📅 ' : '🔁 ') + quando + '</div></div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-          '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 10px" onclick="dispararAgendamentoAgora(\'' + a.id + '\')">▶ Disparar agora</button>' +
-          '<button class="btn btn-ghost" style="height:30px;font-size:10px;padding:0 10px" onclick="editarAgendamento(\'' + a.id + '\')">Editar</button>' +
-          '<button class="del-btn" onclick="excluirAgendamento(\'' + a.id + '\')">Cancelar</button>' +
-        '</div></div>';
+          (falhou
+            ? '<button class="btn btn-ghost" style="height:30px;font-size:10px;padding:0 10px" onclick="editarAgendamento(\'' + a.id + '\')">Editar e reativar</button>'
+            : '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 10px" onclick="dispararAgendamentoAgora(\'' + a.id + '\')">▶ Disparar agora</button>' +
+              '<button class="btn btn-ghost" style="height:30px;font-size:10px;padding:0 10px" onclick="editarAgendamento(\'' + a.id + '\')">Editar</button>') +
+          '<button class="del-btn" onclick="excluirAgendamento(\'' + a.id + '\')">' + (falhou ? 'Remover' : 'Cancelar') + '</button>' +
+        '</div>' +
+        erroLinha +
+        '</div>';
     }).join('');
   });
 };
