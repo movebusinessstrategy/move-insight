@@ -896,21 +896,34 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   padding: 24px; opacity: 0; pointer-events: none;
   transition: opacity 200ms ease;
 }
-/* Checkbox do termo de uso: linha com check à esquerda e texto legível */
-.t-check {
+/* Lista de itens do termo: visual informativo (não clicável) */
+.t-item {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:12.5px; line-height:1.55; color:var(--text2);
+  padding:2px 0;
+}
+.t-item .t-ic {
+  flex-shrink:0; width:20px; height:20px; border-radius:50%;
+  background:rgba(48,209,88,.12); color:var(--green);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800; margin-top:1px;
+}
+.t-item strong { color:var(--text); font-weight:600; }
+
+/* Checkbox único de aceite */
+.t-accept {
   display:flex; align-items:flex-start; gap:12px;
-  padding:12px 14px; background:var(--surface2);
-  border:1px solid var(--border); border-radius:10px;
+  padding:14px 16px; background:var(--gold-bg);
+  border:1px solid rgba(198,169,107,.28); border-radius:11px;
   cursor:pointer; transition:all .2s;
   font-size:12.5px; line-height:1.55; color:var(--text2);
 }
-.t-check:hover { border-color:var(--border2); background:var(--surface3); }
-.t-check input[type="checkbox"] {
-  flex-shrink:0; margin-top:2px; width:17px; height:17px;
+.t-accept:hover { border-color:var(--gold); background:rgba(198,169,107,.12); }
+.t-accept input[type="checkbox"] {
+  flex-shrink:0; margin-top:2px; width:18px; height:18px;
   accent-color:var(--gold); cursor:pointer;
 }
-.t-check input[type="checkbox"]:checked + span { color:var(--text); }
-.t-check strong { color:var(--text); font-weight:600; }
+.t-accept strong { color:var(--text); font-weight:700; }
 .upgrade-overlay.open { opacity: 1; pointer-events: all; }
 .upgrade-card {
   background: var(--surface); border: 1px solid rgba(198,169,107,.3);
@@ -1050,6 +1063,44 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   </div>
 </div>
 
+<!-- MODAL REPETIR DISPARO: pega config+mensagem do histórico e pergunta conta/lista -->
+<div id="repOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:550;padding:24px;overflow-y:auto" role="dialog" onclick="if(event.target===this)fecharRepetir()">
+  <div style="max-width:520px;margin:40px auto;background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:28px 28px 24px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="flex-shrink:0;width:42px;height:42px;border-radius:12px;background:var(--gold-bg);border:1px solid rgba(198,169,107,.25);display:flex;align-items:center;justify-content:center;color:var(--gold)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.14em;text-transform:uppercase">Repetir disparo</div>
+        <div id="repCampNome" style="font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--text);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">...</div>
+      </div>
+      <button onclick="fecharRepetir()" style="background:none;border:1px solid var(--border2);color:var(--text2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;flex-shrink:0">×</button>
+    </div>
+
+    <div class="fg" style="margin-bottom:14px">
+      <label>Mensagem que será disparada</label>
+      <div id="repMsgPreview" style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:12.5px;color:var(--text2);line-height:1.55;max-height:140px;overflow-y:auto;white-space:pre-wrap"></div>
+      <div id="repConfigInfo" style="font-size:10.5px;color:var(--text3);margin-top:6px;letter-spacing:.02em"></div>
+    </div>
+
+    <div class="fg" style="margin-bottom:14px">
+      <label>Qual conta WhatsApp usar?</label>
+      <select id="repContaSel" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;cursor:pointer"></select>
+    </div>
+
+    <div class="fg" style="margin-bottom:18px">
+      <label>Qual lista de clientes?</label>
+      <select id="repListaSel" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;outline:none;cursor:pointer"></select>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:6px;letter-spacing:.02em">"Manter a lista atual" usa os contatos já importados. Escolha uma lista salva pra trocar os destinatários.</div>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="fecharRepetir()" style="flex:1">Cancelar</button>
+      <button class="btn btn-gold" id="repConfirmBtn" onclick="confirmarRepetir()" style="flex:2">Repetir agora</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL TERMO DE RESPONSABILIDADE DE USO (bloqueia disparo até aceitar) -->
 <div id="termoOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);z-index:600;padding:24px;overflow-y:auto" role="dialog" aria-labelledby="termoTitle" aria-modal="true">
   <div style="max-width:640px;margin:40px auto;background:var(--surface);border:1px solid rgba(255,159,10,.3);border-radius:18px;padding:32px 32px 28px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)">
@@ -1063,41 +1114,24 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
       </div>
     </div>
 
-    <p style="font-size:13px;line-height:1.65;color:var(--text2);margin:0 0 16px">O ChatMOVE é uma ferramenta de disparo que reduz riscos com intervalos variáveis e pausas inteligentes, mas <strong style="color:var(--text)">não garante que seu WhatsApp não será bloqueado</strong>. A Meta proíbe envio massivo em números pessoais e pode bloquear a qualquer momento. Antes de disparar, você confirma que:</p>
+    <p style="font-size:13px;line-height:1.65;color:var(--text2);margin:0 0 16px">O ChatMOVE é uma ferramenta de disparo que reduz riscos com intervalos variáveis e pausas inteligentes, mas <strong style="color:var(--text)">não garante que seu WhatsApp não será bloqueado</strong>. A Meta proíbe envio massivo em números pessoais e pode bloquear a qualquer momento. Ao aceitar este termo, você confirma que:</p>
 
-    <div id="termoChecks" style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
-      <label class="t-check">
-        <input type="checkbox" data-item="business">
-        <span><strong>Usarei preferencialmente WhatsApp Business.</strong> Entendo que o Business tem mais tolerância para envios em volume do que o WhatsApp pessoal.</span>
-      </label>
-      <label class="t-check">
-        <input type="checkbox" data-item="sem_restricao">
-        <span><strong>O número conectado nunca foi bloqueado, restringido ou recebeu aviso da Meta.</strong> Não vou conectar chips que já sofreram qualquer restrição.</span>
-      </label>
-      <label class="t-check">
-        <input type="checkbox" data-item="chip_maduro">
-        <span><strong>O número tem histórico de uso.</strong> Não é um chip novo (recém-comprado) sem conversas orgânicas anteriores.</span>
-      </label>
-      <label class="t-check">
-        <input type="checkbox" data-item="lista_propria">
-        <span><strong>A lista de contatos é minha e os clientes me conhecem.</strong> Não vou disparar pra lista comprada, pra números aleatórios ou pra quem nunca interagiu com o meu negócio.</span>
-      </label>
-      <label class="t-check">
-        <input type="checkbox" data-item="risco">
-        <span><strong>Aceito o risco de bloqueio.</strong> Em caso de bloqueio ou restrição, entendo que a responsabilidade é minha e que o ChatMOVE não reembolsa por chips banidos.</span>
-      </label>
-      <label class="t-check">
-        <input type="checkbox" data-item="lgpd">
-        <span><strong>Respeito a LGPD.</strong> Os contatos da minha lista deram consentimento pra receber mensagens minhas.</span>
-      </label>
+    <div id="termoLista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;padding:18px 20px;background:var(--surface2);border:1px solid var(--border);border-radius:12px">
+      <div class="t-item" data-item="business"><span class="t-ic">✓</span><span><strong>Usarei preferencialmente WhatsApp Business.</strong> Entendo que o Business tem mais tolerância para envios em volume.</span></div>
+      <div class="t-item" data-item="sem_restricao"><span class="t-ic">✓</span><span><strong>O número conectado nunca foi bloqueado ou restringido pela Meta</strong>, e não recebeu avisos recentes.</span></div>
+      <div class="t-item" data-item="chip_maduro"><span class="t-ic">✓</span><span><strong>O número tem histórico de uso.</strong> Não é chip novo recém-comprado sem conversas anteriores.</span></div>
+      <div class="t-item" data-item="lista_propria"><span class="t-ic">✓</span><span><strong>A lista é minha e os clientes me conhecem.</strong> Não vou disparar pra lista comprada, números aleatórios ou quem nunca interagiu com meu negócio.</span></div>
+      <div class="t-item" data-item="risco"><span class="t-ic">✓</span><span><strong>Aceito o risco de bloqueio.</strong> Em caso de ban, a responsabilidade é minha e o ChatMOVE não reembolsa chip banido.</span></div>
+      <div class="t-item" data-item="lgpd"><span class="t-ic">✓</span><span><strong>Respeito a LGPD.</strong> Os contatos da minha lista deram consentimento pra receber mensagens do meu negócio.</span></div>
     </div>
 
-    <div style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:18px;font-size:11px;color:var(--text3);line-height:1.5">
-      Ao clicar em "Li e aceito", seu aceite ficará registrado com <strong style="color:var(--text2)">data, hora, IP e dispositivo</strong> pra fins de auditoria. Você pode reler este termo a qualquer momento em <a href="/termos" target="_blank" style="color:var(--gold)">/termos</a>.
-    </div>
+    <label class="t-accept">
+      <input type="checkbox" id="termoCheck">
+      <span><strong>Li e concordo com todos os itens acima.</strong> Entendo que o aceite fica registrado com data, hora, IP e dispositivo pra fins de auditoria. <a href="/termos" target="_blank" style="color:var(--gold)">Ver termos completos →</a></span>
+    </label>
 
-    <button class="btn btn-gold" id="termoAceitarBtn" onclick="aceitarTermoUso()" disabled style="opacity:.5;cursor:not-allowed">
-      Marque todos os itens pra continuar
+    <button class="btn btn-gold" id="termoAceitarBtn" onclick="aceitarTermoUso()" disabled style="opacity:.5;cursor:not-allowed;margin-top:18px">
+      Marque a caixa acima pra continuar
     </button>
   </div>
 </div>
@@ -3132,26 +3166,23 @@ document.addEventListener('click', function(e) {
 // ── Termo de Responsabilidade do Uso: gate, modal e aceite ───────────────────
 window._termoPendingCallback = null;
 
-// Abre modal, libera botão só quando todos os checks estiverem marcados.
+// Abre modal, libera botão só quando o único checkbox de aceite for marcado.
 window.abrirModalTermoUso = function(onAceito) {
   window._termoPendingCallback = onAceito || null;
   var ov = document.getElementById('termoOverlay');
   if (!ov) { onAceito && onAceito(); return; }
-  // Reset dos checkboxes
-  ov.querySelectorAll('input[type="checkbox"]').forEach(function(c){ c.checked = false; });
+  var check = document.getElementById('termoCheck');
   var btn = document.getElementById('termoAceitarBtn');
+  check.checked = false;
   btn.disabled = true; btn.style.opacity='.5'; btn.style.cursor='not-allowed';
-  btn.textContent = 'Marque todos os itens pra continuar';
-  // Listener pra habilitar/desabilitar o botão
-  var checks = ov.querySelectorAll('input[type="checkbox"]');
-  function atualizar(){
-    var todos = Array.prototype.every.call(checks, function(c){ return c.checked; });
-    btn.disabled = !todos;
-    btn.style.opacity = todos ? '1' : '.5';
-    btn.style.cursor = todos ? 'pointer' : 'not-allowed';
-    btn.textContent = todos ? 'Li e aceito · continuar pro disparo' : 'Marque todos os itens pra continuar';
-  }
-  checks.forEach(function(c){ c.onchange = atualizar; });
+  btn.textContent = 'Marque a caixa acima pra continuar';
+  check.onchange = function(){
+    var ok = check.checked;
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '.5';
+    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    btn.textContent = ok ? 'Li e aceito · continuar pro disparo' : 'Marque a caixa acima pra continuar';
+  };
   ov.style.display = 'block';
   document.body.style.overflow = 'hidden';
 };
@@ -3164,12 +3195,13 @@ window.fecharModalTermoUso = function(){
 };
 
 window.aceitarTermoUso = function() {
-  var ov = document.getElementById('termoOverlay');
-  var checks = ov.querySelectorAll('input[type="checkbox"]:checked');
-  if (checks.length < ov.querySelectorAll('input[type="checkbox"]').length) {
-    toast('Marque todos os itens pra continuar','erro'); return;
-  }
-  var itens = Array.prototype.map.call(checks, function(c){ return c.dataset.item; });
+  var check = document.getElementById('termoCheck');
+  if (!check || !check.checked) { toast('Marque a caixa pra continuar','erro'); return; }
+  // Guarda todos os itens exibidos (pra auditoria saber o que foi aceito nesta versão)
+  var itens = Array.prototype.map.call(
+    document.querySelectorAll('#termoLista .t-item'),
+    function(el){ return el.dataset.item; }
+  );
   var btn = document.getElementById('termoAceitarBtn');
   btn.disabled = true; btn.textContent = 'Registrando aceite...';
   post('/api/user/aceitar-termo-uso', { itens: itens }).then(function(r){
@@ -3267,10 +3299,15 @@ window.carregarHistorico = function() {
       var d = new Date(h.dataEnvio);
       var ds = d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
       var taxa = h.total>0 ? Math.round(h.enviados/h.total*100) : 0;
+      var temSnapshot = !!(h.config || h.mensagem);
+      var btnRepetir = temSnapshot
+        ? '<button class="btn btn-ghost" style="height:30px;font-size:11px;padding:0 12px;gap:6px" onclick="repetirDisparo(\''+h.id+'\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>Repetir</button>'
+        : '';
       return '<div class="trow" style="flex-direction:column;align-items:flex-start;gap:8px">' +
         '<div style="display:flex;width:100%;align-items:center;gap:10px">' +
         '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text)">' + h.nome + '</div>' +
         '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + ds + ' · ' + (h.conta||'Padrão') + '</div></div>' +
+        btnRepetir +
         '<button class="del-btn" onclick="excluirHistorico(\'' + h.id + '\')">×</button></div>' +
         '<div style="display:flex;gap:14px;font-size:12px">' +
         '<span style="color:var(--green);font-weight:600">✓ ' + h.enviados + '</span>' +
@@ -3279,6 +3316,87 @@ window.carregarHistorico = function() {
         '<div style="height:3px;width:100%;background:var(--bg2);border-radius:999px;overflow:hidden"><div style="height:100%;width:'+taxa+'%;background:var(--gold);border-radius:999px"></div></div>' +
         '</div>';
     }).join('');
+  });
+};
+
+// ─── Repetir disparo do histórico ─────────────────────────────────────────────
+window._repetirHistId = null;
+window.repetirDisparo = function(histId) {
+  // Pega histórico + contas + listas pra montar o modal
+  Promise.all([ authFetch('/api/historico'), authFetch('/api/contas'), authFetch('/api/listas') ]).then(function(res){
+    var hist = res[0] || [], contas = res[1] || [], listas = res[2] || [];
+    var h = hist.find(function(x){ return x.id === histId; });
+    if (!h) { toast('Campanha não encontrada','erro'); return; }
+    window._repetirHistId = histId;
+
+    var conectadas = contas.filter(function(c){ return c.conectado; });
+    var contaSel = (h.contaId && contas.find(function(c){ return c.id===h.contaId && c.conectado; })) ? h.contaId : (conectadas[0] && conectadas[0].id);
+
+    var contasOpts = contas.length
+      ? contas.map(function(c){
+          var dis = !c.conectado ? ' disabled' : '';
+          var sel = c.id === contaSel ? ' selected' : '';
+          var lbl = c.nome + (c.numero?' ('+c.numero+')':'') + (c.conectado?'':' · desconectado');
+          return '<option value="'+c.id+'"'+sel+dis+'>'+lbl+'</option>';
+        }).join('')
+      : '<option value="">Nenhuma conta cadastrada</option>';
+
+    var listasOpts = '<option value="">Manter a lista atual</option>' + listas.map(function(l){
+      return '<option value="'+l.id+'">'+l.nome+' ('+(l.total||0)+' contatos)</option>';
+    }).join('');
+
+    document.getElementById('repCampNome').textContent = h.nome;
+    document.getElementById('repMsgPreview').textContent = (h.mensagem || '(mensagem vazia)').slice(0, 240) + ((h.mensagem||'').length > 240 ? '...' : '');
+    document.getElementById('repContaSel').innerHTML = contasOpts;
+    document.getElementById('repListaSel').innerHTML = listasOpts;
+    var dl = h.config && h.config.delayMin ? (h.config.delayMin/1000).toFixed(0) : '?';
+    var dm = h.config && h.config.delayMax ? (h.config.delayMax/1000).toFixed(0) : '?';
+    document.getElementById('repConfigInfo').textContent = 'Intervalo '+dl+'-'+dm+'s · pausa a cada ' + (h.config && h.config.pausarACada || '?') + ' msgs' + (h.config && h.config.enviarImagem ? ' · com mídia' : '');
+    document.getElementById('repOverlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  });
+};
+window.fecharRepetir = function(){
+  document.getElementById('repOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+  window._repetirHistId = null;
+};
+window.confirmarRepetir = function(){
+  var histId = window._repetirHistId;
+  if (!histId) return;
+  var contaId = document.getElementById('repContaSel').value;
+  var listaId = document.getElementById('repListaSel').value || null;
+  if (!contaId) { toast('Selecione uma conta conectada','erro'); return; }
+  var btn = document.getElementById('repConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Preparando...';
+  post('/api/historico/'+histId+'/repetir', { listaId: listaId }).then(function(r){
+    if (!r || !r.ok) { btn.disabled=false; btn.textContent='Repetir agora'; toast(r&&r.erro||'Erro ao preparar repetição','erro'); return; }
+    // Aplica a conta escolhida como ativa (carregarContas no goTo vai popular o dropdown com ela selecionada)
+    _contaAtiva = contaId;
+    // Refresh do _S.contacts pra iniciarDisparo passar na validação "tem contato válido"
+    if (listaId) {
+      // Se trocou a lista, precisa recarregar contacts localmente pro iniciarDisparo saber
+      window._S = window._S || {}; window._S.contacts = [];
+      // O backend já salvou os contatos em clientes.csv, mas iniciarDisparo valida window._S.contacts.
+      // Vamos buscar a lista e popular local:
+      authFetch('/api/listas').then(function(lists){
+        var lista = (lists||[]).find(function(l){ return l.id===listaId; });
+        if (lista && lista.contatos) {
+          window._S.contacts = lista.contatos.map(function(c){
+            var phone = c.phone || c.telefone || '';
+            var np = phone.replace(/\D/g,'');
+            return { nome: c.nome || '', phone: phone, np: np, st: np ? 'ok' : 'inv' };
+          });
+        }
+        fecharRepetir();
+        goTo(6);
+        setTimeout(function(){ window.iniciarDisparo && window.iniciarDisparo(); }, 450);
+      });
+    } else {
+      fecharRepetir();
+      goTo(6);
+      setTimeout(function(){ window.iniciarDisparo && window.iniciarDisparo(); }, 450);
+    }
   });
 };
 window.excluirHistorico = function(id) {

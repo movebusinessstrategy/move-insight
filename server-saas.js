@@ -944,6 +944,42 @@ app.delete("/api/blacklist/:numero", authMiddleware, (req, res) => {
 });
 
 app.get("/api/historico",  authMiddleware, (req, res) => res.json(lerUser(req.userId, "historico.json", [])));
+
+// Repetir campanha: aplica config+mensagem do histórico e, opcional, troca lista+conta.
+// Não inicia o disparo aqui — deixa o cliente chamar /api/iniciar depois (gate de termo/limite/etc continua valendo).
+app.post("/api/historico/:id/repetir", authMiddleware, (req, res) => {
+  const uid = req.userId;
+  const hist = lerUser(uid, "historico.json", []);
+  const h = hist.find(x => x.id === req.params.id);
+  if (!h) return res.status(404).json({ erro: "Campanha do histórico não encontrada" });
+  // Aplica config+mensagem do snapshot como a config atual
+  if (h.config || h.mensagem) {
+    const cfgAtual = lerUser(uid, "chatmove.config.json", {});
+    const novaCfg = {
+      ...cfgAtual,
+      mensagem: h.mensagem !== undefined ? h.mensagem : cfgAtual.mensagem,
+      ...(h.config || {})
+    };
+    salvarUser(uid, "chatmove.config.json", novaCfg);
+  }
+  // Se cliente mandou listaId, copia os contatos daquela lista pro CSV ativo
+  const { listaId } = req.body || {};
+  if (listaId) {
+    const lista = lerUser(uid, "listas.json", []).find(l => l.id === listaId);
+    if (!lista) return res.status(404).json({ erro: "Lista escolhida não encontrada" });
+    const csv = "nome,telefone\n" + (lista.contatos || []).map(c => `${c.nome || ""},${c.phone || c.telefone || ""}`).join("\n");
+    fs.writeFileSync(userFile(uid, "clientes.csv"), csv, "utf8");
+  }
+  // Retorna info pra o cliente poder montar a tela de Monitor já com os dados certos
+  const contas = lerUser(uid, "contas.json", []);
+  res.json({
+    ok: true,
+    nomeCampanhaSugerido: h.nome + " (repetido)",
+    contaIdOriginal: h.contaId || null,
+    listas: lerUser(uid, "listas.json", []).map(l => ({ id: l.id, nome: l.nome, total: l.total })),
+    contas: contas.map(c => ({ id: c.id, nome: c.nome, numero: c.numero, conectado: c.conectado || false }))
+  });
+});
 app.delete("/api/historico/:id", authMiddleware, (req, res) => {
   salvarUser(req.userId, "historico.json", lerUser(req.userId, "historico.json", []).filter(h => h.id !== req.params.id));
   res.json({ ok: true });
@@ -1459,8 +1495,19 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
       const duracaoSeg = Math.round((fimEm.getTime() - iniciadoEm.getTime()) / 1000);
       const duracaoMin = Math.round(duracaoSeg / 60);
       const histId = "h_" + Date.now();
-      hist.unshift({ id: histId, nome: camp.nome, conta: conta?.nome||"Padrão", contaId: camp.contaId,
-        dataEnvio: iniciadoEm.toISOString(), enviados: camp.enviados.length, falhas: camp.erros.length, total: camp.total });
+      const cfgAtual = lerUser(uid, "chatmove.config.json", {});
+      hist.unshift({
+        id: histId, nome: camp.nome, conta: conta?.nome||"Padrão", contaId: camp.contaId,
+        dataEnvio: iniciadoEm.toISOString(), enviados: camp.enviados.length, falhas: camp.erros.length, total: camp.total,
+        // Snapshot pra conseguir repetir depois, mesmo que a config atual mude
+        mensagem: cfgAtual.mensagem || "",
+        config: {
+          delayMin: cfgAtual.delayMin, delayMax: cfgAtual.delayMax,
+          pausarACada: cfgAtual.pausarACada, duracaoPausa: cfgAtual.duracaoPausa,
+          enviarImagem: cfgAtual.enviarImagem, modoCaption: cfgAtual.modoCaption,
+          imagemNome: cfgAtual.imagemNome || ""
+        }
+      });
       salvarUser(uid, "historico.json", hist.slice(0, 100));
 
       // ── AUDITORIA: entrada detalhada pra defesa jurídica / abuso ──
