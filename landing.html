@@ -170,20 +170,31 @@ body::after {
 }
 @keyframes vortexSpin { to { transform:rotate(360deg); } }
 
-/* Camada 3: SPOTLIGHT do cursor — linhas revelando ao redor do mouse (não é mais blob) */
+/* Camada 3: SPOTLIGHT do cursor — efeito "peso no tecido cósmico" (massa + curvatura do grid) */
 .cursor-spot {
-  position:fixed; top:0; left:0; width:460px; height:460px; border-radius:50%;
-  background-image:
-    linear-gradient(rgba(185,141,65,.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(185,141,65,.18) 1px, transparent 1px);
-  background-size:26px 26px;
-  -webkit-mask-image:radial-gradient(circle, #000 0%, rgba(0,0,0,.6) 30%, transparent 65%);
-  mask-image:radial-gradient(circle, #000 0%, rgba(0,0,0,.6) 30%, transparent 65%);
+  position:fixed; top:0; left:0; width:220px; height:220px;
   pointer-events:none; z-index:0;
   transform:translate(var(--mx,50vw), var(--my,50vh)) translate(-50%,-50%);
-  opacity:0; transition:opacity .4s ease;
+  opacity:0; transition:opacity .35s ease;
 }
 .cursor-spot.on { opacity:1; }
+/* Anel de grid intensificado (a "curvatura" do tecido) */
+.cursor-spot::before {
+  content:''; position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(185,141,65,.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(185,141,65,.22) 1px, transparent 1px);
+  background-size:20px 20px;
+  -webkit-mask-image:radial-gradient(circle, transparent 16%, #000 38%, rgba(0,0,0,.3) 65%, transparent 82%);
+  mask-image:radial-gradient(circle, transparent 16%, #000 38%, rgba(0,0,0,.3) 65%, transparent 82%);
+}
+/* Núcleo denso no centro (a "massa" puxando o tecido) */
+.cursor-spot::after {
+  content:''; position:absolute; top:50%; left:50%;
+  width:38px; height:38px; margin:-19px 0 0 -19px; border-radius:50%;
+  background:radial-gradient(circle, rgba(185,141,65,.55) 0%, rgba(185,141,65,.2) 45%, transparent 75%);
+  filter:blur(1.5px);
+}
 
 @media(max-width:768px) {
   .cursor-spot { display:none; } /* touch devices não têm cursor */
@@ -560,7 +571,7 @@ nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-i
 .btn-nav-gold:hover { transform:translateY(-1px); box-shadow:0 4px 18px rgba(198,169,107,.45); }
 
 .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:100px 24px 80px; position:relative; overflow:hidden; }
-.hero-glow { position:absolute; top:-15%; left:50%; transform:translateX(-50%); width:1100px; height:800px; border-radius:50%; background:radial-gradient(ellipse,rgba(185,141,65,.22) 0%,rgba(185,141,65,.08) 40%,transparent 70%); pointer-events:none; filter:blur(20px); }
+.hero-glow { display:none; } /* removido — deixa o grid/vortex do fundo falar por si */
 .hero-badge { display:inline-flex; align-items:center; gap:7px; background:var(--gold-bg); border:1px solid rgba(198,169,107,.18); padding:5px 14px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); margin-bottom:28px; position:relative; }
 .badge-dot { width:5px; height:5px; border-radius:50%; background:var(--gold); animation:pdot 2.5s ease-in-out infinite; }
 @keyframes pdot{0%,100%{opacity:1}50%{opacity:.3}}
@@ -664,12 +675,6 @@ footer a:hover { color:var(--text2); }
 .reveal-delay-2 { transition-delay:.2s; }
 .reveal-delay-3 { transition-delay:.3s; }
 
-/* Glow do hero pulsa suavemente (sem chamar atenção demais) */
-.hero-glow { animation:glowPulse 6s ease-in-out infinite; }
-@keyframes glowPulse {
-  0%,100% { transform:translateX(-50%) scale(1); opacity:1; }
-  50%     { transform:translateX(-50%) scale(1.08); opacity:.75; }
-}
 
 /* Cards de feature: lift 3D + glow dourado no hover */
 .feat { transition:transform .35s cubic-bezier(.2,.6,.2,1), box-shadow .35s cubic-bezier(.2,.6,.2,1); }
