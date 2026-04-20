@@ -1076,6 +1076,94 @@ app.post("/api/config", authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Calendário comercial brasileiro: datas fixas + móveis ────────────────────
+// Algoritmo de Gauss pra calcular a Páscoa (base pra Carnaval, Sexta Santa)
+function calcularPascoa(ano) {
+  const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100;
+  const d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const L = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * L) / 451);
+  const mes = Math.floor((h + L - 7 * m + 114) / 31);
+  const dia = ((h + L - 7 * m + 114) % 31) + 1;
+  return new Date(Date.UTC(ano, mes - 1, dia));
+}
+function iso(d) { return d.toISOString().slice(0, 10); }
+function ddMM(d) { return d.getUTCDate() + "/" + (d.getUTCMonth() + 1); }
+// Segundo domingo de um mês (mês 0-indexed em UTC)
+function segundoDomingo(ano, mes0) {
+  let d = new Date(Date.UTC(ano, mes0, 1));
+  while (d.getUTCDay() !== 0) d.setUTCDate(d.getUTCDate() + 1);
+  d.setUTCDate(d.getUTCDate() + 7);
+  return d;
+}
+// Última sexta-feira de novembro (Black Friday)
+function ultimaSextaNov(ano) {
+  let d = new Date(Date.UTC(ano, 10, 30));
+  while (d.getUTCDay() !== 5) d.setUTCDate(d.getUTCDate() - 1);
+  return d;
+}
+function datasComerciaisAno(ano) {
+  const pascoa = calcularPascoa(ano);
+  const sextaSanta = new Date(pascoa); sextaSanta.setUTCDate(pascoa.getUTCDate() - 2);
+  const carnaval = new Date(pascoa); carnaval.setUTCDate(pascoa.getUTCDate() - 47);
+  const diaDasMaes = segundoDomingo(ano, 4); // maio = mês 4 (0-indexed)
+  const diaDosPais = segundoDomingo(ano, 7); // agosto
+  const blackFriday = ultimaSextaNov(ano);
+  return [
+    { data: `${ano}-01-01`, nome: "Ano Novo",                     emoji: "🎉", oportunidade: "combos de começo de ano, energia de recomeço" },
+    { data: iso(carnaval),  nome: "Carnaval",                     emoji: "🎭", oportunidade: "promoção pra fim de semana de folia, delivery pra quem tá em casa" },
+    { data: `${ano}-03-08`, nome: "Dia Internacional da Mulher",  emoji: "🌸", oportunidade: "homenagem com sobremesa grátis ou desconto pra mulheres" },
+    { data: iso(sextaSanta), nome: "Sexta-feira Santa",           emoji: "🐟", oportunidade: "cardápio com peixe, moqueca, bacalhau" },
+    { data: iso(pascoa),    nome: "Páscoa",                       emoji: "🐰", oportunidade: "almoço em família, sobremesa de chocolate" },
+    { data: `${ano}-04-21`, nome: "Tiradentes",                   emoji: "🇧🇷", oportunidade: "feriado, almoço com família, promoção pra casa cheia" },
+    { data: `${ano}-05-01`, nome: "Dia do Trabalhador",           emoji: "💼", oportunidade: "promoção do trabalhador, feriado prolongado" },
+    { data: iso(diaDasMaes), nome: "Dia das Mães",                emoji: "💐", oportunidade: "almoço/brunch especial, reserva antecipada, combo família" },
+    { data: `${ano}-06-12`, nome: "Dia dos Namorados",            emoji: "❤️", oportunidade: "jantar romântico, combo casal, sobremesa especial" },
+    { data: `${ano}-06-24`, nome: "São João",                     emoji: "🌽", oportunidade: "comida junina, quentão, milho, pé de moleque, temático" },
+    { data: `${ano}-07-20`, nome: "Dia do Amigo",                 emoji: "🤝", oportunidade: "desconto em combos pra turma, promoção 'chama os amigos'" },
+    { data: iso(diaDosPais), nome: "Dia dos Pais",                emoji: "👨", oportunidade: "churrasco, combo do pai, almoço família" },
+    { data: `${ano}-09-07`, nome: "Independência",                emoji: "🇧🇷", oportunidade: "feriado, almoço com família, churrasco" },
+    { data: `${ano}-09-15`, nome: "Dia do Cliente",               emoji: "🎁", oportunidade: "desconto exclusivo pra base, 'você é motivo'" },
+    { data: `${ano}-10-12`, nome: "Dia das Crianças",             emoji: "🎠", oportunidade: "combo família, porção criança grátis, brinde" },
+    { data: `${ano}-10-15`, nome: "Dia dos Professores",          emoji: "👩‍🏫", oportunidade: "desconto pra professores apresentando algo" },
+    { data: `${ano}-11-02`, nome: "Finados",                      emoji: "🕯️", oportunidade: "delivery (dia de estar em casa)" },
+    { data: `${ano}-11-15`, nome: "Proclamação da República",     emoji: "🇧🇷", oportunidade: "feriado, almoço família, movimento em casa" },
+    { data: iso(blackFriday), nome: "Black Friday",               emoji: "🛍️", oportunidade: "desconto forte, menu especial, combo 'só hoje'" },
+    { data: `${ano}-12-24`, nome: "Véspera de Natal",             emoji: "🎄", oportunidade: "ceia pronta, encomendas, combos especiais" },
+    { data: `${ano}-12-25`, nome: "Natal",                        emoji: "🎅", oportunidade: "almoço de Natal, combos família" },
+    { data: `${ano}-12-31`, nome: "Réveillon",                    emoji: "🥂", oportunidade: "combo de virada, entrega antes das 22h" }
+  ];
+}
+
+// GET /api/calendario/proximas — retorna eventos nos próximos X dias (default 60)
+app.get("/api/calendario/proximas", authMiddleware, (req, res) => {
+  const diasFrente = Math.min(365, Math.max(7, parseInt(req.query.dias, 10) || 60));
+  const agora = new Date();
+  const ano = agora.getFullYear();
+  // Pega ano corrente + próximo pra cobrir virada (ex: se estamos em dezembro, já pega Ano Novo do ano seguinte)
+  const todas = [...datasComerciaisAno(ano), ...datasComerciaisAno(ano + 1)];
+  const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+  const limite = new Date(hoje); limite.setDate(limite.getDate() + diasFrente);
+  const proximas = todas
+    .map(d => {
+      const [y, m, dia] = d.data.split("-").map(Number);
+      const quando = new Date(y, m - 1, dia);
+      const diasRestantes = Math.round((quando - hoje) / 86400000);
+      return { ...d, quando, diasRestantes };
+    })
+    .filter(d => d.diasRestantes >= 0 && d.quando <= limite)
+    .sort((a, b) => a.diasRestantes - b.diasRestantes)
+    .map(d => ({
+      data: d.data, nome: d.nome, emoji: d.emoji, oportunidade: d.oportunidade,
+      diasRestantes: d.diasRestantes,
+      quandoLegivel: d.quando.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })
+    }));
+  res.json({ proximas, hoje: hoje.toISOString().slice(0, 10) });
+});
+
 // ── IA: gera 3 variações de mensagem de WhatsApp pra restaurante ──────────────
 // Usa Claude Haiku 4.5 (rápido e barato). Rate limit: 20 chamadas/24h por usuário.
 const AI_LIMITE_DIARIO = 20;
@@ -1172,6 +1260,177 @@ app.post("/api/ai/gerar-mensagem", authMiddleware, async (req, res) => {
   } catch (e) {
     console.error("IA gerar-mensagem:", e.message);
     res.status(500).json({ erro: "Erro ao consultar a IA. Tente novamente." });
+  }
+});
+
+// IA especializada pra campanha de DATA COMERCIAL: usa nome do evento + oportunidade +
+// histórico recente do usuário (as últimas 3 campanhas) como contexto pra continuidade de voz.
+app.post("/api/ai/gerar-mensagem-evento", authMiddleware, async (req, res) => {
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ erro: "IA ainda não configurada." });
+  const { evento, oportunidade, diasRestantes, detalhes } = req.body || {};
+  if (!evento || !oportunidade) return res.status(400).json({ erro: "evento e oportunidade são obrigatórios" });
+
+  // Rate limit compartilhado com gerar-mensagem
+  if (!req.user.admin) {
+    const audit = lerUser(req.userId, "audit.json", []);
+    const cutoff = Date.now() - 86400000;
+    const ult24h = audit.filter(a => (a.tipo === "ai_gerar_msg" || a.tipo === "ai_gerar_evento") && new Date(a.em || 0).getTime() >= cutoff).length;
+    if (ult24h >= AI_LIMITE_DIARIO) return res.status(429).json({ erro: `Limite de ${AI_LIMITE_DIARIO} gerações/24h atingido.` });
+  }
+
+  // Contexto de continuidade: últimas 3 campanhas (só mensagem, pra IA manter tom/estilo)
+  const hist = lerUser(req.userId, "historico.json", []).slice(0, 3)
+    .filter(h => h.mensagem).map(h => ({ nome: h.nome, mensagem: h.mensagem.slice(0, 200) }));
+
+  const systemEvento = `Você é um copywriter de WhatsApp pra restaurantes brasileiros. Agora o dono quer uma campanha pra uma data comercial específica.
+
+REGRAS:
+- 280 caracteres máximo por mensagem
+- Use SEMPRE {nome}
+- Tom próximo, brasileiro, de atendente simpático
+- 1-2 emojis relevantes à data
+- CTA claro (retirar, reservar, pedir delivery, responder)
+- Ancorar na data específica (ex: "pro Dia das Mães", "nessa Sexta Santa")
+- Se tiver histórico do cliente, mantenha continuidade de voz
+- Gere 3 variações com abordagens diferentes
+
+FORMATO: JSON puro, sem markdown:
+{"variacoes":[{"abordagem":"...","mensagem":"..."},...]}`;
+
+  const contextoHist = hist.length
+    ? `\n\nHistórico recente do dono (pra manter estilo/voz consistente):\n${hist.map((h,i) => `${i+1}. ${h.nome}: "${h.mensagem}"`).join("\n")}`
+    : "";
+  const userMsg =
+    `Data comercial: ${evento}` +
+    (diasRestantes != null ? ` (faltam ${diasRestantes} dia${diasRestantes !== 1 ? "s" : ""})` : "") +
+    `\nOportunidade desta data: ${oportunidade}` +
+    (detalhes ? `\nDetalhes extras do dono: ${detalhes}` : "") +
+    contextoHist +
+    `\n\nGere 3 variações de mensagem específicas pra essa data.`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1200,
+        system: systemEvento,
+        messages: [{ role: "user", content: userMsg }]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) return res.status(502).json({ erro: "IA indisponível: " + (data.error?.message || "tente de novo") });
+    const text = (data.content?.[0]?.text || "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return res.status(502).json({ erro: "IA retornou formato inesperado." });
+    const parsed = JSON.parse(match[0]);
+    const variacoes = (parsed.variacoes || []).filter(v => v && v.mensagem).slice(0, 3);
+    if (!variacoes.length) return res.status(502).json({ erro: "IA não gerou variações." });
+
+    salvarAuditoria(req.userId, {
+      id: "aud_" + Date.now(),
+      tipo: "ai_gerar_evento",
+      em: new Date().toISOString(), iniciadoEm: new Date().toISOString(),
+      evento, diasRestantes, ip: getClientIp(req),
+      modelo: "claude-haiku-4-5",
+      tokensIn: data.usage?.input_tokens || null,
+      tokensOut: data.usage?.output_tokens || null
+    });
+
+    res.json({ ok: true, variacoes, usouHistorico: hist.length > 0 });
+  } catch (e) {
+    console.error("IA gerar-evento:", e.message);
+    res.status(500).json({ erro: "Erro ao consultar a IA." });
+  }
+});
+
+// Limpeza de lista client-side complementada por IA opcional. Mas client-side já resolve
+// 99% dos casos então o endpoint de IA vira "melhorar ainda mais" quando houver casos edge.
+app.post("/api/ai/limpar-contatos", authMiddleware, async (req, res) => {
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ erro: "IA ainda não configurada." });
+  const { contatos } = req.body || {};
+  if (!Array.isArray(contatos) || !contatos.length) return res.status(400).json({ erro: "Envie um array de contatos" });
+  if (contatos.length > 200) return res.status(400).json({ erro: "Máximo 200 contatos por chamada. Divida em lotes." });
+
+  // Rate limit separado: 10 chamadas/24h (pode processar até 2000 contatos/dia)
+  if (!req.user.admin) {
+    const audit = lerUser(req.userId, "audit.json", []);
+    const cutoff = Date.now() - 86400000;
+    const ult24h = audit.filter(a => a.tipo === "ai_limpar_contatos" && new Date(a.em || 0).getTime() >= cutoff).length;
+    if (ult24h >= 10) return res.status(429).json({ erro: "Limite de 10 limpezas/24h atingido." });
+  }
+
+  const systemLimpar = `Você recebe uma lista de contatos brasileiros em JSON (nome bruto + telefone bruto) e devolve a versão limpa.
+
+REGRAS DE NOME:
+- Extrair apenas o PRIMEIRO NOME (antes do primeiro espaço), ignorando "de", "da", "do", "dos", "das" como preposições
+- Nomes compostos conhecidos ficam juntos: Ana Paula, Maria Clara, Maria Eduarda, José Carlos, João Pedro, Luiz Felipe, Carlos Eduardo, Ana Luiza, Ana Júlia, Maria Fernanda
+- Capitalizar corretamente: "JOÃO" → "João", "maria" → "Maria", "josé" → "José"
+- Preservar acentos
+- Se não conseguir extrair nome válido, retornar string vazia ""
+
+REGRAS DE TELEFONE (IMPORTANTE — NÃO INVENTAR O 9):
+- Só LIMPA a formatação. NÃO adiciona nem remove o dígito 9 de celular. NUNCA.
+- O "9" extra em celulares brasileiros foi adicionado em épocas diferentes por região (SP em 2012, PR/SC/interior depois). Muitos WhatsApps antigos ainda estão cadastrados sem o 9 na região Sul e em cidades menores, especialmente PR (DDDs 41-46). Mexer no 9 quebra a entrega.
+- Remover APENAS caracteres não-dígito (espaços, parênteses, traços, pontos, +)
+- Se vier SEM o "55" no início, adicione "55"
+- Se vier com "055" ou "0055", normalize pra "55"
+- Resultado aceitável: 12 dígitos (55 + DDD + 8 dígitos, sem o 9) OU 13 dígitos (55 + DDD + 9 + 8 dígitos)
+- AMBOS os formatos são válidos. Retorne EXATAMENTE como veio, só sem a formatação.
+- Se número claramente inválido (menos de 10 dígitos totais, ou mais de 13, ou DDD inválido), retornar null
+
+EXEMPLOS:
+- "(43) 9625-5556" → "554396255556" (12 dígitos, sem o 9, formato PR antigo — MANTÉM ASSIM)
+- "(11) 99999-8888" → "5511999998888" (13 dígitos, com o 9, formato SP — MANTÉM ASSIM)
+- "43 9 9625-5556" → "5543996255556" (13 dígitos, com o 9, usuário informou o 9 — MANTÉM ASSIM)
+- "+55 43 96255556" → "554396255556" (sem o 9, do jeito que veio)
+- "996255556" (só 9 dígitos, sem DDD) → null (ambíguo demais)
+
+FORMATO RESPOSTA: JSON puro sem markdown, array na mesma ordem de entrada:
+{"limpos":[{"nome":"...","telefone":"..."},...]}`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4000,
+        system: systemLimpar,
+        messages: [{ role: "user", content: "Contatos a limpar (JSON):\n" + JSON.stringify(contatos) }]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) return res.status(502).json({ erro: "IA indisponível." });
+    const text = (data.content?.[0]?.text || "").trim();
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return res.status(502).json({ erro: "IA retornou formato inesperado." });
+    const parsed = JSON.parse(match[0]);
+    const limpos = (parsed.limpos || []).slice(0, contatos.length);
+
+    salvarAuditoria(req.userId, {
+      id: "aud_" + Date.now(),
+      tipo: "ai_limpar_contatos",
+      em: new Date().toISOString(), iniciadoEm: new Date().toISOString(),
+      qtd: contatos.length, ip: getClientIp(req),
+      modelo: "claude-haiku-4-5",
+      tokensIn: data.usage?.input_tokens || null,
+      tokensOut: data.usage?.output_tokens || null
+    });
+
+    res.json({ ok: true, limpos });
+  } catch (e) {
+    console.error("IA limpar-contatos:", e.message);
+    res.status(500).json({ erro: "Erro ao consultar a IA." });
   }
 });
 app.post("/api/csv", authMiddleware, (req, res) => {

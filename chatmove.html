@@ -912,6 +912,138 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 
 @keyframes spin { to { transform:rotate(360deg); } }
 
+/* Calendário de oportunidades */
+.opp-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:12px;
+  transition:all .25s cubic-bezier(.2,.6,.2,1);
+}
+.opp-item:hover { border-color:rgba(185,141,65,.35); background:var(--gold-bg); transform:translateY(-1px); }
+.opp-item.soon { border-color:rgba(255,95,87,.25); background:linear-gradient(135deg, rgba(255,95,87,.05), transparent); }
+.opp-item.soon .opp-dias { color:var(--red); }
+.opp-emoji {
+  flex-shrink:0; width:44px; height:44px; border-radius:12px;
+  background:var(--surface); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+}
+.opp-body { flex:1; min-width:0; }
+.opp-nome { font-size:13.5px; font-weight:700; color:var(--text); letter-spacing:-.01em; margin-bottom:2px; }
+.opp-quando { font-size:11px; color:var(--text3); text-transform:capitalize; }
+.opp-opp { font-size:11px; color:var(--text2); margin-top:4px; line-height:1.4; }
+.opp-dias {
+  flex-shrink:0; text-align:center; color:var(--gold); min-width:60px;
+}
+.opp-dias-num { font-size:20px; font-weight:800; letter-spacing:-.03em; line-height:1; }
+.opp-dias-lbl { font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text3); margin-top:2px; }
+.opp-cta {
+  flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  padding:8px 14px; background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:#111; font-size:11.5px; font-weight:700; letter-spacing:-.005em;
+  border:none; border-radius:999px; cursor:pointer; font-family:inherit;
+  box-shadow:0 2px 8px rgba(198,169,107,.3);
+  transition:all .25s;
+}
+.opp-cta:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(198,169,107,.45); }
+.opp-cta svg { flex-shrink:0; }
+@media(max-width:640px){
+  .opp-item { flex-wrap:wrap; }
+  .opp-dias { order:3; }
+  .opp-cta { order:4; width:100%; justify-content:center; margin-top:4px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════ */
+/*  BOTÃO "GERAR COM IA" — estilo premium com shine + pulse + badge           */
+/* ══════════════════════════════════════════════════════════════════════════ */
+.ia-gen-btn {
+  position:relative; overflow:hidden;
+  display:inline-flex; align-items:center; gap:8px;
+  height:36px; padding:0 16px 0 14px; border:none;
+  background:linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  color:#111; font-family:inherit; font-size:12px; font-weight:700; letter-spacing:-.01em;
+  border-radius:999px; cursor:pointer;
+  box-shadow:0 2px 8px rgba(198,169,107,.3), 0 6px 18px rgba(198,169,107,.25);
+  transition:transform .25s cubic-bezier(.2,.6,.2,1), box-shadow .25s;
+  animation:iaGenPulse 3s ease-in-out infinite;
+}
+.ia-gen-btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(198,169,107,.4), 0 10px 28px rgba(198,169,107,.4); }
+.ia-gen-btn:hover .ia-gen-icon { transform:rotate(-12deg) scale(1.15); }
+.ia-gen-icon { transition:transform .35s cubic-bezier(.34,1.56,.64,1); flex-shrink:0; }
+.ia-gen-txt { position:relative; z-index:1; }
+.ia-gen-shine {
+  position:absolute; top:0; left:-100%; width:50%; height:100%;
+  background:linear-gradient(100deg, transparent, rgba(255,255,255,.55) 50%, transparent);
+  animation:iaGenShine 3.5s ease-in-out infinite;
+}
+.ia-gen-badge {
+  position:absolute; top:-7px; right:-8px;
+  font-size:8.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  background:var(--red); color:#fff;
+  padding:2px 7px; border-radius:999px;
+  border:2px solid var(--surface);
+  z-index:2;
+  animation:iaBadgePulse 2s ease-in-out infinite;
+}
+@keyframes iaGenPulse {
+  0%,100% { box-shadow:0 2px 8px rgba(198,169,107,.3), 0 6px 18px rgba(198,169,107,.25); }
+  50%     { box-shadow:0 2px 10px rgba(198,169,107,.45), 0 8px 28px rgba(198,169,107,.4); }
+}
+@keyframes iaGenShine {
+  0%, 40%  { left:-100%; }
+  60%      { left:150%; }
+  100%     { left:150%; }
+}
+@keyframes iaBadgePulse {
+  0%,100% { transform:scale(1); }
+  50%     { transform:scale(1.08); }
+}
+
+/* Banner sugerindo uso da IA (acima do textarea) */
+.ia-suggestion {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 18px; margin:0 0 18px;
+  background:linear-gradient(135deg, var(--gold-bg), rgba(198,169,107,.02));
+  border:1px solid rgba(198,169,107,.25);
+  border-radius:12px;
+  cursor:pointer; transition:all .25s cubic-bezier(.2,.6,.2,1);
+  position:relative; overflow:hidden;
+}
+.ia-suggestion::before {
+  content:''; position:absolute; top:-50%; right:-20%; width:300px; height:300px;
+  background:radial-gradient(circle, rgba(198,169,107,.15), transparent 70%);
+  pointer-events:none; filter:blur(30px);
+}
+.ia-suggestion:hover {
+  border-color:var(--gold);
+  background:linear-gradient(135deg, rgba(198,169,107,.18), rgba(198,169,107,.04));
+  transform:translateY(-1px);
+  box-shadow:0 4px 14px rgba(198,169,107,.2);
+}
+.ia-suggestion-icon {
+  flex-shrink:0; width:38px; height:38px; border-radius:11px;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:#111; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(198,169,107,.35);
+  position:relative; z-index:1;
+}
+.ia-suggestion-body { flex:1; min-width:0; position:relative; z-index:1; }
+.ia-suggestion-title { font-size:13px; font-weight:700; color:var(--text); letter-spacing:-.01em; margin-bottom:2px; }
+.ia-suggestion-desc { font-size:11.5px; color:var(--text2); line-height:1.5; }
+.ia-suggestion-cta {
+  flex-shrink:0; font-size:12px; font-weight:700; color:var(--gold);
+  letter-spacing:-.005em; position:relative; z-index:1;
+  transition:transform .25s;
+}
+.ia-suggestion:hover .ia-suggestion-cta { transform:translateX(4px); }
+
+@media(max-width:640px){
+  .ia-suggestion { flex-direction:column; align-items:flex-start; text-align:left; }
+  .ia-suggestion-cta { align-self:flex-end; }
+  .ia-gen-badge { right:-4px; top:-5px; }
+}
+
 /* Botões de tom do modal IA */
 .ia-tom {
   background:var(--surface2); border:1px solid var(--border); color:var(--text2);
@@ -1438,6 +1570,16 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
         </button>
       </div>
 
+      <!-- Calendário de oportunidades: próximas datas comerciais com sugestão da IA -->
+      <div class="card" id="homeCalendario" style="margin-top:18px;display:none">
+        <div class="card-hd">
+          <div class="card-dot"></div>
+          <div class="card-title">Oportunidades próximas</div>
+          <div class="card-aside"><span style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase">próximos 60 dias</span></div>
+        </div>
+        <div id="calOportunidades" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
       <!-- Últimas campanhas -->
       <div class="card" id="homeUltimas" style="margin-top:18px;display:none">
         <div class="card-hd"><div class="card-dot"></div><div class="card-title">Últimas campanhas</div></div>
@@ -1498,12 +1640,27 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
           <div class="card-dot"></div>
           <div class="card-title">Mensagem</div>
           <div class="card-aside">
-            <button class="btn btn-outline" style="height:32px;font-size:11px;padding:0 14px;gap:7px;border-color:rgba(185,141,65,.3);color:var(--gold)" onclick="abrirModalIA()">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
-              Gerar com IA
+            <button class="ia-gen-btn" onclick="abrirModalIA()" aria-label="Gerar mensagem com IA">
+              <span class="ia-gen-badge">Novo</span>
+              <svg class="ia-gen-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+              <span class="ia-gen-txt">Gerar com IA</span>
+              <span class="ia-gen-shine" aria-hidden="true"></span>
             </button>
           </div>
         </div>
+
+        <!-- Banner sugerindo uso da IA (aparece acima do textarea) -->
+        <div class="ia-suggestion" onclick="abrirModalIA()">
+          <div class="ia-suggestion-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+          </div>
+          <div class="ia-suggestion-body">
+            <div class="ia-suggestion-title">Sem inspiração? Deixa a IA escrever pra você</div>
+            <div class="ia-suggestion-desc">Conta o que quer promover em 1-2 frases e a IA gera 3 opções prontas com o nome de cada cliente já substituído.</div>
+          </div>
+          <div class="ia-suggestion-cta">Gerar agora →</div>
+        </div>
+
         <div class="fg">
           <label>Corpo da mensagem</label>
           <div class="emoji-wrap">
@@ -1516,7 +1673,7 @@ Passando para te avisar sobre nossa promoção especial de hoje!</textarea>
               <div class="emoji-grid" id="emojiGrid"></div>
             </div>
           </div>
-          <div class="hint">*negrito*  _itálico_  ~tachado~ · ou clique em <strong style="color:var(--gold)">Gerar com IA</strong> pra escrever com um briefing</div>
+          <div class="hint">*negrito*  _itálico_  ~tachado~</div>
         </div>
         <div class="fg">
           <label>Variáveis</label>
@@ -1779,8 +1936,12 @@ Carlos Mendes,5543900001003" style="min-height:160px;font-size:12px;font-family:
         <div class="card-hd">
           <div class="card-dot"></div>
           <div class="card-title">Lista</div>
-          <div class="card-aside" style="display:flex;align-items:center;gap:10px">
+          <div class="card-aside" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span id="listTag" style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)">0 contatos</span>
+            <button class="btn btn-ghost" id="btnPadronizarIA" style="display:none;height:28px;font-size:10px;padding:0 10px;gap:5px;color:var(--gold);border-color:rgba(198,169,107,.3)" onclick="padronizarListaIA()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+              Padronizar com IA
+            </button>
             <button class="btn btn-ghost" id="btnLimparLista" style="display:none;height:28px;font-size:10px;padding:0 10px;gap:5px;color:var(--red);border-color:rgba(255,95,87,.25)" onclick="limparLista()">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
               Limpar lista
@@ -2570,6 +2731,8 @@ function renderCt() {
   var tag = document.getElementById('listTag'); if (tag) tag.textContent = valid + ' válidos';
   var btnLimpar = document.getElementById('btnLimparLista');
   if (btnLimpar) btnLimpar.style.display = window._S.contacts.length ? '' : 'none';
+  var btnIA = document.getElementById('btnPadronizarIA');
+  if (btnIA) btnIA.style.display = window._S.contacts.length ? '' : 'none';
   if (!body) return;
   if (!window._S.contacts.length) { body.innerHTML = '<tr><td colspan="5"><div class="empty">Nenhum contato importado</div></td></tr>'; return; }
   body.innerHTML = window._S.contacts.map(function(c, i) {
@@ -2592,6 +2755,72 @@ function showStats() {
   var btnSalvar = document.getElementById('btnSalvarLista');
   if (btnSalvar) btnSalvar.style.display = ok > 0 ? '' : 'none';
 }
+// Padronizar lista com IA: primeiro nome capitalizado + telefone E.164
+window.padronizarListaIA = function() {
+  if (!window._S.contacts.length) return;
+  if (!confirm('Padronizar ' + window._S.contacts.length + ' contato(s) com IA?\n\n• Primeiro nome com maiúscula (ex: "JOÃO DA SILVA" → "João")\n• Telefone sem formatação (parênteses, traços, espaços removidos)\n\nImportante: a IA NÃO adiciona nem remove o "9" dos celulares. Se seu cliente está em SP (DDD 11-19) o WhatsApp geralmente tem o 9; em PR/interior muitas vezes não tem. O sistema testa os dois formatos na hora do disparo.\n\nIsso pode levar ~30s.')) return;
+
+  var btn = document.getElementById('btnPadronizarIA');
+  var origHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" opacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Padronizando...';
+
+  // Processa em lotes de 100 pra não estourar o limite do endpoint
+  var contatos = window._S.contacts.slice();
+  var TAM_LOTE = 100;
+  var lotes = [];
+  for (var i = 0; i < contatos.length; i += TAM_LOTE) {
+    lotes.push(contatos.slice(i, i + TAM_LOTE));
+  }
+
+  var resultado = [];
+  var erros = 0;
+
+  function processarLote(idx) {
+    if (idx >= lotes.length) return Promise.resolve();
+    var lote = lotes[idx].map(function(c){ return { nome: c.nome || '', telefone: c.phone || c.telefone || c.np || '' }; });
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" opacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Lote ' + (idx+1) + '/' + lotes.length + '...';
+    return post('/api/ai/limpar-contatos', { contatos: lote }).then(function(r){
+      if (r && r.ok && r.limpos) {
+        resultado = resultado.concat(r.limpos);
+      } else {
+        erros++;
+        // Se falhar o lote, mantém os originais pra não perder dados
+        resultado = resultado.concat(lote);
+      }
+      return processarLote(idx + 1);
+    });
+  }
+
+  processarLote(0).then(function(){
+    btn.disabled = false;
+    btn.innerHTML = origHtml;
+    if (erros === lotes.length) { toast('Falha ao padronizar. Tente de novo em 1 min.','erro'); return; }
+
+    // Atualiza _S.contacts com o resultado
+    var antes = window._S.contacts.length;
+    window._S.contacts = resultado
+      .filter(function(r){ return r && r.nome && r.telefone; })
+      .map(function(r){
+        var np = String(r.telefone).replace(/\D/g,'');
+        return {
+          nome: r.nome,
+          phone: r.telefone,
+          np: np,
+          st: (np.length === 12 || np.length === 13) ? 'ok' : 'inv'
+        };
+      });
+    var removidos = antes - window._S.contacts.length;
+    renderCt();
+    showStats();
+    sincronizarCSV();
+    var msg = window._S.contacts.length + ' contato(s) padronizados';
+    if (removidos > 0) msg += ' · ' + removidos + ' inválidos removidos';
+    if (erros > 0) msg += ' · ' + erros + ' lote(s) com falha (mantidos originais)';
+    toast(msg, 'ok');
+  });
+};
+
 window.limparLista = function() {
   if (!window._S.contacts.length) return;
   var total = window._S.contacts.length;
@@ -3412,6 +3641,7 @@ window.abrirModalIA = function(){
 window.fecharModalIA = function(){
   document.getElementById('iaOverlay').style.display = 'none';
   document.body.style.overflow = '';
+  window._iaEventoAtual = null; // reseta contexto de evento
 };
 
 // Contador de caracteres + binding dos botões de tom
@@ -3447,7 +3677,14 @@ window.gerarMensagemIA = function(){
   btn.disabled = true;
   btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10" opacity=".3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>Gerando...';
 
-  post('/api/ai/gerar-mensagem', { prompt: prompt, tom: window._iaTomSel || null }).then(function(r){
+  // Se veio do clique numa data comercial, usa endpoint especializado (que inclui histórico)
+  var ev = window._iaEventoAtual;
+  var url = ev ? '/api/ai/gerar-mensagem-evento' : '/api/ai/gerar-mensagem';
+  var body = ev
+    ? { evento: ev.nome, oportunidade: ev.oportunidade, diasRestantes: ev.diasRestantes, detalhes: prompt }
+    : { prompt: prompt, tom: window._iaTomSel || null };
+
+  post(url, body).then(function(r){
     btn.disabled = false;
     btn.innerHTML = orig;
     if (!r || !r.ok) {
@@ -4071,7 +4308,59 @@ window.carregarHome = function() {
         }).join('');
       }
     }
+    carregarOportunidades();
   });
+};
+
+// ─── Calendário de oportunidades na home ──────────────────────────────────────
+window.carregarOportunidades = function(){
+  var sec = document.getElementById('homeCalendario');
+  var box = document.getElementById('calOportunidades');
+  if (!sec || !box) return;
+  authFetch('/api/calendario/proximas?dias=60').then(function(r){
+    var proximas = (r && r.proximas) || [];
+    if (!proximas.length) { sec.style.display = 'none'; return; }
+    // Mostra até 4 próximas
+    var topN = proximas.slice(0, 4);
+    sec.style.display = '';
+    box.innerHTML = topN.map(function(o){
+      var classeSoon = o.diasRestantes <= 14 ? ' soon' : '';
+      var diaLbl = o.diasRestantes === 0 ? 'hoje' : (o.diasRestantes === 1 ? 'amanhã' : 'dias');
+      var diaNum = o.diasRestantes === 0 ? '0' : (o.diasRestantes === 1 ? '1' : o.diasRestantes);
+      return '<div class="opp-item'+classeSoon+'">' +
+        '<div class="opp-emoji">'+o.emoji+'</div>' +
+        '<div class="opp-body">' +
+          '<div class="opp-nome">'+o.nome+'</div>' +
+          '<div class="opp-quando">'+o.quandoLegivel+'</div>' +
+          '<div class="opp-opp">💡 '+o.oportunidade+'</div>' +
+        '</div>' +
+        '<div class="opp-dias"><div class="opp-dias-num">'+diaNum+'</div><div class="opp-dias-lbl">'+diaLbl+'</div></div>' +
+        '<button class="opp-cta" onclick="prepararCampanhaEvento('+JSON.stringify(o).replace(/"/g,'&quot;')+')">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>' +
+          'Preparar com IA' +
+        '</button>' +
+      '</div>';
+    }).join('');
+  });
+};
+
+// Abre modal de IA já com briefing pré-preenchido pra a data comercial
+window.prepararCampanhaEvento = function(evento){
+  abrirModalIA();
+  // Pré-preenche com sugestão da data
+  var briefing = 'Campanha pra ' + evento.nome + ' (faltam ' + evento.diasRestantes + ' dias). ' +
+    'Oportunidade: ' + evento.oportunidade + '. ' +
+    '[Complete com: valor do combo, horário de funcionamento e qualquer detalhe da promoção]';
+  var input = document.getElementById('iaPrompt');
+  if (input) {
+    input.value = briefing;
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+    // Scroll pro fim pro user ver o placeholder
+    input.setSelectionRange(briefing.length, briefing.length);
+  }
+  // Salva evento pra usar endpoint especializado
+  window._iaEventoAtual = evento;
 };
 
 // Carrega home ao abrir o painel
@@ -4721,8 +5010,8 @@ window.baixarModelo = function() {
     'nome,telefone',
     'João Silva,5511900001001',
     'Maria Oliveira,5521900001002',
-    'Carlos Mendes,5543900001003',
-    'Ana Paula Souza,5547900001004',
+    'Carlos Mendes,554390000003',
+    'Ana Paula Souza,554790000004',
     'Pedro Alves,5585900001005'
   ].join('\n');
 
