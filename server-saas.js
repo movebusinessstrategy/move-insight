@@ -1587,14 +1587,6 @@ app.post("/api/ai/limpar-contatos", authMiddleware, async (req, res) => {
   if (!Array.isArray(contatos) || !contatos.length) return res.status(400).json({ erro: "Envie um array de contatos" });
   if (contatos.length > 200) return res.status(400).json({ erro: "Máximo 200 contatos por chamada. Divida em lotes." });
 
-  // Rate limit separado: 10 chamadas/24h (pode processar até 2000 contatos/dia)
-  if (!req.user.admin) {
-    const audit = lerUser(req.userId, "audit.json", []);
-    const cutoff = Date.now() - 86400000;
-    const ult24h = audit.filter(a => a.tipo === "ai_limpar_contatos" && new Date(a.em || 0).getTime() >= cutoff).length;
-    if (ult24h >= 10) return res.status(429).json({ erro: "Limite de 10 limpezas/24h atingido." });
-  }
-
   const systemLimpar = `Você recebe uma lista de contatos brasileiros em JSON (nome bruto + telefone bruto) e devolve a versão limpa.
 
 REGRAS DE NOME:
