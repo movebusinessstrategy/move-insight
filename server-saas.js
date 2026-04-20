@@ -876,6 +876,51 @@ app.post("/api/assinatura/trocar-ciclo", authMiddleware, async (req, res) => {
 function hojeBR() {
   return new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
+// ── Warmup por conta: protege contas novas de banimento por volume ───────────
+// Tiers baseados em idade da sessão WhatsApp (desde o auth marker):
+//   0-2 dias:   30 msgs/dia
+//   3-6 dias:  100 msgs/dia
+//   7-13 dias: 250 msgs/dia
+//   14+ dias:  sem cap (usa só o limite do plano)
+function calcularWarmupConta(uid, contaId) {
+  if (!contaId) return { emWarmup: false, idadeDias: null, cap: null, ativadaEm: null };
+  const authDir = path.join(userDir(uid), ".wwebjs_auth_" + contaId);
+  const marker = path.join(authDir, ".wa-authenticated");
+  if (!fs.existsSync(marker)) return { emWarmup: false, idadeDias: null, cap: null, ativadaEm: null };
+  let ativadaEm;
+  try {
+    const raw = fs.readFileSync(marker, "utf8").trim();
+    ativadaEm = raw ? new Date(raw) : null;
+    if (!ativadaEm || isNaN(ativadaEm)) ativadaEm = new Date(fs.statSync(marker).mtime);
+  } catch (_) {
+    try { ativadaEm = new Date(fs.statSync(marker).mtime); } catch (_) { return { emWarmup: false, idadeDias: null, cap: null, ativadaEm: null }; }
+  }
+  const idadeDias = Math.floor((Date.now() - ativadaEm.getTime()) / 86400000);
+  let cap = null;
+  if (idadeDias < 3) cap = 30;
+  else if (idadeDias < 7) cap = 100;
+  else if (idadeDias < 14) cap = 250;
+  return { emWarmup: cap !== null, idadeDias, cap, ativadaEm: ativadaEm.toISOString() };
+}
+
+// Envios por conta por dia (arquivo separado pra não mexer no user.enviosHoje existente)
+function lerEnviosConta(uid) { return lerUser(uid, "envios_conta.json", {}); }
+function getEnviosContaHoje(uid, contaId) {
+  if (!contaId) return 0;
+  const m = lerEnviosConta(uid);
+  const hoje = hojeBR();
+  const r = m[contaId];
+  return (r && r.ultimoEnvioData === hoje) ? (r.enviosHoje || 0) : 0;
+}
+function contarEnvioConta(uid, contaId, qtd) {
+  if (!contaId || !qtd) return;
+  const m = lerEnviosConta(uid);
+  const hoje = hojeBR();
+  const atual = (m[contaId] && m[contaId].ultimoEnvioData === hoje) ? (m[contaId].enviosHoje || 0) : 0;
+  m[contaId] = { enviosHoje: atual + qtd, ultimoEnvioData: hoje };
+  salvarUser(uid, "envios_conta.json", m);
+}
+
 function verificarLimite(userId) {
   const user  = lerUsuario(userId);
   if (!user) return { ok: false, erro: "Usuário não encontrado" };
@@ -901,6 +946,33 @@ function verificarLimite(userId) {
   }
   return { ok: true, restantes };
 }
+// Aplica o cap de warmup SOBRE o resultado de verificarLimite. Retorna
+// o limite EFETIVO pra este disparo considerando plano + warmup + envios do dia.
+function verificarLimiteComWarmup(uid, contaId) {
+  const base = verificarLimite(uid);
+  if (!base.ok) return base;
+  const w = calcularWarmupConta(uid, contaId);
+  if (!w.emWarmup || !w.cap) return base;  // fora de warmup → só plano
+  const jaEnviou = getEnviosContaHoje(uid, contaId);
+  const restantesWarmup = Math.max(0, w.cap - jaEnviou);
+  if (restantesWarmup <= 0) {
+    return {
+      ok: false,
+      erro: `Conta em warmup (${w.idadeDias} dia${w.idadeDias===1?'':'s'} desde a ativação) — já enviou o máximo de ${w.cap} mensagens hoje. Amanhã o limite é renovado e aumenta gradualmente.`,
+      limiteAtingido: true,
+      warmup: w,
+      warmupUsado: jaEnviou
+    };
+  }
+  return {
+    ok: true,
+    restantes: Math.min(base.restantes, restantesWarmup),
+    warmup: w,
+    warmupUsado: jaEnviou,
+    warmupRestantes: restantesWarmup
+  };
+}
+
 function contarEnvio(userId, quantidade) {
   const user = lerUsuario(userId);
   if (!user) return;
@@ -918,7 +990,18 @@ app.get("/api/contas",     authMiddleware, (req, res) => {
   const enriched = contas.map(c => {
     const dir = path.join(userDir(req.userId), ".wwebjs_auth_" + c.id);
     const marker = path.join(dir, ".wa-authenticated");
-    return { ...c, conectado: fs.existsSync(marker) };
+    const conectado = fs.existsSync(marker);
+    const w = calcularWarmupConta(req.userId, c.id);
+    return {
+      ...c, conectado,
+      warmup: conectado ? {
+        emWarmup: w.emWarmup,
+        idadeDias: w.idadeDias,
+        cap: w.cap,
+        usadoHoje: getEnviosContaHoje(req.userId, c.id),
+        ativadaEm: w.ativadaEm
+      } : null
+    };
   });
   res.json(enriched);
 });
@@ -1727,13 +1810,12 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
     }
   }
 
-  const limite = verificarLimite(uid);
-  if (!limite.ok) {
-    const { erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia } = limite;
-    return res.status(403).json({ erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia });
-  }
-
   const { nomeCampanha, contaId, listaId, listaNome } = req.body;
+  const limite = verificarLimiteComWarmup(uid, contaId);
+  if (!limite.ok) {
+    const { erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia, warmup } = limite;
+    return res.status(403).json({ erro, limiteAtingido, podeUpgrade, planoAtual, limiteEnviosDia, warmup });
+  }
   const cfg     = lerUser(uid, "chatmove.config.json", {});
   // Se passou listaId, valida e resolve o nome atual da lista
   let listaIdFinal = null, listaNomeFinal = null;
@@ -1772,6 +1854,7 @@ app.post("/api/iniciar", authMiddleware, async (req, res) => {
       BLACKLIST_FILE:          userFile(uid, "blacklist.json"),
       IMAGENS_DIR:             path.join(userDir(uid), "imagens"),
       PROGRESS_FILE_OVERRIDE:  userFile(uid, "progress.json"),
+      VALIDACAO_CACHE_FILE:    userFile(uid, "numeros_validados.json"),
       LIMITE_ENVIOS_DIA:       String(limite.restantes),
       // Relatório + janela de escuta pós-campanha
       WA_DONO:                 req.user.whatsapp || "",
@@ -2156,6 +2239,7 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
     if (camp.nome) {
       const consumoLimite = camp.msgsReais || camp.enviados.length;
       contarEnvio(uid, consumoLimite);
+      if (camp.contaId) contarEnvioConta(uid, camp.contaId, consumoLimite);
       const hist = lerUser(uid, "historico.json", []);
       const conta = camp.contaId ? lerUser(uid, "contas.json", []).find(c => c.id === camp.contaId) : null;
       const fimEm = new Date();
@@ -2228,6 +2312,10 @@ function iniciarHandlers(uid, proc, iniciadoEm) {
 function processarEvento(uid, ev) {
   const camp = campanhas[uid]; if (!camp) return;
   if (ev.tipo==="total")     { camp.total=ev.count; broadcastUser(uid,{tipo:"total",count:ev.count}); }
+  if (ev.tipo==="validacao_inicio")    { broadcastUser(uid,{tipo:"validacao_inicio",total:ev.total}); }
+  if (ev.tipo==="validacao_progresso") { broadcastUser(uid,{tipo:"validacao_progresso",feito:ev.feito,total:ev.total}); }
+  if (ev.tipo==="validacao_fim")       { broadcastUser(uid,{tipo:"validacao_fim",validos:ev.validos,invalidos:ev.invalidos}); }
+  if (ev.tipo==="pre_validado_invalido"){ broadcastUser(uid,{tipo:"log",nivel:"warn",msg:`🔍 ${ev.nome} (${ev.numero}) não existe no WhatsApp — descartado antes do envio`}); }
   if (ev.tipo==="enviado")   {
     camp.enviados.push({nome:ev.nome,numero:ev.numero});
     if (typeof ev.totalMsgsReais === "number") camp.msgsReais = ev.totalMsgsReais;
@@ -2308,7 +2396,7 @@ function dispararAgendamento(uid, ag) {
   };
 
   if (processos[uid]) return { ok: false, erro: "Disparo em andamento" };
-  const limite = verificarLimite(uid);
+  const limite = verificarLimiteComWarmup(uid, ag.contaId);
   if (!limite.ok) return falhar(limite.erro || "Limite diário atingido");
 
   // ── Preflight: conta conectada? ──
@@ -2355,6 +2443,7 @@ function dispararAgendamento(uid, ag) {
       BLACKLIST_FILE:          userFile(uid, "blacklist.json"),
       IMAGENS_DIR:             path.join(userDir(uid), "imagens"),
       PROGRESS_FILE_OVERRIDE:  userFile(uid, "progress.json"),
+      VALIDACAO_CACHE_FILE:    userFile(uid, "numeros_validados.json"),
       LIMITE_ENVIOS_DIA:       String(limite.restantes),
       WA_DONO:                 user.whatsapp || "",
       NOME_DONO:               user.nome || "",

@@ -47,6 +47,9 @@ const DELAY_MIN_MS = normalizarMs(cfg.delayMin, 2000);
 const DELAY_MAX_MS = normalizarMs(cfg.delayMax, 5000);
 const PAUSAR_A_CADA = Math.max(1, parseInt(cfg.pausarACada, 10) || 40);
 const DURACAO_PAUSA_MS = normalizarMs(cfg.duracaoPausa, 10000);
+const PRE_VALIDAR = cfg.preValidar === true || process.env.PRE_VALIDAR === "true";
+const VALIDACAO_CACHE_FILE = process.env.VALIDACAO_CACHE_FILE || path.join(path.dirname(CONFIG_FILE), "numeros_validados.json");
+const VALIDACAO_TTL_MS = 30 * 86400000; // 30 dias
 
 // ── Utilidades ───────────────────────────────────────────────────────────────
 function bootLog(msg) {
@@ -137,6 +140,31 @@ function getStartIndex(progress, total) {
   return 0;
 }
 
+// ── Spintax: {A|B|C} → uma opção aleatória por envio ─────────────────────────
+// Resolve até não ter mais grupo com "|". Preserva {nome}, {telefone}, {data}, {hora}
+// porque esses não têm pipe (os placeholders são substituídos só depois).
+function aplicarSpintax(texto) {
+  if (!texto || texto.indexOf("|") === -1) return texto || "";
+  let out = String(texto);
+  const re = /\{([^{}|]*(?:\|[^{}|]*)+)\}/;  // só casa grupos com pelo menos um "|"
+  let m, guarda = 0;
+  while ((m = re.exec(out)) && guarda++ < 50) {
+    const opcoes = m[1].split("|");
+    const escolha = opcoes[Math.floor(Math.random() * opcoes.length)];
+    out = out.slice(0, m.index) + escolha + out.slice(m.index + m[0].length);
+  }
+  return out;
+}
+
+function renderMensagem(template, nome, numero) {
+  const comSpin = aplicarSpintax(template);
+  return comSpin
+    .replace(/\{nome\}/g, nome || "")
+    .replace(/\{telefone\}/g, numero || "")
+    .replace(/\{data\}/g, new Date().toLocaleDateString("pt-BR"))
+    .replace(/\{hora\}/g, new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+}
+
 // ── Números ──────────────────────────────────────────────────────────────────
 function normalizarNumeroE164(n) {
   if (!n) return null;
@@ -216,10 +244,88 @@ async function enviarCampanha(sock) {
     }
   } catch (_) {}
 
+  // ── Fase de pré-validação (opt-in) ─────────────────────────────────────────
+  // Pergunta pro WA se cada número existe ANTES de começar a disparar.
+  // Números inexistentes viram "inválido" e saem da fila — isso protege a conta
+  // porque cada "jid not registered" mid-envio é um sinal negativo pra reputação.
+  // Cache em disco (30 dias) pra não re-validar toda campanha.
+  const numerosExistentes = new Set();  // E164 que o WA confirmou existir
+  const numerosInvalidados = new Set(); // E164 que o WA disse NÃO existir (mesmo com alt)
+  if (PRE_VALIDAR) {
+    let cache = {};
+    try {
+      if (fs.existsSync(VALIDACAO_CACHE_FILE)) cache = JSON.parse(fs.readFileSync(VALIDACAO_CACHE_FILE, "utf8")) || {};
+    } catch (_) {}
+    const agora = Date.now();
+    const paraChecar = [];
+    const unicos = new Set();
+    for (let i = startIndex; i < contatos.length; i++) {
+      const n = normalizarNumeroE164(contatos[i].telefoneRaw);
+      if (!n || blacklist.has(n) || unicos.has(n)) continue;
+      unicos.add(n);
+      const c = cache[n];
+      if (c && (agora - (c.validadoEm || 0)) < VALIDACAO_TTL_MS) {
+        if (c.existe) numerosExistentes.add(c.numeroReal || n);
+        else numerosInvalidados.add(n);
+      } else {
+        paraChecar.push(n);
+      }
+    }
+    log(`🔍 Pré-validação: ${paraChecar.length} a checar · ${unicos.size - paraChecar.length} em cache`);
+    emit("validacao_inicio", { total: paraChecar.length });
+
+    const LOTE = 50;
+    for (let i = 0; i < paraChecar.length; i += LOTE) {
+      const lote = paraChecar.slice(i, i + LOTE);
+      try {
+        const resp = await sock.onWhatsApp(...lote.map(n => `${n}@s.whatsapp.net`));
+        const respMap = new Map();
+        (resp || []).forEach(r => {
+          if (!r || !r.jid) return;
+          const num = String(r.jid).split("@")[0];
+          respMap.set(num, r.exists !== false);
+        });
+        for (const n of lote) {
+          if (respMap.get(n)) {
+            cache[n] = { existe: true, numeroReal: n, validadoEm: agora };
+            numerosExistentes.add(n);
+          } else {
+            // Tenta formato alternativo (com/sem 9)
+            const alt = numeroAlternativo(n);
+            let altOk = false;
+            if (alt && !respMap.has(alt)) {
+              try {
+                const r2 = await sock.onWhatsApp(`${alt}@s.whatsapp.net`);
+                altOk = !!(r2 && r2[0] && r2[0].exists);
+              } catch (_) {}
+            }
+            if (altOk) {
+              cache[n]   = { existe: true, numeroReal: alt, validadoEm: agora };
+              cache[alt] = { existe: true, numeroReal: alt, validadoEm: agora };
+              numerosExistentes.add(alt);
+            } else {
+              cache[n] = { existe: false, validadoEm: agora };
+              numerosInvalidados.add(n);
+            }
+          }
+        }
+      } catch (e) {
+        // Se a checagem falhar por rede/temporário, não marca como inválido — segue pro envio normal
+        log(`⚠️ Falha na pré-validação do lote ${i}: ${e.message || e}`);
+      }
+      emit("validacao_progresso", { feito: Math.min(paraChecar.length, i + LOTE), total: paraChecar.length });
+      await sleep(400);
+    }
+    try { fs.writeFileSync(VALIDACAO_CACHE_FILE, JSON.stringify(cache)); } catch (_) {}
+    log(`✅ Pré-validação concluída: ${numerosExistentes.size} válidos · ${numerosInvalidados.size} descartados`);
+    emit("validacao_fim", { validos: numerosExistentes.size, invalidos: numerosInvalidados.size });
+  }
+
   let totalReal = 0;
   for (let i = startIndex; i < contatos.length; i++) {
     const n = normalizarNumeroE164(contatos[i].telefoneRaw);
     if (!n || blacklist.has(n) || foiEnviadoHoje(progress.sent[n])) continue;
+    if (PRE_VALIDAR && numerosInvalidados.has(n) && !numerosExistentes.has(n)) continue;
     totalReal++;
   }
   emit("total", { count: totalReal });
@@ -244,6 +350,13 @@ async function enviarCampanha(sock) {
       log(`🚫 Blacklist: ${contato.nome} (${numeroE164})`);
       continue;
     }
+    // Descartado na pré-validação (não existe no WhatsApp)
+    if (PRE_VALIDAR && numerosInvalidados.has(numeroE164) && !numerosExistentes.has(numeroE164)) {
+      invalidos++; progress.lastIndex = i + 1; saveProgress(progressFile);
+      log(`🔍 Pré-validado como inexistente no WA: ${contato.nome} (${numeroE164})`);
+      emit("pre_validado_invalido", { nome: contato.nome, numero: numeroE164 });
+      continue;
+    }
     if (foiEnviadoHoje(progress.sent[numeroE164])) {
       pulados++; progress.lastIndex = i + 1; saveProgress(progressFile);
       emit("pulado", { nome: contato.nome, numero: numeroE164, totalPulados: pulados });
@@ -259,11 +372,7 @@ async function enviarCampanha(sock) {
 
     // Baileys usa @s.whatsapp.net
     const jid = `${numeroE164}@s.whatsapp.net`;
-    const mensagem = MENSAGEM_TEMPLATE
-      .replace("{nome}", contato.nome)
-      .replace("{telefone}", numeroE164)
-      .replace("{data}", new Date().toLocaleDateString("pt-BR"))
-      .replace("{hora}", new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+    const mensagem = renderMensagem(MENSAGEM_TEMPLATE, contato.nome, numeroE164);
 
     try {
       log(`➡️ Enviando para ${contato.nome} (${jid})`);
@@ -293,9 +402,7 @@ async function enviarCampanha(sock) {
           const jidAlt = `${numAlt}@s.whatsapp.net`;
           log(`🔄 Formato alternativo: ${contato.nome} → ${numAlt}`);
           try {
-            const msgAlt = MENSAGEM_TEMPLATE.replace("{nome}", contato.nome).replace("{telefone}", numAlt)
-              .replace("{data}", new Date().toLocaleDateString("pt-BR"))
-              .replace("{hora}", new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+            const msgAlt = renderMensagem(MENSAGEM_TEMPLATE, contato.nome, numAlt);
             const nMsgs = await enviarComOuSemMidia(sock, jidAlt, msgAlt);
             enviados++;
             msgsReais += nMsgs;
