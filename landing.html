@@ -190,6 +190,179 @@ body::after {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════ */
+/*  SEÇÃO IA INTEGRADA: 3 cards com exemplos visuais                          */
+/* ══════════════════════════════════════════════════════════════════════════ */
+.ia-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
+  margin-top:52px; align-items:stretch;
+}
+.ia-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:28px 26px;
+  box-shadow:0 2px 4px rgba(0,0,0,.03), 0 16px 36px -16px rgba(0,0,0,.08);
+  transition:transform .4s cubic-bezier(.2,.6,.2,1), box-shadow .4s;
+  display:flex; flex-direction:column;
+  position:relative; overflow:hidden;
+}
+.ia-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity:.5;
+}
+.ia-card:hover {
+  transform:translateY(-4px);
+  box-shadow:0 4px 6px rgba(0,0,0,.04), 0 24px 48px -16px rgba(185,141,65,.25);
+  border-color:rgba(185,141,65,.25);
+}
+.ia-card-hd {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:18px;
+}
+.ia-card-icon {
+  width:44px; height:44px; border-radius:13px;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:#111; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(185,141,65,.35);
+}
+.ia-new-tag {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:9px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  padding:5px 10px; border-radius:999px;
+  background:var(--gold-bg); color:var(--gold);
+  border:1px solid rgba(185,141,65,.25);
+}
+.ia-card-title {
+  font-size:17px; font-weight:800; letter-spacing:-.025em;
+  color:var(--text); margin:0 0 10px; line-height:1.25;
+}
+.ia-card-desc {
+  font-size:13.5px; color:var(--text2); line-height:1.6;
+  margin:0 0 20px;
+}
+.ia-card-desc strong { color:var(--text); font-weight:600; }
+.ia-card-visual {
+  margin-top:auto; padding:16px;
+  background:linear-gradient(135deg, var(--surface2), var(--surface3));
+  border:1px solid var(--border); border-radius:14px;
+  display:flex; flex-direction:column; gap:10px;
+}
+
+/* Visual do Assistente: prompt → 3 variações */
+.ia-visual-prompt {
+  padding:10px 12px; background:var(--surface);
+  border:1px solid var(--border); border-radius:9px;
+}
+.ia-visual-prompt-lbl {
+  font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text3); margin-bottom:4px;
+}
+.ia-visual-prompt-txt {
+  font-size:11.5px; color:var(--text2); font-style:italic; line-height:1.4;
+}
+.ia-visual-arrow {
+  display:flex; justify-content:center; color:var(--gold); opacity:.7;
+}
+.ia-visual-results { display:flex; flex-direction:column; gap:6px; }
+.ia-visual-result {
+  display:flex; align-items:flex-start; gap:8px;
+  padding:8px 10px; background:var(--gold-bg);
+  border:1px solid rgba(185,141,65,.2); border-radius:8px;
+}
+.ia-visual-badge {
+  flex-shrink:0; font-size:8.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--gold); background:rgba(185,141,65,.15);
+  padding:2px 7px; border-radius:999px;
+}
+.ia-visual-msg-t {
+  font-size:11px; color:var(--text2); line-height:1.4;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* Visual do Calendário: 3 itens stacked */
+.ia-visual-cal { gap:6px; }
+.ia-visual-cal-item {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 11px; background:var(--surface);
+  border:1px solid var(--border); border-radius:9px;
+}
+.ia-visual-cal-item.soon {
+  border-color:rgba(255,95,87,.25);
+  background:linear-gradient(135deg, rgba(255,95,87,.04), var(--surface));
+}
+.ia-visual-cal-icon {
+  flex-shrink:0; width:30px; height:30px; border-radius:8px;
+  background:var(--gold-bg); border:1px solid rgba(185,141,65,.2);
+  color:var(--gold); display:flex; align-items:center; justify-content:center;
+}
+.ia-visual-cal-item.soon .ia-visual-cal-icon {
+  background:rgba(255,95,87,.08); border-color:rgba(255,95,87,.2); color:var(--red);
+}
+.ia-visual-cal-body { flex:1; min-width:0; }
+.ia-visual-cal-nome { font-size:11.5px; font-weight:700; color:var(--text); letter-spacing:-.01em; }
+.ia-visual-cal-opp { font-size:10px; color:var(--text3); margin-top:1px; line-height:1.3; }
+.ia-visual-cal-dias {
+  flex-shrink:0; text-align:center; color:var(--gold);
+  font-size:17px; font-weight:800; letter-spacing:-.02em; line-height:1;
+}
+.ia-visual-cal-item.soon .ia-visual-cal-dias { color:var(--red); }
+.ia-visual-cal-dias span {
+  display:block; font-size:8.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--text3); margin-top:2px;
+}
+
+/* Visual da Padronização: 2 colunas antes/depois */
+.ia-visual-lista {
+  display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+  gap:12px; padding:14px;
+}
+.ia-visual-lista-col { display:flex; flex-direction:column; gap:5px; }
+.ia-visual-lista-lbl {
+  font-size:9px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--text3); margin-bottom:4px;
+}
+.ia-visual-lista-row {
+  padding:6px 10px; border-radius:7px;
+  font-size:10.5px; font-family:monospace; line-height:1.3;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ia-visual-lista-row.bad {
+  background:rgba(199,61,50,.06); border:1px solid rgba(199,61,50,.15);
+  color:rgba(199,61,50,.7); text-decoration:line-through;
+}
+.ia-visual-lista-row.good {
+  background:rgba(48,209,88,.08); border:1px solid rgba(48,209,88,.2);
+  color:var(--text);
+}
+.ia-visual-lista-arrow {
+  display:flex; align-items:center; justify-content:center;
+  color:var(--gold); padding-top:24px;
+}
+
+/* Linha de "extras" menores abaixo dos 3 cards principais */
+.ia-extras {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
+  margin-top:28px; padding:20px 24px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:14px;
+}
+.ia-extra {
+  display:flex; align-items:center; gap:10px;
+  font-size:12.5px; color:var(--text2); line-height:1.45;
+}
+.ia-extra svg { flex-shrink:0; }
+.ia-extra strong { color:var(--text); font-weight:600; }
+
+@media(max-width:900px){
+  .ia-grid { grid-template-columns:1fr; }
+  .ia-extras { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:540px){
+  .ia-extras { grid-template-columns:1fr; }
+  .ia-visual-lista { grid-template-columns:1fr; }
+  .ia-visual-lista-arrow { transform:rotate(90deg); padding:4px 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════ */
 /*  CTA AGÊNCIA: banner premium "enterprise tier"                             */
 /* ══════════════════════════════════════════════════════════════════════════ */
 .agency-cta-wrap { padding:0 24px 72px; display:flex; justify-content:center; }
@@ -751,6 +924,7 @@ footer a:hover { color:var(--text2); }
   </a>
   <div class="nav-links">
     <a href="#feat">Funcionalidades</a>
+    <a href="#ia">IA integrada</a>
     <a href="#steps">Como funciona</a>
     <a href="#usos">Para quem é</a>
     <a href="#planos">Planos</a>
@@ -897,6 +1071,140 @@ footer a:hover { color:var(--text2); }
     <article class="feat"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><h3 class="feat-t">Monitor em tempo real</h3><p class="feat-d">Acompanhe ao vivo quantas mensagens foram entregues, falharam ou foram puladas, com log detalhado de cada envio.</p></article>
     <article class="feat"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><h3 class="feat-t">Envio de imagem e PDF</h3><p class="feat-d">Anexe imagens (JPG/PNG) ou PDFs junto com a mensagem. Perfeito para promoções, cardápios e catálogos.</p></article>
     <article class="feat"><div class="feat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12A19.79 19.79 0 0 1 1.58 3.47 2 2 0 0 1 3.54 1.25h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.56a16 16 0 0 0 6.09 6.09l.88-.88a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/></svg></div><h3 class="feat-t">Relatório direto no WhatsApp</h3><p class="feat-d">Ao final de cada campanha você recebe no seu próprio WhatsApp um resumo completo com enviados, erros e tempo total.</p></article>
+  </div>
+</div>
+</section>
+
+<!-- Seção "IA integrada": destaca os recursos com inteligência artificial -->
+<section class="divider-sec" id="ia" aria-labelledby="ia-title">
+<div class="sec">
+  <div class="sec-label">Inteligência Artificial integrada</div>
+  <h2 id="ia-title" class="sec-title reveal">Mais que disparar.<br>Ele <span class="accent">pensa junto com você</span>.</h2>
+  <p class="sec-sub reveal reveal-delay-1">Três recursos com IA que transformam horas de trabalho em 1 clique. Exclusivo do ChatMOVE.</p>
+
+  <div class="ia-grid reveal reveal-delay-2">
+
+    <!-- Card 1: Assistente de mensagem -->
+    <article class="ia-card">
+      <div class="ia-card-hd">
+        <div class="ia-card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
+        </div>
+        <span class="ia-new-tag">Novidade</span>
+      </div>
+      <h3 class="ia-card-title">Assistente de mensagem</h3>
+      <p class="ia-card-desc">Sem inspiração pra escrever? Conta em 1-2 frases o que quer promover. A IA gera <strong>3 variações prontas</strong> com o nome de cada cliente automático, tom brasileiro e CTA claro. Você escolhe uma, edita se quiser, e dispara.</p>
+      <div class="ia-card-visual ia-visual-msg">
+        <div class="ia-visual-prompt">
+          <div class="ia-visual-prompt-lbl">Seu briefing</div>
+          <div class="ia-visual-prompt-txt">"Combo família pizza + refri por R$62 pra sexta à noite"</div>
+        </div>
+        <div class="ia-visual-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        </div>
+        <div class="ia-visual-results">
+          <div class="ia-visual-result"><span class="ia-visual-badge">Direta</span><span class="ia-visual-msg-t">"Maria, sexta já tá chegando! Combo família por R$62..."</span></div>
+          <div class="ia-visual-result"><span class="ia-visual-badge">Emocional</span><span class="ia-visual-msg-t">"Oi Maria! Que tal fechar a sexta com a família..."</span></div>
+          <div class="ia-visual-result"><span class="ia-visual-badge">Criativa</span><span class="ia-visual-msg-t">"Maria, inventamos um combo pra sexta: R$62 com..."</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2: Calendário de oportunidades -->
+    <article class="ia-card">
+      <div class="ia-card-hd">
+        <div class="ia-card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="8" cy="15" r="1" fill="currentColor"/><circle cx="13" cy="15" r="1" fill="currentColor"/></svg>
+        </div>
+        <span class="ia-new-tag">Novidade</span>
+      </div>
+      <h3 class="ia-card-title">Calendário de oportunidades brasileiras</h3>
+      <p class="ia-card-desc">Sistema mapeou <strong>22 datas comerciais</strong> (Dia das Mães, Namorados, Black Friday, São João, Carnaval, etc) e avisa quando estão chegando. Com 1 clique, a IA gera a mensagem da data usando o tom das suas campanhas anteriores.</p>
+      <div class="ia-card-visual ia-visual-cal">
+        <div class="ia-visual-cal-item">
+          <div class="ia-visual-cal-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5 5 0 0 0-7 0L12 7.4l-1.8-1.8a5 5 0 0 0-7 7L12 22l8.8-9.4a5 5 0 0 0 0-7z"/></svg>
+          </div>
+          <div class="ia-visual-cal-body">
+            <div class="ia-visual-cal-nome">Dia das Mães</div>
+            <div class="ia-visual-cal-opp">Brunch especial, reserva antecipada</div>
+          </div>
+          <div class="ia-visual-cal-dias">12<span>dias</span></div>
+        </div>
+        <div class="ia-visual-cal-item">
+          <div class="ia-visual-cal-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s-4 4-4 8a4 4 0 0 0 8 0c0-4-4-8-4-8z"/><path d="M8 14c-1 1-2 3-2 5 0 2 2 3 6 3s6-1 6-3c0-2-1-4-2-5"/></svg>
+          </div>
+          <div class="ia-visual-cal-body">
+            <div class="ia-visual-cal-nome">São João</div>
+            <div class="ia-visual-cal-opp">Comida junina, temático</div>
+          </div>
+          <div class="ia-visual-cal-dias">34<span>dias</span></div>
+        </div>
+        <div class="ia-visual-cal-item soon">
+          <div class="ia-visual-cal-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><line x1="3" y1="13" x2="21" y2="13"/></svg>
+          </div>
+          <div class="ia-visual-cal-body">
+            <div class="ia-visual-cal-nome">Dia do Trabalhador</div>
+            <div class="ia-visual-cal-opp">Feriado prolongado</div>
+          </div>
+          <div class="ia-visual-cal-dias">3<span>dias</span></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3: Padronização de lista -->
+    <article class="ia-card">
+      <div class="ia-card-hd">
+        <div class="ia-card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 11l-3-3-3 3"/><path d="M20 8v9"/></svg>
+        </div>
+        <span class="ia-new-tag">Novidade</span>
+      </div>
+      <h3 class="ia-card-title">Padronização inteligente de lista</h3>
+      <p class="ia-card-desc">Importou planilha bagunçada do seu caderno? A IA extrai o <strong>primeiro nome capitalizado</strong> e normaliza os telefones automaticamente. Mensagem personalizada sem sobrenome estranho, número limpo sem máscara.</p>
+      <div class="ia-card-visual ia-visual-lista">
+        <div class="ia-visual-lista-col">
+          <div class="ia-visual-lista-lbl">Antes</div>
+          <div class="ia-visual-lista-row bad">JOÃO DA SILVA</div>
+          <div class="ia-visual-lista-row bad">(43) 9 9625-5556</div>
+          <div class="ia-visual-lista-row bad">maria souza PINTO</div>
+          <div class="ia-visual-lista-row bad">55 11 99998 8877</div>
+        </div>
+        <div class="ia-visual-lista-arrow">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="ia-visual-lista-col">
+          <div class="ia-visual-lista-lbl">Depois</div>
+          <div class="ia-visual-lista-row good">João</div>
+          <div class="ia-visual-lista-row good">5543996255556</div>
+          <div class="ia-visual-lista-row good">Maria</div>
+          <div class="ia-visual-lista-row good">5511999988877</div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- Linha de features menores com ícones rápidos -->
+  <div class="ia-extras reveal reveal-delay-3">
+    <div class="ia-extra">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      <span><strong>Repetir campanha</strong> do histórico em 1 clique</span>
+    </div>
+    <div class="ia-extra">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <span><strong>Termo de responsabilidade</strong> registrado com IP e hora</span>
+    </div>
+    <div class="ia-extra">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span><strong>Auditoria completa</strong> de cada disparo por 90 dias</span>
+    </div>
+    <div class="ia-extra">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5a12 12 0 0 0-17 0c-3.15 3.2-3.83 8.03-1.85 11.94L1 22l6.67-1.75a12 12 0 0 0 5.83 1.5h.01c6.62 0 12-5.38 12-12a11.9 11.9 0 0 0-3.5-8.5z"/></svg>
+      <span><strong>Suporte no WhatsApp</strong>, direto com a equipe</span>
+    </div>
   </div>
 </div>
 </section>

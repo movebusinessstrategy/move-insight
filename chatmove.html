@@ -923,16 +923,38 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
 .opp-item:hover { border-color:rgba(185,141,65,.35); background:var(--gold-bg); transform:translateY(-1px); }
 .opp-item.soon { border-color:rgba(255,95,87,.25); background:linear-gradient(135deg, rgba(255,95,87,.05), transparent); }
 .opp-item.soon .opp-dias { color:var(--red); }
-.opp-emoji {
+/* Ícone do evento: caixa dourada sutil + SVG line-art */
+.opp-icon {
   flex-shrink:0; width:44px; height:44px; border-radius:12px;
-  background:var(--surface); border:1px solid var(--border);
+  background:linear-gradient(135deg, var(--gold-bg), rgba(198,169,107,.04));
+  border:1px solid rgba(198,169,107,.22);
+  color:var(--gold);
   display:flex; align-items:center; justify-content:center;
-  font-size:22px;
+  transition:all .3s cubic-bezier(.2,.6,.2,1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+.opp-item:hover .opp-icon {
+  background:linear-gradient(135deg, rgba(198,169,107,.2), rgba(198,169,107,.08));
+  border-color:rgba(198,169,107,.4);
+  transform:scale(1.04);
+}
+.opp-item.soon .opp-icon {
+  background:linear-gradient(135deg, rgba(255,95,87,.1), rgba(255,95,87,.02));
+  border-color:rgba(255,95,87,.25);
+  color:var(--red);
 }
 .opp-body { flex:1; min-width:0; }
 .opp-nome { font-size:13.5px; font-weight:700; color:var(--text); letter-spacing:-.01em; margin-bottom:2px; }
 .opp-quando { font-size:11px; color:var(--text3); text-transform:capitalize; }
-.opp-opp { font-size:11px; color:var(--text2); margin-top:4px; line-height:1.4; }
+.opp-opp {
+  font-size:11px; color:var(--text2); margin-top:6px; line-height:1.45;
+  display:flex; align-items:flex-start; gap:7px;
+}
+.opp-opp-bullet {
+  flex-shrink:0; width:5px; height:5px; border-radius:50%;
+  background:var(--gold); margin-top:6px;
+  box-shadow:0 0 0 3px var(--gold-bg);
+}
 .opp-dias {
   flex-shrink:0; text-align:center; color:var(--gold); min-width:60px;
 }
@@ -1641,7 +1663,6 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
           <div class="card-title">Mensagem</div>
           <div class="card-aside">
             <button class="ia-gen-btn" onclick="abrirModalIA()" aria-label="Gerar mensagem com IA">
-              <span class="ia-gen-badge">Novo</span>
               <svg class="ia-gen-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L14.09 8.26L22 9.27L16 14.14L17.18 22.02L12 17.77L6.82 22.02L8 14.14L2 9.27L9.91 8.26L12 2z"/></svg>
               <span class="ia-gen-txt">Gerar com IA</span>
               <span class="ia-gen-shine" aria-hidden="true"></span>
@@ -4312,6 +4333,34 @@ window.carregarHome = function() {
   });
 };
 
+// ─── Biblioteca de ícones do calendário (Lucide-style, line art dourado) ─────
+window._CAL_ICONS = {
+  'champagne':   '<path d="M8 3h8l-1 7a3 3 0 0 1-6 0L8 3z"/><path d="M12 13v8"/><path d="M9 21h6"/><circle cx="9.5" cy="6" r=".4" fill="currentColor" stroke="none"/><circle cx="14.5" cy="7" r=".4" fill="currentColor" stroke="none"/>',
+  'mask':        '<path d="M3 10c0-3 3-5 9-5s9 2 9 5-2 8-9 8-9-5-9-8z"/><circle cx="9" cy="11" r="1.3"/><circle cx="15" cy="11" r="1.3"/><path d="M10 16c.8.5 1.3.5 2 .5s1.2 0 2-.5"/>',
+  'flower':      '<circle cx="12" cy="8" r="3"/><path d="M12 5a3 3 0 0 1-3-3"/><path d="M12 5a3 3 0 0 0 3-3"/><path d="M15 8a3 3 0 0 0 3 3"/><path d="M9 8a3 3 0 0 1-3 3"/><path d="M12 11v10"/><path d="M9 17l3-1 3 1"/>',
+  'fish':        '<path d="M6.5 12c2-3 5-5 9-5s5 2 5 5-1 5-5 5-7-2-9-5z"/><path d="M6.5 12L3 9v6l3.5-3z"/><circle cx="17" cy="11" r=".7" fill="currentColor" stroke="none"/>',
+  'egg':         '<ellipse cx="12" cy="13" rx="5.5" ry="7.5"/><path d="M7 12c2 1 3.5 0 5-.8s3.5-1.5 5-.8"/><path d="M7.5 16.5c1.5.7 3-.2 4.5-1s3-1.7 4.5-1"/>',
+  'flag':        '<path d="M5 22V3"/><path d="M5 3h13l-2.5 4L18 11H5"/>',
+  'briefcase':   '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><line x1="3" y1="13" x2="21" y2="13"/>',
+  'heart':       '<path d="M20.8 5.6a5 5 0 0 0-7 0L12 7.4l-1.8-1.8a5 5 0 0 0-7 7L12 22l8.8-9.4a5 5 0 0 0 0-7z"/>',
+  'heart-solid': '<path d="M20.8 5.6a5 5 0 0 0-7 0L12 7.4l-1.8-1.8a5 5 0 0 0-7 7L12 22l8.8-9.4a5 5 0 0 0 0-7z" fill="currentColor"/>',
+  'flame':       '<path d="M8.5 14c0-2.5 2-4 2-7 0 2 2 3 3 5s0 5-1.5 5-3.5-1-3.5-3z" fill="currentColor" fill-opacity=".15"/><path d="M12 2s-4 4-4 8a4 4 0 0 0 8 0c0-4-4-8-4-8z"/><path d="M8 14c-1 1-2 3-2 5 0 2 2 3 6 3s6-1 6-3c0-2-1-4-2-5"/>',
+  'users':       '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3 2.5-5 6-5s6 2 6 5"/><circle cx="17" cy="10" r="2.5"/><path d="M15.5 15c2.5.3 4.5 2 4.5 4"/>',
+  'medal':       '<circle cx="12" cy="14" r="6"/><path d="M8 10L6 4h12l-2 6"/><path d="M12 11v6"/><path d="M10 14h4"/>',
+  'gift':        '<rect x="3" y="9" width="18" height="12" rx="1"/><path d="M12 9v12"/><path d="M3 13h18"/><path d="M8 9c-1.5 0-2.5-1-2.5-2.5S6.5 4 8 4s4 3 4 5c0-2 2.5-5 4-5s2.5 1 2.5 2.5S17.5 9 16 9"/>',
+  'balloon':     '<path d="M12 3c-3.5 0-6 2.5-6 6 0 4 4 6.5 6 7 2-.5 6-3 6-7 0-3.5-2.5-6-6-6z"/><path d="M12 16l-.5 1.5h1L12 16z"/><path d="M11.5 17.5s-1 2.5.5 4.5"/>',
+  'book':        '<path d="M4 4a2 2 0 0 1 2-2h14v18H6a2 2 0 0 1-2-2V4z"/><line x1="4" y1="18" x2="20" y2="18"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/>',
+  'candle':      '<rect x="8" y="11" width="8" height="11" rx="1"/><path d="M12 11V8"/><path d="M12 4s-2.5 2-2.5 4 1.2 3 2.5 3 2.5-1 2.5-3S12 4 12 4z"/>',
+  'bag':         '<path d="M5 8h14l-1 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 8z"/><path d="M8.5 8V5.5a3.5 3.5 0 0 1 7 0V8"/><circle cx="9.5" cy="13" r=".5" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".5" fill="currentColor" stroke="none"/>',
+  'tree':        '<path d="M12 3l-3 4.5h1.5L7 12h2L6 16h12l-3-4h2l-3.5-4.5H15L12 3z"/><rect x="10.5" y="16" width="3" height="4"/><path d="M9 20h6"/>',
+  'sparkles':    '<path d="M12 2v5"/><path d="M12 17v5"/><path d="M2 12h5"/><path d="M17 12h5"/><path d="M5 5l3.5 3.5"/><path d="M15.5 15.5L19 19"/><path d="M5 19l3.5-3.5"/><path d="M15.5 8.5L19 5"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
+  'default':     '<rect x="4" y="5" width="16" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="4" y1="10" x2="20" y2="10"/>'
+};
+window.iconeCal = function(key){
+  var p = window._CAL_ICONS[key] || window._CAL_ICONS['default'];
+  return '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+};
+
 // ─── Calendário de oportunidades na home ──────────────────────────────────────
 window.carregarOportunidades = function(){
   var sec = document.getElementById('homeCalendario');
@@ -4328,11 +4377,11 @@ window.carregarOportunidades = function(){
       var diaLbl = o.diasRestantes === 0 ? 'hoje' : (o.diasRestantes === 1 ? 'amanhã' : 'dias');
       var diaNum = o.diasRestantes === 0 ? '0' : (o.diasRestantes === 1 ? '1' : o.diasRestantes);
       return '<div class="opp-item'+classeSoon+'">' +
-        '<div class="opp-emoji">'+o.emoji+'</div>' +
+        '<div class="opp-icon">'+iconeCal(o.icone)+'</div>' +
         '<div class="opp-body">' +
           '<div class="opp-nome">'+o.nome+'</div>' +
           '<div class="opp-quando">'+o.quandoLegivel+'</div>' +
-          '<div class="opp-opp">💡 '+o.oportunidade+'</div>' +
+          '<div class="opp-opp"><span class="opp-opp-bullet"></span>'+o.oportunidade+'</div>' +
         '</div>' +
         '<div class="opp-dias"><div class="opp-dias-num">'+diaNum+'</div><div class="opp-dias-lbl">'+diaLbl+'</div></div>' +
         '<button class="opp-cta" onclick="prepararCampanhaEvento('+JSON.stringify(o).replace(/"/g,'&quot;')+')">' +

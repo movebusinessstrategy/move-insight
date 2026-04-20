@@ -1113,28 +1113,28 @@ function datasComerciaisAno(ano) {
   const diaDosPais = segundoDomingo(ano, 7); // agosto
   const blackFriday = ultimaSextaNov(ano);
   return [
-    { data: `${ano}-01-01`, nome: "Ano Novo",                     emoji: "🎉", oportunidade: "combos de começo de ano, energia de recomeço" },
-    { data: iso(carnaval),  nome: "Carnaval",                     emoji: "🎭", oportunidade: "promoção pra fim de semana de folia, delivery pra quem tá em casa" },
-    { data: `${ano}-03-08`, nome: "Dia Internacional da Mulher",  emoji: "🌸", oportunidade: "homenagem com sobremesa grátis ou desconto pra mulheres" },
-    { data: iso(sextaSanta), nome: "Sexta-feira Santa",           emoji: "🐟", oportunidade: "cardápio com peixe, moqueca, bacalhau" },
-    { data: iso(pascoa),    nome: "Páscoa",                       emoji: "🐰", oportunidade: "almoço em família, sobremesa de chocolate" },
-    { data: `${ano}-04-21`, nome: "Tiradentes",                   emoji: "🇧🇷", oportunidade: "feriado, almoço com família, promoção pra casa cheia" },
-    { data: `${ano}-05-01`, nome: "Dia do Trabalhador",           emoji: "💼", oportunidade: "promoção do trabalhador, feriado prolongado" },
-    { data: iso(diaDasMaes), nome: "Dia das Mães",                emoji: "💐", oportunidade: "almoço/brunch especial, reserva antecipada, combo família" },
-    { data: `${ano}-06-12`, nome: "Dia dos Namorados",            emoji: "❤️", oportunidade: "jantar romântico, combo casal, sobremesa especial" },
-    { data: `${ano}-06-24`, nome: "São João",                     emoji: "🌽", oportunidade: "comida junina, quentão, milho, pé de moleque, temático" },
-    { data: `${ano}-07-20`, nome: "Dia do Amigo",                 emoji: "🤝", oportunidade: "desconto em combos pra turma, promoção 'chama os amigos'" },
-    { data: iso(diaDosPais), nome: "Dia dos Pais",                emoji: "👨", oportunidade: "churrasco, combo do pai, almoço família" },
-    { data: `${ano}-09-07`, nome: "Independência",                emoji: "🇧🇷", oportunidade: "feriado, almoço com família, churrasco" },
-    { data: `${ano}-09-15`, nome: "Dia do Cliente",               emoji: "🎁", oportunidade: "desconto exclusivo pra base, 'você é motivo'" },
-    { data: `${ano}-10-12`, nome: "Dia das Crianças",             emoji: "🎠", oportunidade: "combo família, porção criança grátis, brinde" },
-    { data: `${ano}-10-15`, nome: "Dia dos Professores",          emoji: "👩‍🏫", oportunidade: "desconto pra professores apresentando algo" },
-    { data: `${ano}-11-02`, nome: "Finados",                      emoji: "🕯️", oportunidade: "delivery (dia de estar em casa)" },
-    { data: `${ano}-11-15`, nome: "Proclamação da República",     emoji: "🇧🇷", oportunidade: "feriado, almoço família, movimento em casa" },
-    { data: iso(blackFriday), nome: "Black Friday",               emoji: "🛍️", oportunidade: "desconto forte, menu especial, combo 'só hoje'" },
-    { data: `${ano}-12-24`, nome: "Véspera de Natal",             emoji: "🎄", oportunidade: "ceia pronta, encomendas, combos especiais" },
-    { data: `${ano}-12-25`, nome: "Natal",                        emoji: "🎅", oportunidade: "almoço de Natal, combos família" },
-    { data: `${ano}-12-31`, nome: "Réveillon",                    emoji: "🥂", oportunidade: "combo de virada, entrega antes das 22h" }
+    { data: `${ano}-01-01`, nome: "Ano Novo",                     icone: "champagne",  oportunidade: "combos de começo de ano, energia de recomeço" },
+    { data: iso(carnaval),  nome: "Carnaval",                     icone: "mask",       oportunidade: "promoção pra fim de semana de folia, delivery pra quem tá em casa" },
+    { data: `${ano}-03-08`, nome: "Dia Internacional da Mulher",  icone: "flower",     oportunidade: "homenagem com sobremesa grátis ou desconto pra mulheres" },
+    { data: iso(sextaSanta), nome: "Sexta-feira Santa",           icone: "fish",       oportunidade: "cardápio com peixe, moqueca, bacalhau" },
+    { data: iso(pascoa),    nome: "Páscoa",                       icone: "egg",        oportunidade: "almoço em família, sobremesa de chocolate" },
+    { data: `${ano}-04-21`, nome: "Tiradentes",                   icone: "flag",       oportunidade: "feriado, almoço com família, promoção pra casa cheia" },
+    { data: `${ano}-05-01`, nome: "Dia do Trabalhador",           icone: "briefcase",  oportunidade: "promoção do trabalhador, feriado prolongado" },
+    { data: iso(diaDasMaes), nome: "Dia das Mães",                icone: "heart",      oportunidade: "almoço/brunch especial, reserva antecipada, combo família" },
+    { data: `${ano}-06-12`, nome: "Dia dos Namorados",            icone: "heart-solid",oportunidade: "jantar romântico, combo casal, sobremesa especial" },
+    { data: `${ano}-06-24`, nome: "São João",                     icone: "flame",      oportunidade: "comida junina, quentão, milho, pé de moleque, temático" },
+    { data: `${ano}-07-20`, nome: "Dia do Amigo",                 icone: "users",      oportunidade: "desconto em combos pra turma, promoção 'chama os amigos'" },
+    { data: iso(diaDosPais), nome: "Dia dos Pais",                icone: "medal",      oportunidade: "churrasco, combo do pai, almoço família" },
+    { data: `${ano}-09-07`, nome: "Independência",                icone: "flag",       oportunidade: "feriado, almoço com família, churrasco" },
+    { data: `${ano}-09-15`, nome: "Dia do Cliente",               icone: "gift",       oportunidade: "desconto exclusivo pra base, 'você é motivo'" },
+    { data: `${ano}-10-12`, nome: "Dia das Crianças",             icone: "balloon",    oportunidade: "combo família, porção criança grátis, brinde" },
+    { data: `${ano}-10-15`, nome: "Dia dos Professores",          icone: "book",       oportunidade: "desconto pra professores apresentando algo" },
+    { data: `${ano}-11-02`, nome: "Finados",                      icone: "candle",     oportunidade: "delivery (dia de estar em casa)" },
+    { data: `${ano}-11-15`, nome: "Proclamação da República",     icone: "flag",       oportunidade: "feriado, almoço família, movimento em casa" },
+    { data: iso(blackFriday), nome: "Black Friday",               icone: "bag",        oportunidade: "desconto forte, menu especial, combo 'só hoje'" },
+    { data: `${ano}-12-24`, nome: "Véspera de Natal",             icone: "tree",       oportunidade: "ceia pronta, encomendas, combos especiais" },
+    { data: `${ano}-12-25`, nome: "Natal",                        icone: "tree",       oportunidade: "almoço de Natal, combos família" },
+    { data: `${ano}-12-31`, nome: "Réveillon",                    icone: "sparkles",   oportunidade: "combo de virada, entrega antes das 22h" }
   ];
 }
 
@@ -1157,7 +1157,7 @@ app.get("/api/calendario/proximas", authMiddleware, (req, res) => {
     .filter(d => d.diasRestantes >= 0 && d.quando <= limite)
     .sort((a, b) => a.diasRestantes - b.diasRestantes)
     .map(d => ({
-      data: d.data, nome: d.nome, emoji: d.emoji, oportunidade: d.oportunidade,
+      data: d.data, nome: d.nome, icone: d.icone, oportunidade: d.oportunidade,
       diasRestantes: d.diasRestantes,
       quandoLegivel: d.quando.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })
     }));
