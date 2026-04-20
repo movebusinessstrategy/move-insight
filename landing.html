@@ -340,21 +340,20 @@ body::after {
 
 /* Linha de "extras" menores abaixo dos 3 cards principais */
 .ia-extras {
-  display:grid; grid-template-columns:repeat(4,1fr); gap:12px;
-  margin-top:28px; padding:20px 24px;
+  display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  margin-top:28px; padding:22px 26px;
   background:var(--surface2); border:1px solid var(--border);
   border-radius:14px;
 }
 .ia-extra {
-  display:flex; align-items:center; gap:10px;
-  font-size:12.5px; color:var(--text2); line-height:1.45;
+  display:flex; align-items:center; gap:12px;
+  font-size:13px; color:var(--text2); line-height:1.5;
 }
 .ia-extra svg { flex-shrink:0; }
 .ia-extra strong { color:var(--text); font-weight:600; }
 
 @media(max-width:900px){
   .ia-grid { grid-template-columns:1fr; }
-  .ia-extras { grid-template-columns:1fr 1fr; }
 }
 @media(max-width:540px){
   .ia-extras { grid-template-columns:1fr; }
@@ -676,21 +675,56 @@ footer a:hover { color:var(--text2); }
 
 .hs-card {
   background:var(--surface);
-  border:1px solid rgba(185,141,65,.22);
-  border-radius:20px;
-  padding:22px;
-  box-shadow:0 20px 50px -22px rgba(0,0,0,.14), 0 0 40px -12px rgba(185,141,65,.22);
+  border:1px solid rgba(185,141,65,.18);
+  border-radius:22px;
+  padding:24px 22px;
+  box-shadow:0 2px 4px rgba(0,0,0,.04), 0 20px 50px -20px rgba(0,0,0,.1), 0 0 50px -15px rgba(185,141,65,.22);
   position:relative; overflow:hidden;
   display:flex; flex-direction:column; gap:16px;
-  transition:transform .4s, box-shadow .4s, border-color .4s;
-  min-height:440px;
+  transition:transform .4s cubic-bezier(.2,.6,.2,1), box-shadow .4s, border-color .4s;
+  min-height:460px;
 }
-.hs-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, var(--gold), transparent); opacity:.5; }
-#hsWrap.fired .hs-card { border-color:rgba(185,141,65,.4); box-shadow:0 24px 60px -22px rgba(0,0,0,.18), 0 0 60px -12px rgba(185,141,65,.35); }
+/* Borda dourada em gradiente via mask-composite (mesma técnica do B2B) */
+.hs-card::before {
+  content:''; position:absolute; inset:0; border-radius:22px; padding:1px;
+  background:linear-gradient(135deg, rgba(185,141,65,.35) 0%, transparent 40%, transparent 60%, rgba(185,141,65,.25) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  pointer-events:none; transition:opacity .4s;
+}
+/* Glow dourado sutil no canto superior direito (decoração estilo B2B) */
+.hs-card::after {
+  content:''; position:absolute; top:-40px; right:-40px;
+  width:180px; height:180px; border-radius:50%;
+  background:radial-gradient(circle, rgba(185,141,65,.15) 0%, transparent 70%);
+  filter:blur(30px); pointer-events:none;
+  transition:opacity .4s;
+}
+.hs-card:hover { transform:translateY(-3px); }
+#hsWrap.fired .hs-card {
+  border-color:rgba(185,141,65,.35);
+  box-shadow:0 4px 8px rgba(185,141,65,.06), 0 24px 60px -20px rgba(185,141,65,.25), 0 0 70px -12px rgba(185,141,65,.4);
+}
+#hsWrap.fired .hs-card::before { opacity:1; }
+#hsWrap.fired .hs-card::after { opacity:1.5; }
 
-.hs-step { display:inline-flex; align-items:center; gap:8px; font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); }
-.hs-step-num { width:20px; height:20px; border-radius:50%; background:var(--gold); color:#111; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:900; }
-.hs-title { font-size:16px; font-weight:800; letter-spacing:-.02em; color:var(--text); line-height:1.2; margin-top:-8px; }
+.hs-step {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:10px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--gold); position:relative; z-index:1;
+}
+.hs-step-num {
+  width:22px; height:22px; border-radius:50%;
+  background:linear-gradient(135deg, var(--gold), var(--gold2));
+  color:#111; display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:900;
+  box-shadow:0 2px 6px rgba(185,141,65,.35);
+}
+.hs-title {
+  font-size:17px; font-weight:800; letter-spacing:-.025em;
+  color:var(--text); line-height:1.25; margin-top:-4px;
+  position:relative; z-index:1;
+}
 
 /* Card 1: Mensagem modelo */
 .hs-msg { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:14px 15px; }
@@ -737,8 +771,15 @@ footer a:hover { color:var(--text2); }
 
 /* Card 3: Vendas */
 .hs-metric { text-align:center; padding:2px 0; }
-.hs-metric-val { font-size:56px; font-weight:800; letter-spacing:-.04em; line-height:1; color:var(--red); transition:color .6s; font-variant-numeric:tabular-nums; }
-#hsWrap.fired .hs-metric-val { color:var(--gold); }
+.hs-metric-val {
+  font-size:60px; font-weight:800; letter-spacing:-.045em; line-height:1;
+  color:var(--red); transition:all .6s; font-variant-numeric:tabular-nums;
+}
+#hsWrap.fired .hs-metric-val {
+  background:linear-gradient(135deg, var(--gold2) 0%, var(--gold) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text; color:transparent;
+}
 .hs-metric-lbl { font-size:11px; color:var(--text3); font-weight:600; letter-spacing:.04em; margin-top:4px; }
 
 .hs-chart { width:100%; height:100px; display:block; }
@@ -760,19 +801,94 @@ footer a:hover { color:var(--text2); }
 .hs-fat-calc strong { color:var(--text2); font-weight:800; font-variant-numeric:tabular-nums; }
 .hs-fat-total { text-align:right; }
 .hs-fat-lbl { font-size:8.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--text3); }
-.hs-fat-val { font-size:22px; font-weight:800; letter-spacing:-.03em; color:var(--red); transition:color .5s; line-height:1.15; font-variant-numeric:tabular-nums; }
-#hsWrap.fired .hs-fat-val { color:var(--gold); }
+.hs-fat-val { font-size:22px; font-weight:800; letter-spacing:-.03em; color:var(--red); transition:all .5s; line-height:1.15; font-variant-numeric:tabular-nums; }
+#hsWrap.fired .hs-fat-val {
+  background:linear-gradient(135deg, var(--gold2), var(--gold));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text; color:transparent;
+}
 
-/* Controle central */
-.hs-control { display:flex; align-items:center; justify-content:space-between; gap:22px; padding:18px 26px; background:linear-gradient(135deg, rgba(185,141,65,.08), rgba(185,141,65,.02)); border:1px solid rgba(185,141,65,.28); border-radius:16px; flex-wrap:wrap; box-shadow:0 8px 24px -8px rgba(185,141,65,.2); }
-.hs-narr { flex:1; min-width:260px; font-size:13px; color:var(--text2); line-height:1.6; margin:0; }
+/* Controle central: narrativa acima + botão centralizado embaixo com destaque */
+.hs-control {
+  display:flex; flex-direction:column; align-items:center; text-align:center;
+  gap:18px; padding:28px 32px;
+  background:linear-gradient(135deg, rgba(185,141,65,.08), rgba(185,141,65,.02));
+  border:1px solid rgba(185,141,65,.28); border-radius:18px;
+  box-shadow:0 8px 24px -8px rgba(185,141,65,.2);
+  position:relative; overflow:hidden;
+}
+/* Decoração sutil: glow radial atrás do botão */
+.hs-control::before {
+  content:''; position:absolute; bottom:-80px; left:50%; transform:translateX(-50%);
+  width:400px; height:160px; border-radius:50%;
+  background:radial-gradient(ellipse, rgba(185,141,65,.18), transparent 70%);
+  pointer-events:none; filter:blur(30px);
+}
+.hs-narr {
+  max-width:580px; font-size:14px; color:var(--text2); line-height:1.65; margin:0;
+  position:relative; z-index:1;
+}
 .hs-narr strong { color:var(--gold); font-weight:700; }
-.hs-fire { display:inline-flex; align-items:center; gap:9px; background:var(--gold); color:#111; font-size:14px; font-weight:800; padding:14px 26px; border-radius:999px; border:none; cursor:pointer; font-family:inherit; box-shadow:0 6px 22px rgba(185,141,65,.45); transition:all .25s; position:relative; overflow:hidden; flex-shrink:0; letter-spacing:-.01em; }
-.hs-fire:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 10px 32px rgba(185,141,65,.6); }
-.hs-fire:active:not(:disabled) { transform:translateY(0); }
-.hs-fire:disabled { opacity:.7; cursor:not-allowed; }
-.hs-fire::before { content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.35); transform:translate(-50%,-50%); transition:width .5s, height .5s; }
-.hs-fire:active::before { width:200px; height:200px; transition:0s; }
+
+/* Botão hero: pulsante, maior, centralizado */
+.hs-fire {
+  position:relative; z-index:2;
+  display:inline-flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg, var(--gold) 0%, var(--gold2) 100%);
+  color:#111; font-size:15px; font-weight:800; letter-spacing:-.01em;
+  padding:16px 32px; border-radius:999px; border:none; cursor:pointer;
+  font-family:inherit;
+  box-shadow:0 2px 4px rgba(185,141,65,.2), 0 8px 28px rgba(185,141,65,.45);
+  transition:transform .25s cubic-bezier(.2,.6,.2,1), box-shadow .25s;
+  animation:hsBtnBob 2.4s ease-in-out infinite;
+}
+.hs-fire:hover:not(:disabled) { transform:translateY(-3px) scale(1.02); box-shadow:0 4px 8px rgba(185,141,65,.3), 0 14px 40px rgba(185,141,65,.55); animation-play-state:paused; }
+.hs-fire:active:not(:disabled) { transform:translateY(-1px) scale(.99); }
+.hs-fire:disabled { opacity:.7; cursor:not-allowed; animation:none; }
+/* Ondas de pulso que saem do botão (só quando não tá rodando) */
+.hs-fire:not(:disabled)::before {
+  content:''; position:absolute; inset:-4px; border-radius:999px;
+  border:2px solid rgba(185,141,65,.5); pointer-events:none;
+  animation:hsBtnRing 2.4s ease-out infinite;
+}
+.hs-fire:not(:disabled)::after {
+  content:''; position:absolute; inset:-4px; border-radius:999px;
+  border:2px solid rgba(185,141,65,.3); pointer-events:none;
+  animation:hsBtnRing 2.4s ease-out infinite;
+  animation-delay:1.2s;
+}
+/* Ripple no click (só quando habilitado) */
+.hs-fire-ripple {
+  position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%;
+  background:rgba(255,255,255,.4); transform:translate(-50%,-50%);
+  transition:width .5s, height .5s, opacity .6s; opacity:0; pointer-events:none;
+}
+.hs-fire:active .hs-fire-ripple { width:240px; height:240px; opacity:1; transition:0s; }
+
+@keyframes hsBtnBob {
+  0%, 100% { transform:translateY(0); }
+  50%      { transform:translateY(-3px); }
+}
+@keyframes hsBtnRing {
+  0%   { transform:scale(1); opacity:.8; }
+  70%  { opacity:0; }
+  100% { transform:scale(1.5); opacity:0; }
+}
+
+/* Dica "clique" apontando pro botão (some quando simulador tá ativo) */
+.hs-click-hint {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11px; font-weight:700; letter-spacing:.06em;
+  color:var(--gold); text-transform:uppercase;
+  animation:hsHintPulse 1.8s ease-in-out infinite;
+  margin-top:-4px;
+  transition:opacity .4s;
+  position:relative; z-index:1;
+}
+#hsWrap.fired .hs-click-hint { opacity:0; pointer-events:none; }
+.hs-click-hint svg { animation:hsHintArrow 1.8s ease-in-out infinite; }
+@keyframes hsHintPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+@keyframes hsHintArrow { 0%,100%{transform:translateY(0)} 50%{transform:translateY(3px)} }
 
 /* Responsive */
 @media(max-width:1000px){ .hs-grid { grid-template-columns:1fr 1fr; } .hs-card:nth-child(3) { grid-column:1 / -1; } }
@@ -1051,8 +1167,13 @@ footer a:hover { color:var(--text2); }
     <!-- Controle central -->
     <div class="hs-control">
       <p class="hs-narr" id="hsNarr"><strong>É terça-feira, 19h32. Restaurante vazio, 0 pedidos.</strong> Sua base de clientes tá em casa, sem lembrar de pedir. Uma mensagem resolve.</p>
+      <div class="hs-click-hint" id="hsHint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        experimente ao vivo
+      </div>
       <button class="hs-fire" id="hsBtn" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span class="hs-fire-ripple"></span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         <span id="hsBtnTxt">Mudar essa terça fraca</span>
       </button>
     </div>
@@ -1168,9 +1289,9 @@ footer a:hover { color:var(--text2); }
         <div class="ia-visual-lista-col">
           <div class="ia-visual-lista-lbl">Antes</div>
           <div class="ia-visual-lista-row bad">JOÃO DA SILVA</div>
-          <div class="ia-visual-lista-row bad">(43) 9 9625-5556</div>
+          <div class="ia-visual-lista-row bad">(43) 9 0000-1001</div>
           <div class="ia-visual-lista-row bad">maria souza PINTO</div>
-          <div class="ia-visual-lista-row bad">55 11 99998 8877</div>
+          <div class="ia-visual-lista-row bad">55 11 90000 1002</div>
         </div>
         <div class="ia-visual-lista-arrow">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
@@ -1178,9 +1299,9 @@ footer a:hover { color:var(--text2); }
         <div class="ia-visual-lista-col">
           <div class="ia-visual-lista-lbl">Depois</div>
           <div class="ia-visual-lista-row good">João</div>
-          <div class="ia-visual-lista-row good">5543996255556</div>
+          <div class="ia-visual-lista-row good">5543900001001</div>
           <div class="ia-visual-lista-row good">Maria</div>
-          <div class="ia-visual-lista-row good">5511999988877</div>
+          <div class="ia-visual-lista-row good">5511900001002</div>
         </div>
       </div>
     </article>
@@ -1191,19 +1312,11 @@ footer a:hover { color:var(--text2); }
   <div class="ia-extras reveal reveal-delay-3">
     <div class="ia-extra">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-      <span><strong>Repetir campanha</strong> do histórico em 1 clique</span>
+      <span><strong>Repetir campanha</strong> do histórico em 1 clique (mesma mensagem, nova lista ou nova conta)</span>
     </div>
     <div class="ia-extra">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      <span><strong>Termo de responsabilidade</strong> registrado com IP e hora</span>
-    </div>
-    <div class="ia-extra">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span><strong>Auditoria completa</strong> de cada disparo por 90 dias</span>
-    </div>
-    <div class="ia-extra">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5a12 12 0 0 0-17 0c-3.15 3.2-3.83 8.03-1.85 11.94L1 22l6.67-1.75a12 12 0 0 0 5.83 1.5h.01c6.62 0 12-5.38 12-12a11.9 11.9 0 0 0-3.5-8.5z"/></svg>
-      <span><strong>Suporte no WhatsApp</strong>, direto com a equipe</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+      <span><strong>Suporte no WhatsApp</strong>, direto com a equipe humana (não é bot)</span>
     </div>
   </div>
 </div>
