@@ -1223,6 +1223,17 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   .tbl-card { overflow-x:auto; }
 }
 
+/* Modal dividir lista: botões de modo */
+.div-modo-btn {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:11px; padding:12px 14px; text-align:left;
+  cursor:pointer; transition:all var(--ease); color:var(--text);
+  font-family:inherit;
+}
+.div-modo-btn:hover { border-color:var(--border2); }
+.div-modo-btn.active { border-color:var(--gold); background:var(--gold-bg); }
+.div-modo-btn.active > div:first-child { color:var(--gold); }
+
 /* ══════════════════════════════════════════════════════════════════════════
    RELATÓRIOS — identidade premium (mesma pegada do CTA Agência da landing)
    ══════════════════════════════════════════════════════════════════════════ */
@@ -1424,6 +1435,59 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
     <div class="upgrade-btns">
       <a href="/registro?plano=pro&upgrade=1" class="btn-upgrade gold">Fazer upgrade para Pro</a>
       <button class="btn-upgrade ghost" onclick="fecharUpgrade()">Continuar no Básico</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DIVIDIR LISTA -->
+<div id="divOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);z-index:550;padding:24px;overflow-y:auto" role="dialog" onclick="if(event.target===this)fecharDividir()">
+  <div style="max-width:460px;margin:40px auto;background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:26px 26px 22px;box-shadow:0 40px 80px -20px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="flex-shrink:0;width:40px;height:40px;border-radius:11px;background:var(--gold-bg);border:1px solid rgba(185,141,65,.25);display:flex;align-items:center;justify-content:center;color:var(--gold)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a6 6 0 0 0 12 0V3"/><line x1="6" y1="21" x2="6" y2="15"/><line x1="18" y1="21" x2="18" y2="15"/><line x1="3" y1="21" x2="21" y2="21"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--text3);font-weight:700;letter-spacing:.14em;text-transform:uppercase">Dividir lista</div>
+        <div id="divNome" style="font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">—</div>
+      </div>
+      <button onclick="fecharDividir()" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:6px" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <p style="font-size:12.5px;color:var(--text2);margin:0 0 16px;line-height:1.55">
+      <span id="divTotalLbl">0</span> contatos ao todo. Escolha como dividir — a lista original continua intacta.
+    </p>
+
+    <!-- Modo de divisão -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <button id="divModoTamanho" class="div-modo-btn active" onclick="divSetModo('tamanho')">
+        <div style="font-size:12px;font-weight:700">Por quantidade</div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:3px;font-weight:500">Ex: 500 por parte</div>
+      </button>
+      <button id="divModoPartes" class="div-modo-btn" onclick="divSetModo('partes')">
+        <div style="font-size:12px;font-weight:700">Por nº de partes</div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:3px;font-weight:500">Ex: 4 listas iguais</div>
+      </button>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600" id="divValorLbl">Contatos por parte</label>
+      <input type="number" id="divValor" min="2" value="500" style="height:42px">
+      <div id="divPreview" style="margin-top:8px;font-size:11.5px;color:var(--gold);font-weight:600;letter-spacing:.01em">—</div>
+    </div>
+
+    <label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;cursor:pointer;margin-bottom:18px" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <input type="checkbox" id="divIntercalar" style="margin-top:2px;width:16px;height:16px;accent-color:var(--gold);cursor:pointer;flex-shrink:0">
+      <div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text)">Intercalar contatos</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5">Distribui em round-robin (1º→parte1, 2º→parte2...) pra balancear qualidade entre contas. Se desmarcar, é sequencial.</div>
+      </div>
+    </label>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="fecharDividir()" style="flex:1;height:42px">Cancelar</button>
+      <button class="btn btn-gold" onclick="confirmarDividir()" id="divBtnConfirmar" style="flex:1.2;height:42px">Dividir agora</button>
     </div>
   </div>
 </div>
@@ -5038,6 +5102,88 @@ window.relEnviarWhats = function() {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// DIVIDIR LISTA (splitter)
+// ─────────────────────────────────────────────────────────────────────────────
+var _divCtx = { id:null, total:0, nome:'', modo:'tamanho' };
+
+window.abrirDividirLista = function(id, total, nome) {
+  _divCtx.id = id; _divCtx.total = total; _divCtx.nome = nome; _divCtx.modo = 'tamanho';
+  var nm = document.getElementById('divNome'); if (nm) nm.textContent = nome || 'Lista';
+  var tl = document.getElementById('divTotalLbl'); if (tl) tl.textContent = total.toLocaleString('pt-BR');
+  document.getElementById('divIntercalar').checked = false;
+  divSetModo('tamanho');
+  var ov = document.getElementById('divOverlay'); if (ov) ov.style.display = 'block';
+};
+
+window.fecharDividir = function() {
+  var ov = document.getElementById('divOverlay'); if (ov) ov.style.display = 'none';
+};
+
+window.divSetModo = function(modo) {
+  _divCtx.modo = modo;
+  document.getElementById('divModoTamanho').classList.toggle('active', modo === 'tamanho');
+  document.getElementById('divModoPartes').classList.toggle('active', modo === 'partes');
+  var lbl = document.getElementById('divValorLbl');
+  var inp = document.getElementById('divValor');
+  if (modo === 'tamanho') {
+    lbl.textContent = 'Contatos por parte';
+    inp.value = Math.max(50, Math.min(500, Math.ceil(_divCtx.total / 4)));
+    inp.max = Math.max(2, _divCtx.total - 1);
+  } else {
+    lbl.textContent = 'Número de partes';
+    inp.value = 4;
+    inp.max = _divCtx.total;
+  }
+  divAtualizarPreview();
+};
+
+function divAtualizarPreview() {
+  var prev = document.getElementById('divPreview'); if (!prev) return;
+  var v = parseInt(document.getElementById('divValor').value, 10) || 0;
+  var total = _divCtx.total;
+  if (!v || v < 2) { prev.textContent = 'Valor inválido (mínimo 2)'; prev.style.color = 'var(--red)'; return; }
+  prev.style.color = 'var(--gold)';
+  if (_divCtx.modo === 'tamanho') {
+    if (v >= total) { prev.textContent = 'Valor maior ou igual ao total — nada a dividir'; prev.style.color = 'var(--red)'; return; }
+    var n = Math.ceil(total / v);
+    prev.textContent = '→ ' + n + ' listas de até ' + v + ' contatos cada';
+  } else {
+    if (v > total) { prev.textContent = 'Mais partes do que contatos'; prev.style.color = 'var(--red)'; return; }
+    var por = Math.ceil(total / v);
+    prev.textContent = '→ ' + v + ' listas com ~' + por + ' contatos cada';
+  }
+}
+
+document.addEventListener('input', function(e){
+  if (e.target && e.target.id === 'divValor') divAtualizarPreview();
+});
+
+window.confirmarDividir = function() {
+  if (!_divCtx.id) return;
+  var valor = parseInt(document.getElementById('divValor').value, 10) || 0;
+  if (!valor || valor < 2) { toast('Valor inválido', 'erro'); return; }
+  var intercalar = document.getElementById('divIntercalar').checked;
+  var btn = document.getElementById('divBtnConfirmar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Dividindo...'; }
+  post('/api/listas/' + _divCtx.id + '/dividir', {
+    modo: _divCtx.modo, valor: valor, intercalar: intercalar
+  }).then(function(r) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Dividir agora'; }
+    if (!r || !r.ok) { toast((r && r.erro) || 'Erro ao dividir', 'erro'); return; }
+    toast('Lista dividida em ' + r.partes + ' partes', 'ok');
+    fecharDividir();
+    window.carregarListasSalvas && window.carregarListasSalvas();
+  });
+};
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') {
+    var ov = document.getElementById('divOverlay');
+    if (ov && ov.style.display === 'block') fecharDividir();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // LISTAS SALVAS
 // ─────────────────────────────────────────────────────────────────────────────
 window.carregarListasSalvas = function() {
@@ -5060,6 +5206,8 @@ window.carregarListasSalvas = function() {
           '<div style="font-size:14px;font-weight:600;color:var(--text)">' + l.nome + '</div>' +
           '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + l.total + ' contatos · ' + dt + '</div>' +
         '</div>' +
+        '<button class="btn btn-ghost" style="height:30px;font-size:10px;padding:0 10px" ' +
+          'onclick="abrirDividirLista(\'' + l.id + '\',' + l.total + ',\'' + (l.nome||'').replace(/'/g,"\\'") + '\')">Dividir</button>' +
         '<button class="btn btn-ghost" style="height:30px;font-size:10px;padding:0 10px" ' +
           'onclick="abrirEdicaoLista(\'' + l.id + '\')">Editar</button>' +
         '<button class="btn btn-gold" style="height:30px;font-size:10px;padding:0 12px" ' +

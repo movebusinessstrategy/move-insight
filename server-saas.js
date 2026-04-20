@@ -955,6 +955,63 @@ app.delete("/api/listas/:id", authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// Divide uma lista em N partes. Modo "tamanho" (cada parte tem X contatos) ou
+// "partes" (total dividido em N partes iguais). A original fica intacta.
+app.post("/api/listas/:id/dividir", authMiddleware, (req, res) => {
+  const uid = req.userId;
+  const { modo, valor, intercalar } = req.body || {};
+  const listas = lerUser(uid, "listas.json", []);
+  const orig = listas.find(l => l.id === req.params.id);
+  if (!orig) return res.status(404).json({ erro: "Lista não encontrada" });
+  const contatos = Array.isArray(orig.contatos) ? orig.contatos : [];
+  if (!contatos.length) return res.status(400).json({ erro: "Lista vazia" });
+
+  const v = Math.max(2, parseInt(valor, 10) || 0);
+  if (!v || v < 2) return res.status(400).json({ erro: "Valor inválido (mínimo 2)" });
+
+  let partes;
+  if (modo === "tamanho") {
+    // v = contatos por parte
+    if (v >= contatos.length) return res.status(400).json({ erro: "Tamanho maior ou igual ao total — nada a dividir" });
+    partes = Math.ceil(contatos.length / v);
+  } else if (modo === "partes") {
+    // v = número de partes
+    if (v > contatos.length) return res.status(400).json({ erro: "Mais partes do que contatos" });
+    partes = v;
+  } else {
+    return res.status(400).json({ erro: "Modo inválido (use 'tamanho' ou 'partes')" });
+  }
+
+  // Distribui: intercalado (round-robin) ou sequencial
+  const buckets = Array.from({ length: partes }, () => []);
+  if (intercalar) {
+    contatos.forEach((c, i) => buckets[i % partes].push(c));
+  } else {
+    const porParte = Math.ceil(contatos.length / partes);
+    contatos.forEach((c, i) => {
+      const idx = Math.min(Math.floor(i / porParte), partes - 1);
+      buckets[idx].push(c);
+    });
+  }
+
+  const agora = Date.now();
+  const novasIds = [];
+  buckets.forEach((b, i) => {
+    if (!b.length) return;
+    const novo = {
+      id: "lista_" + (agora + i),
+      nome: `${orig.nome} (parte ${i + 1}/${partes})`,
+      total: b.length,
+      contatos: b,
+      criadaEm: new Date().toISOString()
+    };
+    listas.push(novo);
+    novasIds.push(novo.id);
+  });
+  salvarUser(uid, "listas.json", listas);
+  res.json({ ok: true, partes: buckets.length, ids: novasIds });
+});
+
 app.get("/api/blacklist",  authMiddleware, (req, res) => res.json(lerUser(req.userId, "blacklist.json", [])));
 
 // Candidatos sugeridos pra blacklist: 10+ campanhas recebidas sem NENHUMA resposta.
