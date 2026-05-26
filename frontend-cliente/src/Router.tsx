@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import TrocarSenha from './pages/TrocarSenha';
+import Relatorio from './pages/Relatorio';
 
 interface Cliente {
   id: string;
@@ -9,65 +12,68 @@ interface Cliente {
   senha_provisoria: boolean;
 }
 
-export default function Router() {
-  const [cliente, setCliente] = useState<Cliente | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+interface ProtectedRouteProps {
+  cliente: Cliente | null;
+  loading: boolean;
+  children: React.ReactNode;
+}
 
-  useEffect(() => {
-    // Simular check de sessão (em produção, faria uma requisição GET /api/cliente/auth/me)
-    // Por enquanto, assume que se não tem sessão, mostra login
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
+function ProtectedRoute({ cliente, loading, children }: ProtectedRouteProps) {
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '40px' }}>Carregando...</div>;
   }
-
-  // Se não tem cliente, mostra login
   if (!cliente) {
-    return <Login />;
+    return <Navigate to="/login" replace />;
   }
+  return <>{children}</>;
+}
 
-  // Se cliente precisa mudar senha
-  if (cliente.senha_provisoria && currentPath !== '/trocar-senha') {
-    return (
-      <div style={{ padding: '20px' }}>
-        <h1>Trocar Senha</h1>
-        <p>Você precisa alterar sua senha antes de continuar.</p>
-        <p style={{ marginTop: '20px', color: '#666' }}>
-          (Página de trocar senha será implementada na Sprint 2)
-        </p>
-      </div>
-    );
-  }
+export default function Router() {
+  const [cliente, setCliente] = useState<Cliente | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Se tem cliente, mostra relatório
-  if (currentPath === '/login' && cliente) {
-    window.location.href = '/relatorio';
-    return null;
-  }
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/cliente/auth/me', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCliente(data.cliente);
+        }
+      } catch (_error) {
+        // Sem sessão, continua com cliente null
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Placeholder para relatório (será implementado em sprint 2)
+    checkSession();
+  }, []);
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Meus Relatórios</h1>
-      <p>Bem-vindo, {cliente.cliente_nome}!</p>
-      <button onClick={() => window.location.href = '/api/cliente/auth/logout'}>
-        Logout
-      </button>
-      <p style={{ marginTop: '20px', color: '#666' }}>
-        (Relatórios será implementado na Sprint 2)
-      </p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={cliente ? <Navigate to="/relatorio" replace /> : <Login />} />
+        <Route
+          path="/trocar-senha"
+          element={
+            <ProtectedRoute cliente={cliente} loading={loading}>
+              <TrocarSenha cliente={cliente!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/relatorio"
+          element={
+            <ProtectedRoute cliente={cliente} loading={loading}>
+              <Relatorio cliente={cliente!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/relatorio" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

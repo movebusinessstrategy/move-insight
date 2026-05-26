@@ -37,3 +37,8 @@ export async function handleClienteLogout(_req: Request, res: Response): Promise
   res.clearCookie('cliente_session');
   res.status(200).json({ message: 'Logout realizado com sucesso' });
 }
+
+export function handleClienteMe(req: Request, res: Response): void {
+  const cliente = (req as any).clienteUser;
+  res.status(200).json({ cliente });
+}

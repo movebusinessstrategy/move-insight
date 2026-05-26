@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
 
 interface User {
   id: string;
@@ -8,52 +10,60 @@ interface User {
   role: 'admin';
 }
 
-export default function Router() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+interface ProtectedRouteProps {
+  user: User | null;
+  loading: boolean;
+  children: React.ReactNode;
+}
 
-  useEffect(() => {
-    // Simular check de sessão (em produção, faria uma requisição GET /api/auth/admin/me)
-    // Por enquanto, assume que se não tem sessão, mostra login
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
+function ProtectedRoute({ user, loading, children }: ProtectedRouteProps) {
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '40px' }}>Carregando...</div>;
   }
-
-  // Se não tem user, mostra login
   if (!user) {
-    return <Login />;
+    return <Navigate to="/login" replace />;
   }
+  return <>{children}</>;
+}
 
-  // Se tem user e está em /login, redireciona para /dashboard
-  if (currentPath === '/login' && user) {
-    window.location.href = '/dashboard';
-    return null;
-  }
+export default function Router() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Placeholder para dashboard (será implementado em sprint 2)
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/admin/me', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (_error) {
+        // Sem sessão, continua com user null
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Dashboard Admin</h1>
-      <p>Bem-vindo, {user.nome}!</p>
-      <button onClick={() => window.location.href = '/api/auth/admin/logout'}>
-        Logout
-      </button>
-      <p style={{ marginTop: '20px', color: '#666' }}>
-        (Dashboard será implementado na Sprint 2)
-      </p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <Dashboard user={user!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

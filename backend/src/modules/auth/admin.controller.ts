@@ -36,3 +36,8 @@ export async function handleAdminLogout(_req: Request, res: Response): Promise<v
   res.clearCookie('admin_session');
   res.status(200).json({ message: 'Logout realizado com sucesso' });
 }
+
+export function handleAdminMe(req: Request, res: Response): void {
+  const user = (req as any).adminUser;
+  res.status(200).json({ user });
+}
