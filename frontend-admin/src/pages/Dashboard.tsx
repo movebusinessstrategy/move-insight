@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu } from 'lucide-react';
+import { colors, spacing, radius, typography, shadows } from '../theme';
+import type { Theme } from '../theme';
 
 interface User {
   id: string;
@@ -50,56 +53,23 @@ interface DashboardProps {
 
 export default function Dashboard({ user }: DashboardProps) {
   const navigate = useNavigate();
+  const [theme, setTheme] = useState<Theme>('light');
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [reminderLoading, setReminderLoading] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('clientes');
   const [whatsappStatus, setWhatsappStatus] = useState<'desconectado' | 'conectando' | 'conectado'>('desconectado');
-  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
-  const [savingConfig, setSavingConfig] = useState(false);
-  const [isEditingMode, setIsEditingMode] = useState(false);
-  const [viewingRelatorio, setViewingRelatorio] = useState<{ cliente: Cliente; relatorio: Relatorio } | null>(null);
-  const [relatorioDateRange, setRelatorioDateRange] = useState<{ since: string; until: string } | null>(null);
-  const [loadingRelatorio, setLoadingRelatorio] = useState<string | null>(null);
-  const [creatingClient, setCreatingClient] = useState(false);
-  const [newClientForm, setNewClientForm] = useState({
-    nome: '',
-    email: '',
-    valor_mensal: '',
-    dia_vencimento: '',
-    tipo_pessoa: 'pf' as 'pf' | 'pj',
-    cpf_cnpj: '',
-    nome_fantasia: '',
-    endereco: '',
-    cidade: '',
-    estado: '',
-    cep: '',
-    telefone: '',
-    whatsapp_numero: '',
-    meta_ads_account_id: '',
-    data_inicio_trabalhos: '',
-  });
-  const [creatingLoading, setCreatingLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
-  const [filterMetaAds, setFilterMetaAds] = useState<'todos' | 'com' | 'sem'>('todos');
-  const [viewMode, setViewMode] = useState<'tabela' | 'cards'>('tabela');
-  const [sortBy, setSortBy] = useState<'nome' | 'valor' | 'vencimento'>('nome');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [selectedClientIds, setSelectedClientIds] = useState<Set<string>>(new Set());
-  const [batchLoading, setBatchLoading] = useState(false);
-  const [showFrequenciaDialog, setShowFrequenciaDialog] = useState(false);
-  const [selectedFrequencia, setSelectedFrequencia] = useState<'nunca' | 'semanal' | 'mensal'>('semanal');
   const [whatsappQrImage, setWhatsappQrImage] = useState<string | null>(null);
   const [whatsappPollingActive, setWhatsappPollingActive] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
+
+  const c = colors[theme];
 
   useEffect(() => {
     const loadClientes = async () => {
       try {
-        const response = await fetch('/api/admin/clientes', {
-          credentials: 'include',
-        });
+        const response = await fetch('/api/admin/clientes', { credentials: 'include' });
         const data = await response.json();
         if (response.ok) {
           setClientes(data.clientes);
@@ -112,132 +82,23 @@ export default function Dashboard({ user }: DashboardProps) {
         setLoading(false);
       }
     };
-
     loadClientes();
   }, []);
 
   useEffect(() => {
     const checkWhatsAppStatus = async () => {
       try {
-        const response = await fetch('/api/whatsapp/status', {
-          credentials: 'include',
-        });
+        const response = await fetch('/api/whatsapp/status', { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
-          if (data.connected) {
-            setWhatsappStatus('conectado');
-          } else {
-            setWhatsappStatus('desconectado');
-          }
+          setWhatsappStatus(data.connected ? 'conectado' : 'desconectado');
         }
       } catch (error) {
         console.error('Erro ao verificar status WhatsApp:', error);
       }
     };
-
     checkWhatsAppStatus();
   }, []);
-
-  // Filtrar e ordenar clientes
-  const clientesFiltrados = clientes
-    .filter((cliente) => {
-      const matchSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cliente.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchStatus = filterStatus === 'todos' || cliente.status === filterStatus;
-      const matchMetaAds = filterMetaAds === 'todos' ||
-        (filterMetaAds === 'com' && cliente.meta_ads_account_id) ||
-        (filterMetaAds === 'sem' && !cliente.meta_ads_account_id);
-      return matchSearch && matchStatus && matchMetaAds;
-    })
-    .sort((a, b) => {
-      let aVal, bVal;
-      if (sortBy === 'nome') {
-        aVal = a.nome.toLowerCase();
-        bVal = b.nome.toLowerCase();
-      } else if (sortBy === 'valor') {
-        aVal = a.valor_mensal ? Number(a.valor_mensal) : 0;
-        bVal = b.valor_mensal ? Number(b.valor_mensal) : 0;
-      } else {
-        aVal = a.dia_vencimento || 0;
-        bVal = b.dia_vencimento || 0;
-      }
-      return sortOrder === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
-    });
-
-  // Calcular métricas
-  const metricas = {
-    totalClientes: clientes.length,
-    clientesAtivos: clientes.filter((c) => c.status === 'ativo').length,
-    faturamentoTotal: clientes.reduce((sum, c) => sum + (c.valor_mensal ? Number(c.valor_mensal) : 0), 0),
-    comMetaAds: clientes.filter((c) => c.meta_ads_account_id).length,
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/admin/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      navigate('/login', { replace: true });
-    } catch (_error) {
-      console.error('Erro ao fazer logout');
-    }
-  };
-
-  const handleLembrarPagamento = async (clienteId: string) => {
-    setReminderLoading(clienteId);
-    try {
-      const response = await fetch(`/api/admin/clientes/${clienteId}/lembrar-pagamento`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Lembrete de pagamento disparado com sucesso!');
-      } else {
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (_error) {
-      alert('Erro ao enviar lembrete');
-    } finally {
-      setReminderLoading(null);
-    }
-  };
-
-  const formatWhatsAppNumber = (numero: string): string => {
-    if (!numero) return '';
-    // Remove tudo que não é número
-    const apenasNumeros = numero.replace(/\D/g, '');
-    // Se não começar com 55, adiciona o código do Brasil
-    if (!apenasNumeros.startsWith('55')) {
-      return `55${apenasNumeros}`;
-    }
-    return apenasNumeros;
-  };
-
-  const buscarEnderecoPorCEP = async (cep: string) => {
-    const cepLimpo = cep.replace(/\D/g, '');
-    if (cepLimpo.length !== 8) return;
-
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-      const data = await response.json();
-
-      if (data.erro) {
-        alert('CEP não encontrado');
-        return;
-      }
-
-      setNewClientForm((prev) => ({
-        ...prev,
-        endereco: data.logradouro || '',
-        cidade: data.localidade || '',
-        estado: data.uf || '',
-      }));
-    } catch (_error) {
-      alert('Erro ao buscar CEP');
-    }
-  };
 
   const handleConectarWhatsApp = async () => {
     try {
@@ -253,33 +114,22 @@ export default function Dashboard({ user }: DashboardProps) {
       if (!response.ok) {
         setWhatsappStatus('desconectado');
         setWhatsappPollingActive(false);
-        setError('Erro ao iniciar conexão WhatsApp');
         return;
       }
 
-      // Polling para pegar o QR code
       let pollingAttempts = 0;
-      const maxAttempts = 60; // 60 tentativas x 1s = 60s timeout
+      const maxAttempts = 60;
 
       const pollQrCode = async () => {
         while (pollingAttempts < maxAttempts && whatsappPollingActive) {
           try {
-            const qrResponse = await fetch('/api/whatsapp/qr', {
-              credentials: 'include',
-            });
-
+            const qrResponse = await fetch('/api/whatsapp/qr', { credentials: 'include' });
             if (qrResponse.ok) {
               const qrData = await qrResponse.json();
-              if (qrData.qr) {
-                setWhatsappQrImage(qrData.qr);
-              }
+              if (qrData.qr) setWhatsappQrImage(qrData.qr);
             }
 
-            // Verificar status da conexão
-            const statusResponse = await fetch('/api/whatsapp/status', {
-              credentials: 'include',
-            });
-
+            const statusResponse = await fetch('/api/whatsapp/status', { credentials: 'include' });
             if (statusResponse.ok) {
               const statusData = await statusResponse.json();
               if (statusData.connected) {
@@ -299,7 +149,6 @@ export default function Dashboard({ user }: DashboardProps) {
           }
         }
 
-        // Timeout
         setWhatsappStatus('desconectado');
         setWhatsappPollingActive(false);
       };
@@ -309,1512 +158,687 @@ export default function Dashboard({ user }: DashboardProps) {
       console.error('Erro ao conectar WhatsApp:', error);
       setWhatsappStatus('desconectado');
       setWhatsappPollingActive(false);
-      setError('Erro ao conectar WhatsApp');
     }
   };
 
   const handleDesconectarWhatsApp = async () => {
     try {
-      const response = await fetch('/api/whatsapp/disconnect', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        setWhatsappStatus('desconectado');
-        setWhatsappQrImage(null);
-        setWhatsappPollingActive(false);
-      } else {
-        setError('Erro ao desconectar WhatsApp');
-      }
+      await fetch('/api/whatsapp/disconnect', { method: 'POST', credentials: 'include' });
+      setWhatsappStatus('desconectado');
+      setWhatsappQrImage(null);
+      setWhatsappPollingActive(false);
     } catch (error) {
       console.error('Erro ao desconectar WhatsApp:', error);
-      setError('Erro ao desconectar WhatsApp');
     }
   };
 
-  const abrirEdicao = (cliente: any) => {
-    setEditingCliente(cliente);
-    setNewClientForm({
-      nome: cliente.nome || '',
-      email: cliente.email || '',
-      valor_mensal: cliente.valor_mensal ? String(cliente.valor_mensal) : '',
-      dia_vencimento: cliente.dia_vencimento ? String(cliente.dia_vencimento) : '',
-      tipo_pessoa: cliente.tipo_pessoa || 'pf',
-      cpf_cnpj: cliente.cpf_cnpj || '',
-      nome_fantasia: cliente.nome_fantasia || '',
-      endereco: cliente.endereco || '',
-      cidade: cliente.cidade || '',
-      estado: cliente.estado || '',
-      cep: cliente.cep || '',
-      telefone: cliente.telefone || '',
-      whatsapp_numero: cliente.whatsapp_numero || '',
-      meta_ads_account_id: cliente.meta_ads_account_id || '',
-      data_inicio_trabalhos: cliente.data_inicio_trabalhos || '',
-    });
-    setIsEditingMode(true);
+  const clientesFiltrados = clientes.filter((cliente) => {
+    const matchSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cliente.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchStatus = filterStatus === 'todos' || cliente.status === filterStatus;
+    return matchSearch && matchStatus;
+  });
+
+  const metricas = {
+    totalClientes: clientes.length,
+    clientesAtivos: clientes.filter((c) => c.status === 'ativo').length,
+    faturamentoTotal: clientes.reduce((sum, c) => sum + (c.valor_mensal ? Number(c.valor_mensal) : 0), 0),
+    comMetaAds: clientes.filter((c) => c.meta_ads_account_id).length,
   };
 
-  const fecharEdicao = () => {
-    setEditingCliente(null);
-    setIsEditingMode(false);
-    setNewClientForm({
-      nome: '',
-      email: '',
-      valor_mensal: '',
-      dia_vencimento: '',
-      tipo_pessoa: 'pf',
-      cpf_cnpj: '',
-      nome_fantasia: '',
-      endereco: '',
-      cidade: '',
-      estado: '',
-      cep: '',
-      telefone: '',
-      whatsapp_numero: '',
-      meta_ads_account_id: '',
-      data_inicio_trabalhos: '',
-    });
-  };
-
-  const handleVisualizarRelatorio = async (cliente: Cliente, since?: string, until?: string) => {
-    if (!cliente.meta_ads_account_id || cliente.meta_ads_account_id === '') {
-      alert('Cliente não possui ID de conta Meta Ads configurado');
-      return;
-    }
-
-    setLoadingRelatorio(cliente.id);
-    try {
-      let url = `/api/admin/clientes/${cliente.id}/relatorio`;
-      if (since && until) {
-        url += `?since=${since}&until=${until}`;
-      }
-      const response = await fetch(url, {
-        credentials: 'include',
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setViewingRelatorio({ cliente, relatorio: data.relatorio });
-        setRelatorioDateRange(since && until ? { since, until } : null);
-      } else {
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (_error) {
-      alert('Erro ao carregar relatório');
-    } finally {
-      setLoadingRelatorio(null);
-    }
-  };
-
-  const fecharRelatorio = () => {
-    setViewingRelatorio(null);
-    setRelatorioDateRange(null);
-  };
-
-  const toggleClienteSelection = (clienteId: string) => {
-    setSelectedClientIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(clienteId)) {
-        newSet.delete(clienteId);
-      } else {
-        newSet.add(clienteId);
-      }
-      return newSet;
-    });
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedClientIds.size === clientesFiltrados.length) {
-      setSelectedClientIds(new Set());
-    } else {
-      setSelectedClientIds(new Set(clientesFiltrados.map((c) => c.id)));
-    }
-  };
-
-  const handleEnviarLembracaBatch = async () => {
-    const ids = Array.from(selectedClientIds);
-    if (ids.length === 0) {
-      alert('Selecione pelo menos um cliente');
-      return;
-    }
-
-    setBatchLoading(true);
-    try {
-      const response = await fetch('/api/admin/clientes/batch/lembrar-pagamento', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ clienteIds: ids }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert(`✅ ${data.resultado.enviados} lembretes disparados\n❌ ${data.resultado.falhados} erros`);
-        setSelectedClientIds(new Set());
-      } else {
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (_error) {
-      alert('Erro ao enviar lembretes');
-    } finally {
-      setBatchLoading(false);
-    }
-  };
-
-  const handleAtualizarClientesBatch = async (updates: any) => {
-    const ids = Array.from(selectedClientIds);
-    if (ids.length === 0) {
-      alert('Selecione pelo menos um cliente');
-      return;
-    }
-
-    setBatchLoading(true);
-    try {
-      const response = await fetch('/api/admin/clientes/batch/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ clienteIds: ids, updates }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        alert(`✅ ${data.resultado.atualizados} clientes atualizados\n❌ ${data.resultado.falhados} erros`);
-        setSelectedClientIds(new Set());
-        setClientes((prev) => [...prev]);
-        setShowFrequenciaDialog(false);
-      } else {
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (_error) {
-      alert('Erro ao atualizar clientes');
-    } finally {
-      setBatchLoading(false);
-    }
-  };
-
-  const handleCriarCliente = async () => {
-    if (!newClientForm.nome || !newClientForm.email) {
-      alert('Nome e email são obrigatórios');
-      return;
-    }
-
-    setCreatingLoading(true);
-    try {
-      const response = await fetch('/api/admin/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          nome: newClientForm.nome,
-          email: newClientForm.email,
-          valor_mensal: newClientForm.valor_mensal ? Number(newClientForm.valor_mensal) : null,
-          dia_vencimento: newClientForm.dia_vencimento ? Number(newClientForm.dia_vencimento) : null,
-          tipo_pessoa: newClientForm.tipo_pessoa,
-          cpf_cnpj: newClientForm.cpf_cnpj || null,
-          nome_fantasia: newClientForm.nome_fantasia || null,
-          endereco: newClientForm.endereco || null,
-          cidade: newClientForm.cidade || null,
-          estado: newClientForm.estado || null,
-          cep: newClientForm.cep || null,
-          telefone: newClientForm.telefone || null,
-          whatsapp_numero: newClientForm.whatsapp_numero ? formatWhatsAppNumber(newClientForm.whatsapp_numero) : null,
-          meta_ads_account_id: newClientForm.meta_ads_account_id || null,
-          data_inicio_trabalhos: newClientForm.data_inicio_trabalhos || null,
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setClientes((prev) => [...prev, data.cliente]);
-        setNewClientForm({
-          nome: '',
-          email: '',
-          valor_mensal: '',
-          dia_vencimento: '',
-          tipo_pessoa: 'pf',
-          cpf_cnpj: '',
-          nome_fantasia: '',
-          endereco: '',
-          cidade: '',
-          estado: '',
-          cep: '',
-          telefone: '',
-          whatsapp_numero: '',
-          meta_ads_account_id: '',
-          data_inicio_trabalhos: '',
-        });
-        setCreatingClient(false);
-        alert('Cliente criado com sucesso!');
-      } else {
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (_error) {
-      alert('Erro ao criar cliente');
-    } finally {
-      setCreatingLoading(false);
-    }
-  };
-
-  const handleSalvarConfig = async () => {
-    if (!editingCliente) return;
-
-    setSavingConfig(true);
-    try {
-      const response = await fetch(`/api/admin/clientes/${editingCliente.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          tipo_pessoa: newClientForm.tipo_pessoa,
-          nome: newClientForm.nome,
-          email: newClientForm.email,
-          cpf_cnpj: newClientForm.cpf_cnpj || null,
-          nome_fantasia: newClientForm.nome_fantasia || null,
-          telefone: newClientForm.telefone || null,
-          whatsapp_numero: newClientForm.whatsapp_numero ? formatWhatsAppNumber(newClientForm.whatsapp_numero) : null,
-          endereco: newClientForm.endereco || null,
-          cidade: newClientForm.cidade || null,
-          estado: newClientForm.estado || null,
-          cep: newClientForm.cep || null,
-          data_inicio_trabalhos: newClientForm.data_inicio_trabalhos || null,
-          valor_mensal: newClientForm.valor_mensal ? Number(newClientForm.valor_mensal) : null,
-          dia_vencimento: newClientForm.dia_vencimento ? Number(newClientForm.dia_vencimento) : null,
-          meta_ads_account_id: newClientForm.meta_ads_account_id || null,
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setClientes((prev) =>
-          prev.map((c) => (c.id === editingCliente.id ? data.cliente : c))
-        );
-        fecharEdicao();
-        alert('Cliente atualizado com sucesso!');
-      } else {
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (_error) {
-      alert('Erro ao atualizar cliente');
-    } finally {
-      setSavingConfig(false);
-    }
+  const handleLogout = async () => {
+    await fetch('/api/auth/admin/logout', { method: 'POST', credentials: 'include' });
+    navigate('/login');
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <div>
-          <h1>Dashboard - Gestão MOVE Insights</h1>
-          <p style={{ color: '#666', marginTop: '4px' }}>Bem-vindo, {user.nome}!</p>
+    <div style={{
+      backgroundColor: c.bg.primary,
+      color: c.text.primary,
+      minHeight: '100vh',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif',
+      transition: 'background-color 0.3s, color 0.3s',
+    }}>
+      {/* Header */}
+      <div style={{
+        backgroundColor: c.bg.primary,
+        borderBottom: `1px solid ${c.border}`,
+        padding: `${spacing.md} ${spacing.lg}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            margin: 0,
+            background: 'linear-gradient(135deg, #B8956A 0%, #8B7355 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
+            MOVE Insights
+          </h1>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-          }}
-        >
-          Logout
-        </button>
-      </div>
 
-      {/* Abas */}
-      <div style={{ display: 'flex', gap: '0', marginBottom: '20px', borderBottom: '2px solid #ddd' }}>
-        <button
-          onClick={() => setActiveTab('clientes')}
-          style={{
-            padding: '12px 20px',
-            backgroundColor: activeTab === 'clientes' ? '#1a73e8' : 'transparent',
-            color: activeTab === 'clientes' ? 'white' : '#666',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'clientes' ? 'bold' : 'normal',
-            borderBottom: activeTab === 'clientes' ? 'none' : '',
-          }}
-        >
-          👥 Clientes
-        </button>
-        <button
-          onClick={() => setActiveTab('whatsapp')}
-          style={{
-            padding: '12px 20px',
-            backgroundColor: activeTab === 'whatsapp' ? '#1a73e8' : 'transparent',
-            color: activeTab === 'whatsapp' ? 'white' : '#666',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'whatsapp' ? 'bold' : 'normal',
-          }}
-        >
-          💬 WhatsApp
-        </button>
-        <button
-          onClick={() => setActiveTab('meta-ads')}
-          style={{
-            padding: '12px 20px',
-            backgroundColor: activeTab === 'meta-ads' ? '#1a73e8' : 'transparent',
-            color: activeTab === 'meta-ads' ? 'white' : '#666',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'meta-ads' ? 'bold' : 'normal',
-          }}
-        >
-          📊 Meta Ads
-        </button>
-      </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+          <button
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            style={{
+              background: 'none',
+              border: `1px solid ${c.border}`,
+              borderRadius: radius.md,
+              padding: spacing.sm,
+              cursor: 'pointer',
+              color: c.text.primary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = c.bg.secondary;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
 
-      {error && (
-        <div style={{ padding: '12px', backgroundColor: '#fee', borderRadius: '4px', color: '#c33', marginBottom: '20px' }}>
-          {error}
-        </div>
-      )}
+          <div style={{
+            height: '24px',
+            width: '1px',
+            backgroundColor: c.border,
+          }} />
 
-      {/* ABA: CLIENTES */}
-      {activeTab === 'clientes' && (
-        <div>
-          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ margin: 0 }}>📋 Clientes</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: c.bg.secondary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              fontWeight: '600',
+            }}>
+              {user.email.charAt(0).toUpperCase()}
+            </div>
             <button
-              onClick={() => setCreatingClient(true)}
+              onClick={handleLogout}
               style={{
-                padding: '10px 20px',
-                backgroundColor: '#28a745',
-                color: 'white',
+                background: 'none',
                 border: 'none',
-                borderRadius: '4px',
                 cursor: 'pointer',
+                color: c.text.secondary,
+                padding: spacing.sm,
+                display: 'flex',
+                alignItems: 'center',
+                gap: spacing.xs,
                 fontSize: '14px',
-                fontWeight: 'bold',
+                transition: 'color 0.2s',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.color = c.text.primary;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.color = c.text.secondary;
               }}
             >
-              + Novo Cliente
+              <LogOut size={18} />
+              Sair
             </button>
           </div>
+        </div>
+      </div>
 
-          {!loading && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '30px' }}>
-              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #1a73e8', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                  👥 Total de Clientes
-                </p>
-                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#1a73e8' }}>{metricas.totalClientes}</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #28a745', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                  ✅ Clientes Ativos
-                </p>
-                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#28a745' }}>{metricas.clientesAtivos}</p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #ff9800', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                  💰 Faturamento Mensal
-                </p>
-                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#ff9800' }}>
-                  R$ {metricas.faturamentoTotal.toFixed(2)}
-                </p>
-              </div>
-              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #6f42c1', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                  📊 Com Meta Ads
-                </p>
-                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#6f42c1' }}>{metricas.comMetaAds}</p>
-              </div>
-            </div>
-          )}
+      {/* Main Content */}
+      <div style={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
+        {/* Sidebar */}
+        <div style={{
+          width: '200px',
+          backgroundColor: c.bg.secondary,
+          borderRight: `1px solid ${c.border}`,
+          padding: spacing.lg,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: spacing.md,
+        }}>
+          {[
+            { id: 'clientes', label: 'Clientes', icon: Users },
+            { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+            { id: 'meta-ads', label: 'Meta Ads', icon: BarChart3 },
+          ].map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id as TabType)}
+              style={{
+                background: activeTab === id ? c.accent : 'transparent',
+                color: activeTab === id ? '#FFFFFF' : c.text.primary,
+                border: 'none',
+                borderRadius: radius.md,
+                padding: `${spacing.sm} ${spacing.md}`,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: spacing.sm,
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => {
+                if (activeTab !== id) {
+                  e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                }
+              }}
+              onMouseOut={(e) => {
+                if (activeTab !== id) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
+            >
+              <Icon size={18} />
+              {label}
+            </button>
+          ))}
+        </div>
 
-          {!loading && clientes.length > 0 && (
-            <div style={{ marginBottom: '20px', backgroundColor: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #ddd' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#666', marginBottom: '6px' }}>
-                    🔍 Buscar
-                  </label>
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg }}>
+          {/* Clientes Tab */}
+          {activeTab === 'clientes' && (
+            <div>
+              <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>Clientes</h2>
+
+              {/* Metrics */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: spacing.md,
+                marginBottom: spacing.lg,
+              }}>
+                {[
+                  { label: 'Total', value: metricas.totalClientes, icon: Users, color: '#007AFF' },
+                  { label: 'Ativos', value: metricas.clientesAtivos, icon: Users, color: '#34C759' },
+                  { label: 'Faturamento', value: `R$ ${metricas.faturamentoTotal.toFixed(2)}`, icon: BarChart3, color: '#FF9500' },
+                  { label: 'Com Meta Ads', value: metricas.comMetaAds, icon: BarChart3, color: '#5856D6' },
+                ].map((metric, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      backgroundColor: c.bg.secondary,
+                      borderRadius: radius.lg,
+                      padding: spacing.lg,
+                      border: `1px solid ${c.border}`,
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: spacing.md,
+                    }}
+                  >
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: radius.md,
+                      backgroundColor: metric.color,
+                      opacity: 0.15,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: metric.color,
+                    }}>
+                      <metric.icon size={20} />
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0, marginBottom: spacing.xs }}>
+                        {metric.label}
+                      </p>
+                      <p style={{ ...typography.subheading, margin: 0 }}>
+                        {metric.value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Search and Filter */}
+              <div style={{
+                display: 'flex',
+                gap: spacing.md,
+                marginBottom: spacing.lg,
+              }}>
+                <div style={{
+                  flex: 1,
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}>
+                  <Search size={18} style={{
+                    position: 'absolute',
+                    left: spacing.md,
+                    color: c.text.secondary,
+                  }} />
                   <input
                     type="text"
-                    placeholder="Nome ou email..."
+                    placeholder="Procurar cliente..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
                       width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
+                      padding: `${spacing.sm} ${spacing.md} ${spacing.sm} ${spacing.lg}`,
+                      paddingLeft: '40px',
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
                       fontSize: '14px',
-                      boxSizing: 'border-box',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = colors[theme].accent;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = c.border;
                     }}
                   />
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#666', marginBottom: '6px' }}>
-                    Status
-                  </label>
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value as any)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="todos">Todos</option>
-                    <option value="ativo">Ativos</option>
-                    <option value="inativo">Inativos</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#666', marginBottom: '6px' }}>
-                    Meta Ads
-                  </label>
-                  <select
-                    value={filterMetaAds}
-                    onChange={(e) => setFilterMetaAds(e.target.value as any)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    <option value="todos">Todos</option>
-                    <option value="com">Com Meta Ads</option>
-                    <option value="sem">Sem Meta Ads</option>
-                  </select>
-                </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    onClick={() => setViewMode('tabela')}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: viewMode === 'tabela' ? '#1a73e8' : '#f0f0f0',
-                      color: viewMode === 'tabela' ? 'white' : '#333',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: viewMode === 'tabela' ? 'bold' : 'normal',
-                    }}
-                  >
-                    📊 Tabela
-                  </button>
-                  <button
-                    onClick={() => setViewMode('cards')}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: viewMode === 'cards' ? '#1a73e8' : '#f0f0f0',
-                      color: viewMode === 'cards' ? 'white' : '#333',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: viewMode === 'cards' ? 'bold' : 'normal',
-                    }}
-                  >
-                    🗂️ Cards
-                  </button>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#666' }}>Ordenar:</label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    style={{
-                      padding: '6px 10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <option value="nome">Nome</option>
-                    <option value="valor">Valor Mensal</option>
-                    <option value="vencimento">Vencimento</option>
-                  </select>
-                  <button
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    style={{
-                      padding: '6px 12px',
-                      backgroundColor: '#f0f0f0',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                    }}
-                  >
-                    {sortOrder === 'asc' ? '⬆️' : '⬇️'}
-                  </button>
-                </div>
-              </div>
-
-              <p style={{ margin: '12px 0 0 0', fontSize: '12px', color: '#666' }}>
-                Mostrando {clientesFiltrados.length} de {clientes.length} clientes
-              </p>
-            </div>
-          )}
-
-          {selectedClientIds.size > 0 && (
-            <div style={{ marginBottom: '20px', backgroundColor: '#f0f7ff', padding: '16px', borderRadius: '8px', border: '2px solid #1a73e8', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <button
-                  onClick={() => setSelectedClientIds(new Set())}
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
                   style={{
-                    padding: '8px 12px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
+                    padding: `${spacing.sm} ${spacing.md}`,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
                     cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
+                    outline: 'none',
                   }}
                 >
-                  ❌ Limpar
-                </button>
-                <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#1a73e8' }}>
-                  {selectedClientIds.size} cliente{selectedClientIds.size !== 1 ? 's' : ''} selecionado{selectedClientIds.size !== 1 ? 's' : ''}
-                </span>
+                  <option value="todos">Todos</option>
+                  <option value="ativo">Ativos</option>
+                  <option value="inativo">Inativos</option>
+                </select>
               </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={handleEnviarLembracaBatch}
-                  disabled={batchLoading}
-                  style={{
-                    padding: '8px 12px',
-                    backgroundColor: batchLoading ? '#ccc' : '#1a73e8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: batchLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {batchLoading ? '⏳ ...' : '📬 Lembrete'}
-                </button>
-                <button
-                  onClick={() => setShowFrequenciaDialog(true)}
-                  disabled={batchLoading}
-                  style={{
-                    padding: '8px 12px',
-                    backgroundColor: batchLoading ? '#ccc' : '#ff9800',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: batchLoading ? 'not-allowed' : 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  ⏱️ Frequência
-                </button>
-              </div>
-            </div>
-          )}
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Carregando clientes...</div>
-          ) : clientesFiltrados.length === 0 ? (
-            <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
-              {clientes.length === 0 ? 'Nenhum cliente cadastrado' : 'Nenhum cliente corresponde aos filtros'}
-            </div>
-          ) : viewMode === 'tabela' ? (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', width: '40px' }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedClientIds.size === clientesFiltrados.length && clientesFiltrados.length > 0}
-                        onChange={toggleSelectAll}
-                        style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                      />
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Cliente</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Email</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Valor Mensal</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Vencimento</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Status</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Meta Ads</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clientesFiltrados.map((cliente, idx) => (
-                    <tr key={cliente.id} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedClientIds.has(cliente.id)}
-                          onChange={() => toggleClienteSelection(cliente.id)}
-                          style={{ cursor: 'pointer', width: '18px', height: '18px' }}
-                        />
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        <strong>{cliente.nome}</strong>
-                      </td>
-                      <td style={{ padding: '12px', color: '#666', fontSize: '14px' }}>{cliente.email}</td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        {cliente.valor_mensal ? `R$ ${Number(cliente.valor_mensal).toFixed(2)}` : '—'}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        {cliente.dia_vencimento ? `Dia ${cliente.dia_vencimento}` : '—'}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            padding: '4px 8px',
-                            backgroundColor: cliente.status === 'ativo' ? '#efe' : '#fee',
-                            color: cliente.status === 'ativo' ? '#3c3' : '#c33',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {cliente.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        {cliente.meta_ads_account_id ? <span style={{ fontSize: '16px' }}>✅</span> : <span style={{ fontSize: '16px', opacity: 0.3 }}>❌</span>}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <button onClick={() => abrirEdicao(cliente)} title="Editar cliente" style={{ padding: '6px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
-                        <button onClick={() => handleVisualizarRelatorio(cliente)} disabled={loadingRelatorio === cliente.id || !cliente.meta_ads_account_id} title={cliente.meta_ads_account_id ? 'Ver relatório' : 'Configure Meta Ads'} style={{ padding: '6px 12px', backgroundColor: cliente.meta_ads_account_id ? '#28a745' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.meta_ads_account_id ? 'pointer' : 'not-allowed', fontSize: '12px', opacity: loadingRelatorio === cliente.id ? 0.6 : 1 }}>{loadingRelatorio === cliente.id ? '...' : '📊'}</button>
-                        <button onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)} title="Dashboard do cliente" style={{ padding: '6px 12px', backgroundColor: '#6f42c1', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>📈</button>
-                        <button onClick={() => handleLembrarPagamento(cliente.id)} disabled={reminderLoading === cliente.id || !cliente.billing_reminder_active} title={cliente.billing_reminder_active ? 'Enviar lembrete' : 'Desabilitado'} style={{ padding: '6px 12px', backgroundColor: cliente.billing_reminder_active ? '#1a73e8' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.billing_reminder_active ? 'pointer' : 'not-allowed', fontSize: '12px', opacity: reminderLoading === cliente.id ? 0.6 : 1 }}>{reminderLoading === cliente.id ? '...' : '💬'}</button>
-                      </td>
+              {/* Clients Table */}
+              <div style={{
+                backgroundColor: c.bg.secondary,
+                borderRadius: radius.lg,
+                border: `1px solid ${c.border}`,
+                overflow: 'hidden',
+              }}>
+                <table style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                }}>
+                  <thead>
+                    <tr style={{ borderBottom: `1px solid ${c.border}` }}>
+                      <th style={{
+                        padding: spacing.md,
+                        textAlign: 'left',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Nome
+                      </th>
+                      <th style={{
+                        padding: spacing.md,
+                        textAlign: 'left',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Email
+                      </th>
+                      <th style={{
+                        padding: spacing.md,
+                        textAlign: 'left',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Valor
+                      </th>
+                      <th style={{
+                        padding: spacing.md,
+                        textAlign: 'left',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Status
+                      </th>
+                      <th style={{
+                        padding: spacing.md,
+                        textAlign: 'center',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}>
+                        Ações
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
-              {clientesFiltrados.map((cliente) => (
-                <div
-                  key={cliente.id}
-                  style={{
-                    padding: '20px',
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    border: selectedClientIds.has(cliente.id) ? '2px solid #1a73e8' : '1px solid #ddd',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                  }}
-                >
-                  <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedClientIds.has(cliente.id)}
-                      onChange={() => toggleClienteSelection(cliente.id)}
-                      style={{ cursor: 'pointer', width: '20px', height: '20px' }}
-                    />
-                  </div>
-                  <h3 style={{ margin: '0 0 6px 0', color: '#333', fontSize: '16px', paddingRight: '40px' }}>{cliente.nome}</h3>
-                  <p style={{ margin: 0, color: '#666', fontSize: '12px', marginBottom: '16px' }}>{cliente.email}</p>
-                  <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', color: '#666' }}>Valor:</span>
-                      <strong style={{ color: '#ff9800' }}>{cliente.valor_mensal ? `R$ ${Number(cliente.valor_mensal).toFixed(2)}` : '—'}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', color: '#666' }}>Vencimento:</span>
-                      <strong style={{ color: '#666' }}>{cliente.dia_vencimento ? `Dia ${cliente.dia_vencimento}` : '—'}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '12px', color: '#666' }}>Status:</span>
-                      <span style={{ padding: '4px 8px', backgroundColor: cliente.status === 'ativo' ? '#efe' : '#fee', color: cliente.status === 'ativo' ? '#3c3' : '#c33', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{cliente.status}</span>
-                    </div>
-                  </div>
-                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '12px', color: '#666' }}>Meta Ads:</span>
-                    <span style={{ fontSize: '18px' }}>{cliente.meta_ads_account_id ? '✅' : '❌'}</span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                    <button onClick={() => abrirEdicao(cliente)} style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✏️ Editar</button>
-                    <button onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)} style={{ padding: '8px 12px', backgroundColor: '#6f42c1', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>📈 Dashboard</button>
-                    <button onClick={() => handleVisualizarRelatorio(cliente)} disabled={loadingRelatorio === cliente.id || !cliente.meta_ads_account_id} style={{ padding: '8px 12px', backgroundColor: cliente.meta_ads_account_id ? '#28a745' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.meta_ads_account_id ? 'pointer' : 'not-allowed', fontSize: '12px', fontWeight: 'bold', opacity: loadingRelatorio === cliente.id ? 0.6 : 1 }}>{loadingRelatorio === cliente.id ? '...' : '📊 Relatório'}</button>
-                    <button onClick={() => handleLembrarPagamento(cliente.id)} disabled={reminderLoading === cliente.id || !cliente.billing_reminder_active} style={{ padding: '8px 12px', backgroundColor: cliente.billing_reminder_active ? '#1a73e8' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.billing_reminder_active ? 'pointer' : 'not-allowed', fontSize: '12px', fontWeight: 'bold', opacity: reminderLoading === cliente.id ? 0.6 : 1 }}>{reminderLoading === cliente.id ? '...' : '💬'}</button>
-                  </div>
-                </div>
-              ))}
+                  </thead>
+                  <tbody>
+                    {clientesFiltrados.map((cliente) => (
+                      <tr
+                        key={cliente.id}
+                        style={{
+                          borderBottom: `1px solid ${c.border}`,
+                          transition: 'background-color 0.2s',
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        <td style={{
+                          padding: spacing.md,
+                          fontSize: '14px',
+                          fontWeight: '500',
+                        }}>
+                          {cliente.nome}
+                        </td>
+                        <td style={{
+                          padding: spacing.md,
+                          fontSize: '14px',
+                          color: c.text.secondary,
+                        }}>
+                          {cliente.email}
+                        </td>
+                        <td style={{
+                          padding: spacing.md,
+                          fontSize: '14px',
+                          fontWeight: '500',
+                        }}>
+                          {cliente.valor_mensal ? `R$ ${Number(cliente.valor_mensal).toFixed(2)}` : '—'}
+                        </td>
+                        <td style={{
+                          padding: spacing.md,
+                          fontSize: '14px',
+                        }}>
+                          <span style={{
+                            backgroundColor: cliente.status === 'ativo' ? colors[theme].success : colors[theme].error,
+                            color: '#FFFFFF',
+                            padding: `${spacing.xs} ${spacing.sm}`,
+                            borderRadius: radius.md,
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            opacity: 0.8,
+                          }}>
+                            {cliente.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                          </span>
+                        </td>
+                        <td style={{
+                          padding: spacing.md,
+                          textAlign: 'center',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          gap: spacing.sm,
+                        }}>
+                          <button style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: c.text.secondary,
+                            padding: spacing.sm,
+                            display: 'flex',
+                            alignItems: 'center',
+                            transition: 'color 0.2s',
+                          }}
+                            onMouseOver={(e) => e.currentTarget.style.color = c.accent}
+                            onMouseOut={(e) => e.currentTarget.style.color = c.text.secondary}
+                          >
+                            <Eye size={18} />
+                          </button>
+                          <button style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: c.text.secondary,
+                            padding: spacing.sm,
+                            display: 'flex',
+                            alignItems: 'center',
+                            transition: 'color 0.2s',
+                          }}
+                            onMouseOver={(e) => e.currentTarget.style.color = colors[theme].warning}
+                            onMouseOut={(e) => e.currentTarget.style.color = c.text.secondary}
+                          >
+                            <Edit2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* ABA: WHATSAPP */}
-      {activeTab === 'whatsapp' && (
-        <div style={{ padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-          <h2>Conectar WhatsApp</h2>
-          <p style={{ color: '#666', marginTop: '8px' }}>
-            Conecte sua conta WhatsApp para disparar lembretes de pagamento automaticamente.
-          </p>
+          {/* WhatsApp Tab */}
+          {activeTab === 'whatsapp' && (
+            <div>
+              <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>WhatsApp</h2>
 
-          <div style={{ marginTop: '30px', padding: '30px', backgroundColor: 'white', borderRadius: '4px', textAlign: 'center', border: '2px dashed #ddd' }}>
-            {whatsappStatus === 'desconectado' && (
-              <div>
-                <p style={{ fontSize: '48px', marginBottom: '10px' }}>📱</p>
-                <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>WhatsApp desconectado</p>
-                <p style={{ color: '#666', marginTop: '8px', marginBottom: '20px' }}>
-                  Clique no botão abaixo e escaneie o QR code com seu WhatsApp
-                </p>
-                <button
-                  onClick={handleConectarWhatsApp}
-                  style={{
-                    padding: '12px 24px',
-                    backgroundColor: '#25d366',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  🔗 Conectar WhatsApp
-                </button>
-              </div>
-            )}
-
-            {whatsappStatus === 'conectando' && (
-              <div>
-                <p style={{ fontSize: '48px', marginBottom: '10px', animation: 'spin 2s linear infinite' }}>⏳</p>
-                <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Aguardando conexão...</p>
-                <p style={{ color: '#666', marginTop: '8px', marginBottom: '20px' }}>Escaneie o QR code com seu WhatsApp</p>
-
-                {whatsappQrImage && (
-                  <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
-                    <img
-                      src={whatsappQrImage}
-                      alt="QR Code WhatsApp"
-                      style={{ maxWidth: '300px', width: '100%', margin: '0 auto', display: 'block' }}
-                    />
-                    <p style={{ color: '#666', marginTop: '10px', fontSize: '12px' }}>
-                      Aponte a câmera do seu telefone para este código
+              <div style={{
+                backgroundColor: c.bg.secondary,
+                borderRadius: radius.lg,
+                border: `1px solid ${c.border}`,
+                padding: spacing.lg,
+                textAlign: 'center',
+                maxWidth: '500px',
+                margin: '0 auto',
+              }}>
+                {whatsappStatus === 'desconectado' && (
+                  <div>
+                    <MessageSquare size={48} style={{
+                      color: c.text.secondary,
+                      marginBottom: spacing.md,
+                      opacity: 0.5,
+                    }} />
+                    <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.sm} 0` }}>
+                      WhatsApp Desconectado
+                    </h3>
+                    <p style={{
+                      color: c.text.secondary,
+                      margin: `0 0 ${spacing.lg} 0`,
+                      fontSize: '14px',
+                    }}>
+                      Conecte sua conta para disparar lembretes e relatórios automaticamente.
                     </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {whatsappStatus === 'conectado' && (
-              <div>
-                <p style={{ fontSize: '48px', marginBottom: '10px' }}>✅</p>
-                <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#3c3' }}>WhatsApp conectado!</p>
-                <p style={{ color: '#666', marginTop: '8px', marginBottom: '20px' }}>
-                  Você pode agora disparar lembretes de pagamento
-                </p>
-                <button
-                  onClick={handleDesconectarWhatsApp}
-                  style={{
-                    padding: '12px 24px',
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                  }}
-                >
-                  Desconectar
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#e7f3ff', borderRadius: '4px', color: '#0066cc' }}>
-            <p>
-              <strong>ℹ️ Como funciona:</strong> Ao conectar, você receberá os lembretes no seu WhatsApp pessoal antes de serem enviados aos
-              clientes. Todos os lembretes ficam registrados no histórico.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ABA: META ADS */}
-      {activeTab === 'meta-ads' && (
-        <div style={{ padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-          <h2>Integração Meta Ads</h2>
-          <p style={{ color: '#666', marginTop: '8px' }}>
-            Conecte suas contas Meta Ads para importar dados de campanhas e anúncios.
-          </p>
-
-          <div style={{ marginTop: '30px', padding: '30px', backgroundColor: 'white', borderRadius: '4px', textAlign: 'center', border: '2px dashed #ddd' }}>
-            <p style={{ fontSize: '48px', marginBottom: '10px' }}>📊</p>
-            <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Meta Ads - Em desenvolvimento</p>
-            <p style={{ color: '#666', marginTop: '8px', marginBottom: '20px' }}>
-              A integração com Meta Ads API será disponibilizada em breve
-            </p>
-            <button
-              disabled
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#999',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'not-allowed',
-                fontSize: '16px',
-                opacity: 0.6,
-              }}
-            >
-              Conectar Meta Ads
-            </button>
-          </div>
-
-          <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#f0f7ff', borderRadius: '4px', color: '#0066cc' }}>
-            <p>
-              <strong>🎯 Próximos passos:</strong> A integração com Meta Ads API permitirá visualizar ROI, CPC, conversões e outros dados em tempo
-              real dos seus clientes.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {(creatingClient || isEditingMode) && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflowY: 'auto' }}>
-          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', margin: '20px 0' }}>
-            <h2 style={{ marginTop: 0 }}>{isEditingMode ? `Editar Cliente: ${editingCliente?.nome}` : 'Cadastrar Novo Cliente'}</h2>
-
-            {/* TIPO DE PESSOA */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                Tipo de Pessoa
-              </label>
-              <select
-                value={newClientForm.tipo_pessoa}
-                onChange={(e) => setNewClientForm({ ...newClientForm, tipo_pessoa: e.target.value as 'pf' | 'pj' })}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <option value="pf">Pessoa Física</option>
-                <option value="pj">Pessoa Jurídica</option>
-              </select>
-            </div>
-
-            {/* NOME E EMAIL */}
-            <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Nome *
-                </label>
-                <input
-                  type="text"
-                  value={newClientForm.nome}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, nome: e.target.value })}
-                  placeholder="Nome completo"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  value={newClientForm.email}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, email: e.target.value })}
-                  placeholder="email@exemplo.com"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* CPF/CNPJ E NOME FANTASIA */}
-            <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  {newClientForm.tipo_pessoa === 'pf' ? 'CPF' : 'CNPJ'}
-                </label>
-                <input
-                  type="text"
-                  value={newClientForm.cpf_cnpj}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, cpf_cnpj: e.target.value })}
-                  placeholder={newClientForm.tipo_pessoa === 'pf' ? '000.000.000-00' : '00.000.000/0000-00'}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  {newClientForm.tipo_pessoa === 'pf' ? 'Nome Social' : 'Nome Fantasia'}
-                </label>
-                <input
-                  type="text"
-                  value={newClientForm.nome_fantasia}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, nome_fantasia: e.target.value })}
-                  placeholder="Como o cliente é conhecido"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* TELEFONE & WHATSAPP */}
-            <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Telefone
-                </label>
-                <input
-                  type="tel"
-                  value={newClientForm.telefone}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, telefone: e.target.value })}
-                  placeholder="(11) 98765-4321"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  WhatsApp
-                </label>
-                <input
-                  type="tel"
-                  value={newClientForm.whatsapp_numero}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, whatsapp_numero: e.target.value })}
-                  placeholder="43 99625-5556"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* CEP */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                📮 CEP
-              </label>
-              <input
-                type="text"
-                value={newClientForm.cep}
-                onChange={(e) => setNewClientForm({ ...newClientForm, cep: e.target.value })}
-                onBlur={(e) => buscarEnderecoPorCEP(e.target.value)}
-                placeholder="86000-000"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
-              <p style={{ fontSize: '12px', color: '#666', marginTop: '6px' }}>
-                Digite o CEP e o endereço será preenchido automaticamente
-              </p>
-            </div>
-
-            {/* ENDEREÇO */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                Endereço
-              </label>
-              <input
-                type="text"
-                value={newClientForm.endereco}
-                onChange={(e) => setNewClientForm({ ...newClientForm, endereco: e.target.value })}
-                placeholder="Rua, número, complemento"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
-
-            {/* CIDADE E ESTADO */}
-            <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Cidade
-                </label>
-                <input
-                  type="text"
-                  value={newClientForm.cidade}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, cidade: e.target.value })}
-                  placeholder="Cambé"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Estado
-                </label>
-                <input
-                  type="text"
-                  value={newClientForm.estado}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, estado: e.target.value })}
-                  placeholder="PR"
-                  maxLength={2}
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* META ADS */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                ID da Conta Meta Ads
-              </label>
-              <input
-                type="text"
-                value={newClientForm.meta_ads_account_id}
-                onChange={(e) => setNewClientForm({ ...newClientForm, meta_ads_account_id: e.target.value })}
-                placeholder="627192099262266"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  fontFamily: 'monospace',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
-
-            {/* DATA INÍCIO */}
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                Data de Início dos Trabalhos
-              </label>
-              <input
-                type="date"
-                value={newClientForm.data_inicio_trabalhos}
-                onChange={(e) => setNewClientForm({ ...newClientForm, data_inicio_trabalhos: e.target.value })}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                }}
-              />
-            </div>
-
-            {/* FINANCEIRO */}
-            <div style={{ marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Valor Mensal
-                </label>
-                <input
-                  type="number"
-                  value={newClientForm.valor_mensal}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, valor_mensal: e.target.value })}
-                  placeholder="0.00"
-                  step="0.01"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>
-                  Dia Vencimento (para alertas)
-                </label>
-                <input
-                  type="number"
-                  value={newClientForm.dia_vencimento}
-                  onChange={(e) => setNewClientForm({ ...newClientForm, dia_vencimento: e.target.value })}
-                  placeholder="10"
-                  min="1"
-                  max="31"
-                  style={{
-                    width: '100%',
-                    padding: '10px 12px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={isEditingMode ? fecharEdicao : () => {
-                  setCreatingClient(false);
-                  setNewClientForm({
-                    nome: '',
-                    email: '',
-                    valor_mensal: '',
-                    dia_vencimento: '',
-                    tipo_pessoa: 'pf',
-                    cpf_cnpj: '',
-                    nome_fantasia: '',
-                    endereco: '',
-                    cidade: '',
-                    estado: '',
-                    cep: '',
-                    telefone: '',
-                    whatsapp_numero: '',
-                    meta_ads_account_id: '',
-                    data_inicio_trabalhos: '',
-                  });
-                }}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#e0e0e0',
-                  color: '#333',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-                disabled={isEditingMode ? savingConfig : creatingLoading}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={isEditingMode ? handleSalvarConfig : handleCriarCliente}
-                disabled={isEditingMode ? savingConfig : creatingLoading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: isEditingMode ? '#1a73e8' : '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: (isEditingMode ? savingConfig : creatingLoading) ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  opacity: (isEditingMode ? savingConfig : creatingLoading) ? 0.6 : 1,
-                }}
-              >
-                {isEditingMode ? (savingConfig ? 'Salvando...' : 'Salvar') : (creatingLoading ? 'Criando...' : 'Criar Cliente')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {viewingRelatorio && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflowY: 'auto' }}>
-          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '700px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', margin: '20px 0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ marginTop: 0 }}>Relatório - {viewingRelatorio.cliente.nome}</h2>
-              <button
-                onClick={fecharRelatorio}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: '#666',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f0f7ff', borderRadius: '4px', borderLeft: '4px solid #1a73e8' }}>
-              <p style={{ margin: '0 0 12px 0', fontWeight: 'bold', color: '#1a73e8' }}>Período: {viewingRelatorio.relatorio.periodo}</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '8px', alignItems: 'flex-end' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Data Inicial</label>
-                  <input
-                    type="date"
-                    id="reportDateFrom"
-                    defaultValue={relatorioDateRange?.since || new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]}
-                    style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Data Final</label>
-                  <input
-                    type="date"
-                    id="reportDateTo"
-                    defaultValue={relatorioDateRange?.until || new Date().toISOString().split('T')[0]}
-                    style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    const from = (document.getElementById('reportDateFrom') as HTMLInputElement)?.value;
-                    const to = (document.getElementById('reportDateTo') as HTMLInputElement)?.value;
-                    if (from && to) {
-                      handleVisualizarRelatorio(viewingRelatorio.cliente, from, to);
-                    }
-                  }}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#1a73e8',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  🔄 Carregar
-                </button>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '25px' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#333' }}>📱 Campanhas</h3>
-              {viewingRelatorio.relatorio.campanhas.length === 0 ? (
-                <p style={{ color: '#666', fontStyle: 'italic' }}>Nenhuma campanha encontrada</p>
-              ) : (
-                <div style={{ display: 'grid', gap: '12px' }}>
-                  {viewingRelatorio.relatorio.campanhas.map((campanha, idx) => (
-                    <div
-                      key={idx}
+                    <button
+                      onClick={handleConectarWhatsApp}
                       style={{
-                        padding: '12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        backgroundColor: '#fafafa',
+                        backgroundColor: '#25D366',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: radius.md,
+                        padding: `${spacing.sm} ${spacing.lg}`,
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: spacing.sm,
+                        transition: 'opacity 0.2s',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.opacity = '0.9';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.opacity = '1';
                       }}
                     >
-                      <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#333' }}>{campanha.nome}</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px', color: '#666' }}>
-                        <div>
-                          <span style={{ fontWeight: 'bold' }}>Impressões:</span> {campanha.impressoes.toLocaleString('pt-BR')}
-                        </div>
-                        <div>
-                          <span style={{ fontWeight: 'bold' }}>Cliques:</span> {campanha.cliques.toLocaleString('pt-BR')}
-                        </div>
-                        <div>
-                          <span style={{ fontWeight: 'bold' }}>CTR:</span> {campanha.ctr.toFixed(2)}%
-                        </div>
-                        <div>
-                          <span style={{ fontWeight: 'bold' }}>Conversões:</span> {campanha.conversoes.toLocaleString('pt-BR')}
-                        </div>
-                        <div style={{ gridColumn: '1 / -1' }}>
-                          <span style={{ fontWeight: 'bold' }}>Spend:</span> R$ {campanha.spend.toFixed(2)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                      <MessageSquare size={18} />
+                      Conectar WhatsApp
+                    </button>
+                  </div>
+                )}
 
-            <div style={{ marginBottom: '25px' }}>
-              <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#333' }}>💰 Resumo</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#666' }}>Total Spend</p>
-                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1a73e8' }}>
-                    R$ {viewingRelatorio.relatorio.resumo.totalSpend.toFixed(2)}
-                  </p>
-                </div>
-                <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#666' }}>Total Cliques</p>
-                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#1a73e8' }}>
-                    {viewingRelatorio.relatorio.resumo.totalCliques.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#666' }}>Total Conversões</p>
-                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#28a745' }}>
-                    {viewingRelatorio.relatorio.resumo.totalConversoes.toLocaleString('pt-BR')}
-                  </p>
-                </div>
-                <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                  <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#666' }}>ROAS</p>
-                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#28a745' }}>
-                    {viewingRelatorio.relatorio.resumo.roas.toFixed(2)}x
-                  </p>
-                </div>
+                {whatsappStatus === 'conectando' && (
+                  <div>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      border: `3px solid ${c.border}`,
+                      borderTopColor: colors[theme].accent,
+                      margin: `0 auto ${spacing.md}`,
+                      animation: 'spin 1s linear infinite',
+                    }} />
+                    <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.sm} 0` }}>
+                      Conectando...
+                    </h3>
+                    <p style={{
+                      color: c.text.secondary,
+                      margin: `0 0 ${spacing.lg} 0`,
+                      fontSize: '14px',
+                    }}>
+                      Escaneie o código QR com seu WhatsApp
+                    </p>
+
+                    {whatsappQrImage && (
+                      <div style={{
+                        backgroundColor: c.bg.primary,
+                        borderRadius: radius.md,
+                        padding: spacing.lg,
+                        marginBottom: spacing.lg,
+                      }}>
+                        <img
+                          src={whatsappQrImage}
+                          alt="QR Code"
+                          style={{
+                            maxWidth: '300px',
+                            width: '100%',
+                            margin: '0 auto',
+                            display: 'block',
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {whatsappStatus === 'conectado' && (
+                  <div>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      backgroundColor: colors[theme].success,
+                      margin: `0 auto ${spacing.md}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: 0.2,
+                    }}>
+                      <MessageSquare size={24} />
+                    </div>
+                    <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.sm} 0`, color: colors[theme].success }}>
+                      Conectado!
+                    </h3>
+                    <p style={{
+                      color: c.text.secondary,
+                      margin: `0 0 ${spacing.lg} 0`,
+                      fontSize: '14px',
+                    }}>
+                      Sua conta WhatsApp está pronta para disparar mensagens.
+                    </p>
+                    <button
+                      onClick={handleDesconectarWhatsApp}
+                      style={{
+                        backgroundColor: colors[theme].error,
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: radius.md,
+                        padding: `${spacing.sm} ${spacing.lg}`,
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'opacity 0.2s',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.opacity = '0.9';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.opacity = '1';
+                      }}
+                    >
+                      Desconectar
+                    </button>
+                  </div>
+                )}
+
+                <style>{`
+                  @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                  }
+                `}</style>
               </div>
             </div>
+          )}
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={fecharRelatorio}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#e0e0e0',
-                  color: '#333',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                Fechar
-              </button>
+          {/* Meta Ads Tab */}
+          {activeTab === 'meta-ads' && (
+            <div>
+              <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>Meta Ads</h2>
+              <div style={{
+                backgroundColor: c.bg.secondary,
+                borderRadius: radius.lg,
+                border: `1px solid ${c.border}`,
+                padding: spacing.lg,
+                textAlign: 'center',
+                color: c.text.secondary,
+              }}>
+                <BarChart3 size={48} style={{
+                  margin: `0 auto ${spacing.md}`,
+                  opacity: 0.5,
+                }} />
+                <p style={{ fontSize: '14px' }}>Em desenvolvimento</p>
+              </div>
             </div>
-          </div>
+          )}
+        </div>
+      </div>
+
+      {/* Error Toast */}
+      {error && (
+        <div style={{
+          position: 'fixed',
+          bottom: spacing.lg,
+          right: spacing.lg,
+          backgroundColor: colors[theme].error,
+          color: '#FFFFFF',
+          padding: `${spacing.md} ${spacing.lg}`,
+          borderRadius: radius.md,
+          fontSize: '14px',
+          zIndex: 1000,
+        }}>
+          {error}
         </div>
       )}
-
-      {showFrequenciaDialog && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '400px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>⏱️ Mudar Frequência de Relatório</h2>
-
-            <p style={{ color: '#666', marginBottom: '20px' }}>
-              Aplicar a frequência para {selectedClientIds.size} cliente{selectedClientIds.size !== 1 ? 's' : ''}
-            </p>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
-                Frequência de Relatório
-              </label>
-              <select
-                value={selectedFrequencia}
-                onChange={(e) => setSelectedFrequencia(e.target.value as 'nunca' | 'semanal' | 'mensal')}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value="semanal">Semanal</option>
-                <option value="mensal">Mensal</option>
-                <option value="nunca">Nunca</option>
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => {
-                  setShowFrequenciaDialog(false);
-                  setSelectedFrequencia('semanal');
-                }}
-                disabled={batchLoading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#e0e0e0',
-                  color: '#333',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: batchLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => handleAtualizarClientesBatch({ relatorio_frequencia: selectedFrequencia })}
-                disabled={batchLoading}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: batchLoading ? '#ccc' : '#ff9800',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: batchLoading ? 'not-allowed' : 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                }}
-              >
-                {batchLoading ? 'Aplicando...' : 'Aplicar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
