@@ -6,9 +6,10 @@ import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
 import adminFaturasRoutes from './routes/admin.faturas.js';
-import { initializeWhatsApp, sendWhatsAppMessage } from './services/whatsapp.js';
+import { sendWhatsAppMessage } from './services/whatsapp.js';
 import { createRelatorioWorker } from './workers/relatorio.worker.js';
 import { startReportScheduler } from './jobs/schedule-reports.js';
+import whatsappRoutes from './routes/whatsapp.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -42,6 +43,7 @@ app.use('/api/auth/admin', authAdminRoutes);
 app.use('/api/cliente/auth', authClienteRoutes);
 app.use('/api/admin', adminClientesRoutes);
 app.use('/api/admin', adminFaturasRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -54,14 +56,9 @@ app.listen(PORT, async () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Server running on http://localhost:${PORT}`);
   console.log(`✅ Auth endpoints ready at /api/auth/admin/* and /api/cliente/auth/*`);
+  console.log(`📱 WhatsApp: Conecte via POST /api/whatsapp/connect`);
 
-  // Inicializar WhatsApp em background
-  console.log('📱 Inicializando WhatsApp Web...');
-  initializeWhatsApp().catch((error) => {
-    console.error('⚠️ WhatsApp não foi inicializado (lembretes não funcionarão):', error);
-  });
-
-  // Initialize report scheduler
+  // Initialize report queue and worker (não inicializa WhatsApp automaticamente)
   const reportQueue = new Queue('relatorio', {
     connection: { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') }
   });

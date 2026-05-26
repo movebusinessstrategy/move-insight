@@ -1,8 +1,8 @@
 import { Client } from 'whatsapp-web.js';
-import qrcode from 'qrcode-terminal';
 
 let whatsappClient: Client | null = null;
 let isInitializing = false;
+let currentQrCode: string | null = null;
 
 export async function initializeWhatsApp(): Promise<Client | null> {
   if (whatsappClient?.info?.wid) {
@@ -24,9 +24,8 @@ export async function initializeWhatsApp(): Promise<Client | null> {
     } as any);
 
     client.on('qr', (qr) => {
-      console.log('\n📱 QR Code gerado (escaneie com seu celular):');
-      qrcode.generate(qr, { small: true });
-      console.log('\n');
+      currentQrCode = qr;
+      console.log('📱 QR Code gerado - escaneie via app');
     });
 
     client.on('authenticated', () => {
@@ -77,4 +76,28 @@ export async function sendWhatsAppMessage(numero: string, mensagem: string): Pro
 
 export function getWhatsAppClient(): Client | null {
   return whatsappClient;
+}
+
+export function getCurrentQrCode(): string | null {
+  return currentQrCode;
+}
+
+export function getWhatsAppStatus(): { connected: boolean; qrPending: boolean } {
+  return {
+    connected: !!whatsappClient?.info?.wid,
+    qrPending: !!currentQrCode,
+  };
+}
+
+export async function disconnectWhatsApp(): Promise<void> {
+  if (whatsappClient) {
+    try {
+      await whatsappClient.destroy();
+      whatsappClient = null;
+      currentQrCode = null;
+      console.log('✅ WhatsApp desconectado');
+    } catch (error) {
+      console.error('❌ Erro ao desconectar WhatsApp:', error);
+    }
+  }
 }
