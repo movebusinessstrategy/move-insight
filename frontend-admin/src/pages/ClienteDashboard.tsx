@@ -89,43 +89,18 @@ export default function ClienteDashboard() {
   const [reminderProcessing, setReminderProcessing] = useState<string | null>(null);
   const [relatorioProcessing, setRelatorioProcessing] = useState(false);
 
+  // Load cliente on mount
   useEffect(() => {
-    const loadData = async () => {
-      console.log('📍 useEffect chamado, clienteId:', clienteId);
-      if (!clienteId) {
-        console.log('⚠️ clienteId não encontrado');
-        return;
-      }
-
+    const loadCliente = async () => {
+      if (!clienteId) return;
       setLoading(true);
       try {
-        console.log('🔄 Carregando cliente:', clienteId);
         const clienteRes = await fetch(`/api/admin/clientes/${clienteId}?_=${Date.now()}`, {
           credentials: 'include',
         });
         const clienteData = await clienteRes.json();
-
-        console.log('📦 Resposta do servidor:', clienteData);
-
         if (clienteRes.ok) {
-          console.log('✅ Cliente carregado:', clienteData.cliente);
           setCliente(clienteData.cliente);
-
-          if (clienteData.cliente.meta_ads_account_id) {
-            let url = `/api/admin/clientes/${clienteId}/relatorio?_=${Date.now()}`;
-            if (useCustomDate && customDateStart && customDateEnd) {
-              url += `&since=${customDateStart}&until=${customDateEnd}`;
-            } else {
-              url += `&period=${period}`;
-            }
-            const relatorioRes = await fetch(url, {
-              credentials: 'include',
-            });
-            const relatorioData = await relatorioRes.json();
-            if (relatorioRes.ok) {
-              setRelatorio(relatorioData.relatorio);
-            }
-          }
         } else {
           setError(clienteData.error || 'Erro ao carregar cliente');
         }
@@ -135,9 +110,46 @@ export default function ClienteDashboard() {
         setLoading(false);
       }
     };
+    loadCliente();
+  }, [clienteId]);
 
-    loadData();
-  }, [clienteId, period, customDateStart, customDateEnd, useCustomDate]);
+  // Load relatório when period or custom dates change
+  useEffect(() => {
+    const loadRelatorio = async () => {
+      if (!clienteId || !cliente?.meta_ads_account_id) return;
+
+      try {
+        let url = `/api/admin/clientes/${clienteId}/relatorio?_=${Date.now()}`;
+
+        console.log('📅 Construindo URL:', { useCustomDate, customDateStart, customDateEnd, period });
+
+        if (useCustomDate && customDateStart && customDateEnd) {
+          console.log('✅ Usando datas customizadas:', customDateStart, 'a', customDateEnd);
+          url += `&since=${customDateStart}&until=${customDateEnd}`;
+        } else {
+          console.log('✅ Usando período:', period);
+          url += `&period=${period}`;
+        }
+
+        console.log('🔗 URL final:', url);
+
+        const relatorioRes = await fetch(url, {
+          credentials: 'include',
+        });
+        const relatorioData = await relatorioRes.json();
+        if (relatorioRes.ok) {
+          setRelatorio(relatorioData.relatorio);
+          console.log('📊 Relatório carregado:', relatorioData.relatorio.periodo);
+        } else {
+          console.error('❌ Erro ao carregar relatório:', relatorioData.error);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar relatório:', error);
+      }
+    };
+
+    loadRelatorio();
+  }, [clienteId, cliente?.meta_ads_account_id, period, customDateStart, customDateEnd, useCustomDate]);
 
   // Recarregar cliente quando muda de aba
   useEffect(() => {
