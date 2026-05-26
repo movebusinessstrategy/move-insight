@@ -1,13 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { colors, spacing, typography, shadows, radius, glassMorphism, animations, keyframes } from '../theme';
 
 interface LoginFormData {
   email: string;
   senha: string;
-}
-
-interface LoginError {
-  message: string;
 }
 
 export default function Login() {
@@ -15,8 +13,20 @@ export default function Login() {
     email: '',
     senha: '',
   });
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<LoginError | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = keyframes;
+    document.head.appendChild(style);
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,156 +51,265 @@ export default function Login() {
         throw new Error(data.error || 'Erro ao fazer login');
       }
 
-      // Sucesso - redireciona para dashboard
       window.location.href = '/dashboard';
     } catch (err) {
-      setError({
-        message: err instanceof Error ? err.message : 'Erro desconhecido',
-      });
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>MOVE Insights</h1>
-        <p style={styles.subtitle}>Admin Dashboard</p>
+  const currentColors = colors[theme];
+  const glassStyle = theme === 'light' ? glassMorphism.light : glassMorphism.dark;
+  const accentColor = theme === 'light' ? colors.light.accent : colors.dark.accent;
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.group}>
-            <label style={styles.label} htmlFor="email">
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        backgroundColor: currentColors.bg.primary,
+        backgroundImage: `linear-gradient(135deg, ${currentColors.bg.secondary} 0%, ${currentColors.bg.tertiary} 100%)`,
+        backgroundSize: '200% 200%',
+        ...animations.gradientShift,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        transition: 'background-color 0.3s ease',
+      }}
+    >
+      <div
+        style={{
+          ...glassStyle,
+          padding: spacing.xxl,
+          width: '100%',
+          maxWidth: '420px',
+          borderRadius: radius.xl,
+          ...shadows,
+          ...animations.slideUp,
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: spacing.xxl }}>
+          <h1
+            style={{
+              ...typography.title,
+              color: currentColors.text.primary,
+              margin: `0 0 ${spacing.sm} 0`,
+            }}
+          >
+            MOVE Insights
+          </h1>
+          <p
+            style={{
+              ...typography.small,
+              color: currentColors.text.secondary,
+              margin: 0,
+            }}
+          >
+            Dashboard Administrativo
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: spacing.lg }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+            <label
+              htmlFor="email"
+              style={{
+                ...typography.small,
+                color: currentColors.text.primary,
+                fontWeight: '500',
+              }}
+            >
               Email
             </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={styles.input}
-              placeholder="seu@email.com"
-              disabled={loading}
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Mail
+                size={18}
+                color={currentColors.text.tertiary}
+                style={{
+                  position: 'absolute',
+                  left: spacing.md,
+                  pointerEvents: 'none',
+                }}
+              />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                placeholder="seu@email.com"
+                style={{
+                  width: '100%',
+                  padding: `${spacing.md} ${spacing.md} ${spacing.md} 44px`,
+                  backgroundColor: currentColors.bg.secondary,
+                  border: `1px solid ${currentColors.border}`,
+                  borderRadius: radius.md,
+                  color: currentColors.text.primary,
+                  fontSize: typography.body.fontSize,
+                  fontFamily: 'inherit',
+                  transition: 'border-color 0.2s, background-color 0.2s',
+                  outline: 'none',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = accentColor;
+                  e.currentTarget.style.backgroundColor =
+                    theme === 'light'
+                      ? 'rgba(0, 122, 255, 0.05)'
+                      : 'rgba(10, 132, 255, 0.05)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = currentColors.border;
+                  e.currentTarget.style.backgroundColor = currentColors.bg.secondary;
+                }}
+              />
+            </div>
           </div>
 
-          <div style={styles.group}>
-            <label style={styles.label} htmlFor="senha">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+            <label
+              htmlFor="senha"
+              style={{
+                ...typography.small,
+                color: currentColors.text.primary,
+                fontWeight: '500',
+              }}
+            >
               Senha
             </label>
-            <input
-              id="senha"
-              name="senha"
-              type="password"
-              value={formData.senha}
-              onChange={handleChange}
-              required
-              style={styles.input}
-              placeholder="••••••••"
-              disabled={loading}
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Lock
+                size={18}
+                color={currentColors.text.tertiary}
+                style={{
+                  position: 'absolute',
+                  left: spacing.md,
+                  pointerEvents: 'none',
+                }}
+              />
+              <input
+                id="senha"
+                name="senha"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.senha}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                placeholder="••••••••"
+                style={{
+                  width: '100%',
+                  padding: `${spacing.md} 44px ${spacing.md} 44px`,
+                  backgroundColor: currentColors.bg.secondary,
+                  border: `1px solid ${currentColors.border}`,
+                  borderRadius: radius.md,
+                  color: currentColors.text.primary,
+                  fontSize: typography.body.fontSize,
+                  fontFamily: 'inherit',
+                  transition: 'border-color 0.2s, background-color 0.2s',
+                  outline: 'none',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = accentColor;
+                  e.currentTarget.style.backgroundColor =
+                    theme === 'light'
+                      ? 'rgba(0, 122, 255, 0.05)'
+                      : 'rgba(10, 132, 255, 0.05)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = currentColors.border;
+                  e.currentTarget.style.backgroundColor = currentColors.bg.secondary;
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+                style={{
+                  position: 'absolute',
+                  right: spacing.md,
+                  background: 'none',
+                  border: 'none',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  padding: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: currentColors.text.tertiary,
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = accentColor;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = currentColors.text.tertiary;
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
-          {error && <div style={styles.error}>{error.message}</div>}
+          {error && (
+            <div
+              style={{
+                padding: spacing.md,
+                backgroundColor:
+                  theme === 'light'
+                    ? 'rgba(255, 59, 48, 0.1)'
+                    : 'rgba(255, 69, 58, 0.2)',
+                border: `1px solid ${theme === 'light' ? colors.light.error : colors.dark.error}`,
+                borderRadius: radius.md,
+                color: theme === 'light' ? colors.light.error : colors.dark.error,
+                ...typography.small,
+                ...animations.slideDown,
+              }}
+            >
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"
-            style={{
-              ...styles.button,
-              opacity: loading ? 0.6 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer',
-            }}
             disabled={loading}
+            style={{
+              padding: `${spacing.md} ${spacing.lg}`,
+              backgroundColor: accentColor,
+              color: 'white',
+              border: 'none',
+              borderRadius: radius.md,
+              ...typography.body,
+              fontWeight: '600',
+              marginTop: spacing.md,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              transition: 'opacity 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+            }}
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        <p style={styles.footer}>
+        <p
+          style={{
+            ...typography.tiny,
+            color: currentColors.text.tertiary,
+            textAlign: 'center',
+            marginTop: spacing.xl,
+            margin: `${spacing.xl} 0 0 0`,
+          }}
+        >
           © 2026 MOVE Business. Todos os direitos reservados.
         </p>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  } as React.CSSProperties,
-  card: {
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    padding: '40px',
-    width: '100%',
-    maxWidth: '400px',
-  } as React.CSSProperties,
-  title: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    margin: '0 0 8px 0',
-    color: '#1a1a1a',
-  } as React.CSSProperties,
-  subtitle: {
-    fontSize: '14px',
-    color: '#666',
-    margin: '0 0 32px 0',
-  } as React.CSSProperties,
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  } as React.CSSProperties,
-  group: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  } as React.CSSProperties,
-  label: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#333',
-  } as React.CSSProperties,
-  input: {
-    padding: '10px 12px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px',
-    fontFamily: 'inherit',
-    transition: 'border-color 0.2s',
-  } as React.CSSProperties,
-  error: {
-    padding: '10px 12px',
-    backgroundColor: '#fee',
-    color: '#c33',
-    borderRadius: '4px',
-    fontSize: '14px',
-  } as React.CSSProperties,
-  button: {
-    padding: '12px 16px',
-    backgroundColor: '#1a73e8',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '16px',
-    fontWeight: '500',
-    marginTop: '8px',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
-  } as React.CSSProperties,
-  footer: {
-    fontSize: '12px',
-    color: '#999',
-    textAlign: 'center' as const,
-    marginTop: '24px',
-    margin: '24px 0 0 0',
-  } as React.CSSProperties,
-};
