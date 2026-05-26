@@ -205,20 +205,21 @@ export default function Dashboard({ user }: DashboardProps) {
       <div style={{
         backgroundColor: c.bg.primary,
         borderBottom: `1px solid ${c.border}`,
-        padding: `${spacing.md} ${spacing.lg}`,
+        padding: `${spacing.lg} ${spacing.lg}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        minHeight: '80px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <img
             src={theme === 'light' ? logoLight : logoDark}
             alt="MOVE Insights"
             style={{
-              height: '32px',
+              height: '56px',
               width: 'auto',
             }}
           />
@@ -298,7 +299,7 @@ export default function Dashboard({ user }: DashboardProps) {
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'flex', height: 'calc(100vh - 64px)' }}>
+      <div style={{ display: 'flex', height: 'calc(100vh - 80px)' }}>
         {/* Sidebar */}
         <div style={{
           width: '200px',
