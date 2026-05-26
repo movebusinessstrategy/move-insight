@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows } from '../theme';
 import type { Theme } from '../theme';
+import logoLight from '../assets/logo-light.png';
+import logoDark from '../assets/logo-dark.png';
 
 interface User {
   id: string;
@@ -212,16 +214,14 @@ export default function Dashboard({ user }: DashboardProps) {
         zIndex: 100,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-          <h1 style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            margin: 0,
-            background: 'linear-gradient(135deg, #B8956A 0%, #8B7355 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>
-            MOVE Insights
-          </h1>
+          <img
+            src={theme === 'light' ? logoLight : logoDark}
+            alt="MOVE Insights"
+            style={{
+              height: '32px',
+              width: 'auto',
+            }}
+          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
