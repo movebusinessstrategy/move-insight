@@ -121,14 +121,17 @@ export default function Dashboard({ user }: DashboardProps) {
 
       let pollingAttempts = 0;
       const maxAttempts = 60;
+      let shouldContinuePolling = true;
 
       const pollQrCode = async () => {
-        while (pollingAttempts < maxAttempts && whatsappPollingActive) {
+        while (pollingAttempts < maxAttempts && shouldContinuePolling) {
           try {
             const qrResponse = await fetch('/api/whatsapp/qr', { credentials: 'include' });
             if (qrResponse.ok) {
               const qrData = await qrResponse.json();
-              if (qrData.qr) setWhatsappQrImage(qrData.qr);
+              if (qrData.qr) {
+                setWhatsappQrImage(qrData.qr);
+              }
             }
 
             const statusResponse = await fetch('/api/whatsapp/status', { credentials: 'include' });
@@ -138,26 +141,27 @@ export default function Dashboard({ user }: DashboardProps) {
                 setWhatsappStatus('conectado');
                 setWhatsappQrImage(null);
                 setWhatsappPollingActive(false);
+                shouldContinuePolling = false;
                 return;
               }
             }
 
             pollingAttempts++;
             await new Promise((resolve) => setTimeout(resolve, 1000));
-          } catch (error) {
-            console.error('Erro ao fazer polling:', error);
+          } catch (_error) {
             pollingAttempts++;
             await new Promise((resolve) => setTimeout(resolve, 1000));
           }
         }
 
-        setWhatsappStatus('desconectado');
-        setWhatsappPollingActive(false);
+        if (shouldContinuePolling) {
+          setWhatsappStatus('desconectado');
+          setWhatsappPollingActive(false);
+        }
       };
 
       pollQrCode();
-    } catch (error) {
-      console.error('Erro ao conectar WhatsApp:', error);
+    } catch (_error) {
       setWhatsappStatus('desconectado');
       setWhatsappPollingActive(false);
     }
@@ -212,14 +216,14 @@ export default function Dashboard({ user }: DashboardProps) {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        minHeight: '80px',
+        minHeight: '100px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <img
             src={theme === 'light' ? logoLight : logoDark}
             alt="MOVE Insights"
             style={{
-              height: '56px',
+              height: '80px',
               width: 'auto',
             }}
           />
@@ -299,7 +303,7 @@ export default function Dashboard({ user }: DashboardProps) {
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'flex', height: 'calc(100vh - 80px)' }}>
+      <div style={{ display: 'flex', height: 'calc(100vh - 100px)' }}>
         {/* Sidebar */}
         <div style={{
           width: '200px',
