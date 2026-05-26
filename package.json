@@ -1,25 +1,24 @@
 {
   "name": "move-insights",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "Dashboard multi-tenant de gestão de clientes de tráfego Meta Ads",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend-admin",
+    "frontend-cliente"
+  ],
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:seed": "cd backend && npm run db:seed",
+    "meta:check-token": "cd backend && npm run meta:check-token",
+    "insights:fetch": "cd backend && npm run insights:fetch"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
-    "csv-parser": "^3.2.0",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "multer": "^2.1.1",
-    "pino": "^10.3.1",
-    "puppeteer": "^21.11.0",
-    "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.34.6",
-    "ws": "^8.20.0"
-  },
-  "description": ""
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
 }
