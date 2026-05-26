@@ -60,6 +60,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [savingConfig, setSavingConfig] = useState(false);
   const [isEditingMode, setIsEditingMode] = useState(false);
   const [viewingRelatorio, setViewingRelatorio] = useState<{ cliente: Cliente; relatorio: Relatorio } | null>(null);
+  const [relatorioDateRange, setRelatorioDateRange] = useState<{ since: string; until: string } | null>(null);
   const [loadingRelatorio, setLoadingRelatorio] = useState<string | null>(null);
   const [creatingClient, setCreatingClient] = useState(false);
   const [newClientForm, setNewClientForm] = useState({
@@ -265,7 +266,7 @@ export default function Dashboard({ user }: DashboardProps) {
     });
   };
 
-  const handleVisualizarRelatorio = async (cliente: Cliente) => {
+  const handleVisualizarRelatorio = async (cliente: Cliente, since?: string, until?: string) => {
     if (!cliente.meta_ads_account_id || cliente.meta_ads_account_id === '') {
       alert('Cliente não possui ID de conta Meta Ads configurado');
       return;
@@ -273,12 +274,17 @@ export default function Dashboard({ user }: DashboardProps) {
 
     setLoadingRelatorio(cliente.id);
     try {
-      const response = await fetch(`/api/admin/clientes/${cliente.id}/relatorio`, {
+      let url = `/api/admin/clientes/${cliente.id}/relatorio`;
+      if (since && until) {
+        url += `?since=${since}&until=${until}`;
+      }
+      const response = await fetch(url, {
         credentials: 'include',
       });
       const data = await response.json();
       if (response.ok) {
         setViewingRelatorio({ cliente, relatorio: data.relatorio });
+        setRelatorioDateRange(since && until ? { since, until } : null);
       } else {
         alert(`Erro: ${data.error}`);
       }
@@ -291,6 +297,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
   const fecharRelatorio = () => {
     setViewingRelatorio(null);
+    setRelatorioDateRange(null);
   };
 
   const handleCriarCliente = async () => {
@@ -1304,7 +1311,49 @@ export default function Dashboard({ user }: DashboardProps) {
             </div>
 
             <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f0f7ff', borderRadius: '4px', borderLeft: '4px solid #1a73e8' }}>
-              <p style={{ margin: 0, fontWeight: 'bold', color: '#1a73e8' }}>Período: {viewingRelatorio.relatorio.periodo}</p>
+              <p style={{ margin: '0 0 12px 0', fontWeight: 'bold', color: '#1a73e8' }}>Período: {viewingRelatorio.relatorio.periodo}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '8px', alignItems: 'flex-end' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Data Inicial</label>
+                  <input
+                    type="date"
+                    id="reportDateFrom"
+                    defaultValue={relatorioDateRange?.since || new Date(new Date().setDate(new Date().getDate() - 7)).toISOString().split('T')[0]}
+                    style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Data Final</label>
+                  <input
+                    type="date"
+                    id="reportDateTo"
+                    defaultValue={relatorioDateRange?.until || new Date().toISOString().split('T')[0]}
+                    style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    const from = (document.getElementById('reportDateFrom') as HTMLInputElement)?.value;
+                    const to = (document.getElementById('reportDateTo') as HTMLInputElement)?.value;
+                    if (from && to) {
+                      handleVisualizarRelatorio(viewingRelatorio.cliente, from, to);
+                    }
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#1a73e8',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  🔄 Carregar
+                </button>
+              </div>
             </div>
 
             <div style={{ marginBottom: '25px' }}>
