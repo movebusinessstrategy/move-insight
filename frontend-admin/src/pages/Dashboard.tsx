@@ -80,6 +80,12 @@ export default function Dashboard({ user }: DashboardProps) {
     data_inicio_trabalhos: '',
   });
   const [creatingLoading, setCreatingLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
+  const [filterMetaAds, setFilterMetaAds] = useState<'todos' | 'com' | 'sem'>('todos');
+  const [viewMode, setViewMode] = useState<'tabela' | 'cards'>('tabela');
+  const [sortBy, setSortBy] = useState<'nome' | 'valor' | 'vencimento'>('nome');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const loadClientes = async () => {
@@ -102,6 +108,40 @@ export default function Dashboard({ user }: DashboardProps) {
 
     loadClientes();
   }, []);
+
+  // Filtrar e ordenar clientes
+  const clientesFiltrados = clientes
+    .filter((cliente) => {
+      const matchSearch = cliente.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cliente.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchStatus = filterStatus === 'todos' || cliente.status === filterStatus;
+      const matchMetaAds = filterMetaAds === 'todos' ||
+        (filterMetaAds === 'com' && cliente.meta_ads_account_id) ||
+        (filterMetaAds === 'sem' && !cliente.meta_ads_account_id);
+      return matchSearch && matchStatus && matchMetaAds;
+    })
+    .sort((a, b) => {
+      let aVal, bVal;
+      if (sortBy === 'nome') {
+        aVal = a.nome.toLowerCase();
+        bVal = b.nome.toLowerCase();
+      } else if (sortBy === 'valor') {
+        aVal = a.valor_mensal ? Number(a.valor_mensal) : 0;
+        bVal = b.valor_mensal ? Number(b.valor_mensal) : 0;
+      } else {
+        aVal = a.dia_vencimento || 0;
+        bVal = b.dia_vencimento || 0;
+      }
+      return sortOrder === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+    });
+
+  // Calcular métricas
+  const metricas = {
+    totalClientes: clientes.length,
+    clientesAtivos: clientes.filter((c) => c.status === 'ativo').length,
+    faturamentoTotal: clientes.reduce((sum, c) => sum + (c.valor_mensal ? Number(c.valor_mensal) : 0), 0),
+    comMetaAds: clientes.filter((c) => c.meta_ads_account_id).length,
+  };
 
   const handleLogout = async () => {
     try {
@@ -438,7 +478,8 @@ export default function Dashboard({ user }: DashboardProps) {
       {/* ABA: CLIENTES */}
       {activeTab === 'clientes' && (
         <div>
-          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+          <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ margin: 0 }}>📋 Clientes</h2>
             <button
               onClick={() => setCreatingClient(true)}
               style={{
@@ -456,13 +497,182 @@ export default function Dashboard({ user }: DashboardProps) {
             </button>
           </div>
 
+          {!loading && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '30px' }}>
+              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #1a73e8', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                  👥 Total de Clientes
+                </p>
+                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#1a73e8' }}>{metricas.totalClientes}</p>
+              </div>
+              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #28a745', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                  ✅ Clientes Ativos
+                </p>
+                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#28a745' }}>{metricas.clientesAtivos}</p>
+              </div>
+              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #ff9800', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                  💰 Faturamento Mensal
+                </p>
+                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#ff9800' }}>
+                  R$ {metricas.faturamentoTotal.toFixed(2)}
+                </p>
+              </div>
+              <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', border: '2px solid #6f42c1', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                  📊 Com Meta Ads
+                </p>
+                <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#6f42c1' }}>{metricas.comMetaAds}</p>
+              </div>
+            </div>
+          )}
+
+          {!loading && clientes.length > 0 && (
+            <div style={{ marginBottom: '20px', backgroundColor: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #ddd' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#666', marginBottom: '6px' }}>
+                    🔍 Buscar
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nome ou email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#666', marginBottom: '6px' }}>
+                    Status
+                  </label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value as any)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="todos">Todos</option>
+                    <option value="ativo">Ativos</option>
+                    <option value="inativo">Inativos</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#666', marginBottom: '6px' }}>
+                    Meta Ads
+                  </label>
+                  <select
+                    value={filterMetaAds}
+                    onChange={(e) => setFilterMetaAds(e.target.value as any)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="todos">Todos</option>
+                    <option value="com">Com Meta Ads</option>
+                    <option value="sem">Sem Meta Ads</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => setViewMode('tabela')}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: viewMode === 'tabela' ? '#1a73e8' : '#f0f0f0',
+                      color: viewMode === 'tabela' ? 'white' : '#333',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: viewMode === 'tabela' ? 'bold' : 'normal',
+                    }}
+                  >
+                    📊 Tabela
+                  </button>
+                  <button
+                    onClick={() => setViewMode('cards')}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: viewMode === 'cards' ? '#1a73e8' : '#f0f0f0',
+                      color: viewMode === 'cards' ? 'white' : '#333',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: viewMode === 'cards' ? 'bold' : 'normal',
+                    }}
+                  >
+                    🗂️ Cards
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#666' }}>Ordenar:</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    style={{
+                      padding: '6px 10px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="nome">Nome</option>
+                    <option value="valor">Valor Mensal</option>
+                    <option value="vencimento">Vencimento</option>
+                  </select>
+                  <button
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#f0f0f0',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                    }}
+                  >
+                    {sortOrder === 'asc' ? '⬆️' : '⬇️'}
+                  </button>
+                </div>
+              </div>
+
+              <p style={{ margin: '12px 0 0 0', fontSize: '12px', color: '#666' }}>
+                Mostrando {clientesFiltrados.length} de {clientes.length} clientes
+              </p>
+            </div>
+          )}
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Carregando clientes...</div>
-          ) : clientes.length === 0 ? (
+          ) : clientesFiltrados.length === 0 ? (
             <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
-              Nenhum cliente cadastrado
+              {clientes.length === 0 ? 'Nenhum cliente cadastrado' : 'Nenhum cliente corresponde aos filtros'}
             </div>
-          ) : (
+          ) : viewMode === 'tabela' ? (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
                 <thead>
@@ -472,12 +682,13 @@ export default function Dashboard({ user }: DashboardProps) {
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Valor Mensal</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Vencimento</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Status</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Meta Ads</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {clientes.map((cliente) => (
-                    <tr key={cliente.id} style={{ borderBottom: '1px solid #eee' }}>
+                  {clientesFiltrados.map((cliente, idx) => (
+                    <tr key={cliente.id} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
                       <td style={{ padding: '12px' }}>
                         <strong>{cliente.nome}</strong>
                       </td>
@@ -502,72 +713,70 @@ export default function Dashboard({ user }: DashboardProps) {
                           {cliente.status}
                         </span>
                       </td>
-                      <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                        <button
-                          onClick={() => abrirEdicao(cliente)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#6c757d',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                          }}
-                        >
-                          ✏️ Editar
-                        </button>
-                        <button
-                          onClick={() => handleVisualizarRelatorio(cliente)}
-                          disabled={loadingRelatorio === cliente.id || !cliente.meta_ads_account_id}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: cliente.meta_ads_account_id ? '#28a745' : '#999',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: cliente.meta_ads_account_id ? 'pointer' : 'not-allowed',
-                            fontSize: '12px',
-                            opacity: loadingRelatorio === cliente.id ? 0.6 : 1,
-                          }}
-                        >
-                          {loadingRelatorio === cliente.id ? '...' : '📊 Relatório'}
-                        </button>
-                        <button
-                          onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#6f42c1',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '12px',
-                          }}
-                        >
-                          📈 Dashboard
-                        </button>
-                        <button
-                          onClick={() => handleLembrarPagamento(cliente.id)}
-                          disabled={reminderLoading === cliente.id || !cliente.billing_reminder_active}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: cliente.billing_reminder_active ? '#1a73e8' : '#999',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: cliente.billing_reminder_active ? 'pointer' : 'not-allowed',
-                            fontSize: '12px',
-                            opacity: reminderLoading === cliente.id ? 0.6 : 1,
-                          }}
-                        >
-                          {reminderLoading === cliente.id ? '...' : '💬 Lembrar'}
-                        </button>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        {cliente.meta_ads_account_id ? <span style={{ fontSize: '16px' }}>✅</span> : <span style={{ fontSize: '16px', opacity: 0.3 }}>❌</span>}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <button onClick={() => abrirEdicao(cliente)} title="Editar cliente" style={{ padding: '6px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>✏️</button>
+                        <button onClick={() => handleVisualizarRelatorio(cliente)} disabled={loadingRelatorio === cliente.id || !cliente.meta_ads_account_id} title={cliente.meta_ads_account_id ? 'Ver relatório' : 'Configure Meta Ads'} style={{ padding: '6px 12px', backgroundColor: cliente.meta_ads_account_id ? '#28a745' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.meta_ads_account_id ? 'pointer' : 'not-allowed', fontSize: '12px', opacity: loadingRelatorio === cliente.id ? 0.6 : 1 }}>{loadingRelatorio === cliente.id ? '...' : '📊'}</button>
+                        <button onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)} title="Dashboard do cliente" style={{ padding: '6px 12px', backgroundColor: '#6f42c1', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>📈</button>
+                        <button onClick={() => handleLembrarPagamento(cliente.id)} disabled={reminderLoading === cliente.id || !cliente.billing_reminder_active} title={cliente.billing_reminder_active ? 'Enviar lembrete' : 'Desabilitado'} style={{ padding: '6px 12px', backgroundColor: cliente.billing_reminder_active ? '#1a73e8' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.billing_reminder_active ? 'pointer' : 'not-allowed', fontSize: '12px', opacity: reminderLoading === cliente.id ? 0.6 : 1 }}>{reminderLoading === cliente.id ? '...' : '💬'}</button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+              {clientesFiltrados.map((cliente) => (
+                <div
+                  key={cliente.id}
+                  style={{
+                    padding: '20px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    transition: 'transform 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  <h3 style={{ margin: '0 0 6px 0', color: '#333', fontSize: '16px' }}>{cliente.nome}</h3>
+                  <p style={{ margin: 0, color: '#666', fontSize: '12px', marginBottom: '16px' }}>{cliente.email}</p>
+                  <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#666' }}>Valor:</span>
+                      <strong style={{ color: '#ff9800' }}>{cliente.valor_mensal ? `R$ ${Number(cliente.valor_mensal).toFixed(2)}` : '—'}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#666' }}>Vencimento:</span>
+                      <strong style={{ color: '#666' }}>{cliente.dia_vencimento ? `Dia ${cliente.dia_vencimento}` : '—'}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '12px', color: '#666' }}>Status:</span>
+                      <span style={{ padding: '4px 8px', backgroundColor: cliente.status === 'ativo' ? '#efe' : '#fee', color: cliente.status === 'ativo' ? '#3c3' : '#c33', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{cliente.status}</span>
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '12px', color: '#666' }}>Meta Ads:</span>
+                    <span style={{ fontSize: '18px' }}>{cliente.meta_ads_account_id ? '✅' : '❌'}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <button onClick={() => abrirEdicao(cliente)} style={{ padding: '8px 12px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>✏️ Editar</button>
+                    <button onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)} style={{ padding: '8px 12px', backgroundColor: '#6f42c1', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>📈 Dashboard</button>
+                    <button onClick={() => handleVisualizarRelatorio(cliente)} disabled={loadingRelatorio === cliente.id || !cliente.meta_ads_account_id} style={{ padding: '8px 12px', backgroundColor: cliente.meta_ads_account_id ? '#28a745' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.meta_ads_account_id ? 'pointer' : 'not-allowed', fontSize: '12px', fontWeight: 'bold', opacity: loadingRelatorio === cliente.id ? 0.6 : 1 }}>{loadingRelatorio === cliente.id ? '...' : '📊 Relatório'}</button>
+                    <button onClick={() => handleLembrarPagamento(cliente.id)} disabled={reminderLoading === cliente.id || !cliente.billing_reminder_active} style={{ padding: '8px 12px', backgroundColor: cliente.billing_reminder_active ? '#1a73e8' : '#999', color: 'white', border: 'none', borderRadius: '4px', cursor: cliente.billing_reminder_active ? 'pointer' : 'not-allowed', fontSize: '12px', fontWeight: 'bold', opacity: reminderLoading === cliente.id ? 0.6 : 1 }}>{reminderLoading === cliente.id ? '...' : '💬'}</button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
