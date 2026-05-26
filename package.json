@@ -1,11 +1,10 @@
 {
-  "name": "disparador",
+  "name": "move-insights",
   "version": "1.0.0",
-  "main": "disparador.js",
+  "main": "server.js",
   "scripts": {
-    "dev": "node server-saas.js",
-    "start": "node server-saas.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [],
   "author": "",
