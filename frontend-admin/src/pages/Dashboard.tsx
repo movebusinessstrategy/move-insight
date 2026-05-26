@@ -91,6 +91,8 @@ export default function Dashboard({ user }: DashboardProps) {
   const [batchLoading, setBatchLoading] = useState(false);
   const [showFrequenciaDialog, setShowFrequenciaDialog] = useState(false);
   const [selectedFrequencia, setSelectedFrequencia] = useState<'nunca' | 'semanal' | 'mensal'>('semanal');
+  const [whatsappQrImage, setWhatsappQrImage] = useState<string | null>(null);
+  const [whatsappPollingActive, setWhatsappPollingActive] = useState(false);
 
   useEffect(() => {
     const loadClientes = async () => {
@@ -112,6 +114,28 @@ export default function Dashboard({ user }: DashboardProps) {
     };
 
     loadClientes();
+  }, []);
+
+  useEffect(() => {
+    const checkWhatsAppStatus = async () => {
+      try {
+        const response = await fetch('/api/whatsapp/status', {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.connected) {
+            setWhatsappStatus('conectado');
+          } else {
+            setWhatsappStatus('desconectado');
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status WhatsApp:', error);
+      }
+    };
+
+    checkWhatsAppStatus();
   }, []);
 
   // Filtrar e ordenar clientes
@@ -215,15 +239,98 @@ export default function Dashboard({ user }: DashboardProps) {
     }
   };
 
-  const handleConectarWhatsApp = () => {
-    alert(
-      '📱 Para conectar WhatsApp:\n\n' +
-      '1. Verifique os logs do servidor (terminal onde npm run dev está rodando)\n' +
-      '2. Procure pela mensagem "📱 QR Code gerado"\n' +
-      '3. Escaneie o código QR com seu WhatsApp\n' +
-      '4. Após escanear, a mensagem "🚀 WhatsApp pronto para enviar mensagens" aparecerá\n\n' +
-      'Depois disso, você conseguirá disparar relatórios e lembretes via WhatsApp!'
-    );
+  const handleConectarWhatsApp = async () => {
+    try {
+      setWhatsappStatus('conectando');
+      setWhatsappQrImage(null);
+      setWhatsappPollingActive(true);
+
+      const response = await fetch('/api/whatsapp/connect', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        setWhatsappStatus('desconectado');
+        setWhatsappPollingActive(false);
+        setError('Erro ao iniciar conexão WhatsApp');
+        return;
+      }
+
+      // Polling para pegar o QR code
+      let pollingAttempts = 0;
+      const maxAttempts = 60; // 60 tentativas x 1s = 60s timeout
+
+      const pollQrCode = async () => {
+        while (pollingAttempts < maxAttempts && whatsappPollingActive) {
+          try {
+            const qrResponse = await fetch('/api/whatsapp/qr', {
+              credentials: 'include',
+            });
+
+            if (qrResponse.ok) {
+              const qrData = await qrResponse.json();
+              if (qrData.qr) {
+                setWhatsappQrImage(qrData.qr);
+              }
+            }
+
+            // Verificar status da conexão
+            const statusResponse = await fetch('/api/whatsapp/status', {
+              credentials: 'include',
+            });
+
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              if (statusData.connected) {
+                setWhatsappStatus('conectado');
+                setWhatsappQrImage(null);
+                setWhatsappPollingActive(false);
+                return;
+              }
+            }
+
+            pollingAttempts++;
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          } catch (error) {
+            console.error('Erro ao fazer polling:', error);
+            pollingAttempts++;
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        }
+
+        // Timeout
+        setWhatsappStatus('desconectado');
+        setWhatsappPollingActive(false);
+      };
+
+      pollQrCode();
+    } catch (error) {
+      console.error('Erro ao conectar WhatsApp:', error);
+      setWhatsappStatus('desconectado');
+      setWhatsappPollingActive(false);
+      setError('Erro ao conectar WhatsApp');
+    }
+  };
+
+  const handleDesconectarWhatsApp = async () => {
+    try {
+      const response = await fetch('/api/whatsapp/disconnect', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setWhatsappStatus('desconectado');
+        setWhatsappQrImage(null);
+        setWhatsappPollingActive(false);
+      } else {
+        setError('Erro ao desconectar WhatsApp');
+      }
+    } catch (error) {
+      console.error('Erro ao desconectar WhatsApp:', error);
+      setError('Erro ao desconectar WhatsApp');
+    }
   };
 
   const abrirEdicao = (cliente: any) => {
@@ -995,7 +1102,20 @@ export default function Dashboard({ user }: DashboardProps) {
               <div>
                 <p style={{ fontSize: '48px', marginBottom: '10px', animation: 'spin 2s linear infinite' }}>⏳</p>
                 <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Aguardando conexão...</p>
-                <p style={{ color: '#666', marginTop: '8px' }}>Escaneie o QR code com seu WhatsApp</p>
+                <p style={{ color: '#666', marginTop: '8px', marginBottom: '20px' }}>Escaneie o QR code com seu WhatsApp</p>
+
+                {whatsappQrImage && (
+                  <div style={{ marginTop: '20px', padding: '20px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+                    <img
+                      src={whatsappQrImage}
+                      alt="QR Code WhatsApp"
+                      style={{ maxWidth: '300px', width: '100%', margin: '0 auto', display: 'block' }}
+                    />
+                    <p style={{ color: '#666', marginTop: '10px', fontSize: '12px' }}>
+                      Aponte a câmera do seu telefone para este código
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1007,6 +1127,7 @@ export default function Dashboard({ user }: DashboardProps) {
                   Você pode agora disparar lembretes de pagamento
                 </p>
                 <button
+                  onClick={handleDesconectarWhatsApp}
                   style={{
                     padding: '12px 24px',
                     backgroundColor: '#dc3545',
