@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu } from 'lucide-react';
-import { colors, spacing, radius, typography, shadows } from '../theme';
+import { colors, spacing, radius, typography, shadows, glassMorphism, animations, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
@@ -67,6 +67,12 @@ export default function Dashboard({ user }: DashboardProps) {
   const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
 
   const c = colors[theme];
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = keyframes;
+    document.head.appendChild(style);
+  }, []);
 
   useEffect(() => {
     const loadClientes = async () => {
@@ -242,13 +248,17 @@ export default function Dashboard({ user }: DashboardProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.2s',
+              transition: 'all 0.3s ease-out',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = c.bg.secondary;
+              e.currentTarget.style.boxShadow = `0 0 12px ${c.accent}33`;
+              e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'scale(1)';
             }}
           >
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
@@ -303,7 +313,13 @@ export default function Dashboard({ user }: DashboardProps) {
       </div>
 
       {/* Main Content */}
-      <div style={{ display: 'flex', height: 'calc(100vh - 100px)' }}>
+      <div style={{
+        display: 'flex',
+        height: 'calc(100vh - 100px)',
+        background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%, ${c.bg.tertiary} 100%)`,
+        backgroundSize: '200% 200%',
+        ...animations.gradientShift,
+      }}>
         {/* Sidebar */}
         <div style={{
           width: '200px',
@@ -339,11 +355,13 @@ export default function Dashboard({ user }: DashboardProps) {
               onMouseOver={(e) => {
                 if (activeTab !== id) {
                   e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                  e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
                 }
               }}
               onMouseOut={(e) => {
                 if (activeTab !== id) {
                   e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.boxShadow = 'none';
                 }
               }}
             >
@@ -354,11 +372,20 @@ export default function Dashboard({ user }: DashboardProps) {
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg }}>
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: spacing.lg,
+          animation: 'fadeIn 0.5s ease-out',
+        }}>
           {/* Clientes Tab */}
           {activeTab === 'clientes' && (
-            <div>
-              <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>Clientes</h2>
+            <div style={{ ...animations.slideUp }}>
+              <h2 style={{
+                ...typography.heading,
+                margin: `0 0 ${spacing.lg} 0`,
+                animation: 'slideUp 0.5s ease-out',
+              }}>Clientes</h2>
 
               {/* Metrics */}
               <div style={{
@@ -366,6 +393,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                 gap: spacing.md,
                 marginBottom: spacing.lg,
+                animation: 'slideUp 0.5s ease-out',
               }}>
                 {[
                   { label: 'Total', value: metricas.totalClientes, icon: Users, color: '#007AFF' },
@@ -376,13 +404,24 @@ export default function Dashboard({ user }: DashboardProps) {
                   <div
                     key={idx}
                     style={{
-                      backgroundColor: c.bg.secondary,
+                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
                       borderRadius: radius.lg,
                       padding: spacing.lg,
-                      border: `1px solid ${c.border}`,
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: spacing.md,
+                      ...animations.slideUp,
+                      ...animations.float,
+                      transitionDelay: `${idx * 50}ms`,
+                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = '';
+                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
                     <div style={{
@@ -415,6 +454,8 @@ export default function Dashboard({ user }: DashboardProps) {
                 display: 'flex',
                 gap: spacing.md,
                 marginBottom: spacing.lg,
+                ...animations.slideUp,
+                animation: 'slideUp 0.5s ease-out 0.1s backwards',
               }}>
                 <div style={{
                   flex: 1,
@@ -479,6 +520,8 @@ export default function Dashboard({ user }: DashboardProps) {
                 borderRadius: radius.lg,
                 border: `1px solid ${c.border}`,
                 overflow: 'hidden',
+                ...animations.slideUp,
+                animation: 'slideUp 0.5s ease-out 0.15s backwards',
               }}>
                 <table style={{
                   width: '100%',
@@ -647,8 +690,12 @@ export default function Dashboard({ user }: DashboardProps) {
 
           {/* WhatsApp Tab */}
           {activeTab === 'whatsapp' && (
-            <div>
-              <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>WhatsApp</h2>
+            <div style={{ ...animations.slideUp }}>
+              <h2 style={{
+                ...typography.heading,
+                margin: `0 0 ${spacing.lg} 0`,
+                animation: 'slideUp 0.5s ease-out',
+              }}>WhatsApp</h2>
 
               <div style={{
                 backgroundColor: c.bg.secondary,
@@ -658,6 +705,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 textAlign: 'center',
                 maxWidth: '500px',
                 margin: '0 auto',
+                ...animations.slideUp,
               }}>
                 {whatsappStatus === 'desconectado' && (
                   <div>
@@ -761,6 +809,7 @@ export default function Dashboard({ user }: DashboardProps) {
                       alignItems: 'center',
                       justifyContent: 'center',
                       opacity: 0.2,
+                      ...animations.glow,
                     }}>
                       <MessageSquare size={24} />
                     </div>
@@ -811,8 +860,12 @@ export default function Dashboard({ user }: DashboardProps) {
 
           {/* Meta Ads Tab */}
           {activeTab === 'meta-ads' && (
-            <div>
-              <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>Meta Ads</h2>
+            <div style={{ ...animations.slideUp }}>
+              <h2 style={{
+                ...typography.heading,
+                margin: `0 0 ${spacing.lg} 0`,
+                animation: 'slideUp 0.5s ease-out',
+              }}>Meta Ads</h2>
               <div style={{
                 backgroundColor: c.bg.secondary,
                 borderRadius: radius.lg,
@@ -820,6 +873,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 padding: spacing.lg,
                 textAlign: 'center',
                 color: c.text.secondary,
+                ...animations.slideUp,
               }}>
                 <BarChart3 size={48} style={{
                   margin: `0 auto ${spacing.md}`,
