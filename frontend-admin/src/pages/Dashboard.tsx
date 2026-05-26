@@ -66,6 +66,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
   const [editingClient, setEditingClient] = useState<Cliente | null>(null);
+  const [creatingClient, setCreatingClient] = useState(false);
   const [editForm, setEditForm] = useState({
     nome: '',
     email: '',
@@ -76,6 +77,12 @@ export default function Dashboard({ user }: DashboardProps) {
     meta_ads_account_id: '',
     relatorio_frequencia: 'nunca',
     billing_reminder_active: false,
+  });
+  const [newClientForm, setNewClientForm] = useState({
+    nome: '',
+    email: '',
+    valor_mensal: '',
+    dia_vencimento: '',
   });
 
   const c = colors[theme];
@@ -126,6 +133,36 @@ export default function Dashboard({ user }: DashboardProps) {
         setEditingClient(null);
       } else {
         alert('Erro ao salvar cliente');
+      }
+    } catch (err) {
+      alert('Erro ao conectar');
+    }
+  };
+
+  const handleCreateClient = async () => {
+    if (!newClientForm.nome || !newClientForm.email) {
+      alert('Nome e Email são obrigatórios');
+      return;
+    }
+    try {
+      const response = await fetch('/api/admin/clientes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          nome: newClientForm.nome,
+          email: newClientForm.email,
+          valor_mensal: parseFloat(newClientForm.valor_mensal) || null,
+          dia_vencimento: parseInt(newClientForm.dia_vencimento) || null,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setClientes([...clientes, data.cliente]);
+        setCreatingClient(false);
+        setNewClientForm({ nome: '', email: '', valor_mensal: '', dia_vencimento: '' });
+      } else {
+        alert('Erro ao criar cliente');
       }
     } catch (err) {
       alert('Erro ao conectar');
@@ -439,11 +476,46 @@ export default function Dashboard({ user }: DashboardProps) {
           {/* Clientes Tab */}
           {activeTab === 'clientes' && (
             <div style={{ ...animations.slideUp }}>
-              <h2 style={{
-                ...typography.heading,
-                margin: `0 0 ${spacing.lg} 0`,
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: spacing.lg,
                 animation: 'slideUp 0.5s ease-out',
-              }}>Clientes</h2>
+              }}>
+                <h2 style={{
+                  ...typography.heading,
+                  margin: 0,
+                }}>Clientes</h2>
+                <button
+                  onClick={() => setCreatingClient(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                    padding: `${spacing.sm} ${spacing.md}`,
+                    backgroundColor: c.accent,
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: radius.md,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    transition: 'opacity 0.2s, transform 0.2s',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.opacity = '0.9';
+                    e.currentTarget.style.transform = 'scale(1.05)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <Plus size={18} />
+                  Novo Cliente
+                </button>
+              </div>
 
               {/* Metrics */}
               <div style={{
@@ -945,6 +1017,164 @@ export default function Dashboard({ user }: DashboardProps) {
       </div>
 
       {/* Error Toast */}
+      {/* Create Client Modal */}
+      {creatingClient && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000,
+        }} onClick={() => setCreatingClient(false)}>
+          <div style={{
+            backgroundColor: c.bg.primary,
+            borderRadius: radius.lg,
+            border: `1px solid ${c.border}`,
+            padding: spacing.xl,
+            maxWidth: '500px',
+            width: '90%',
+            ...glassMorphism[theme === 'light' ? 'light' : 'dark'],
+          }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>
+              Novo Cliente
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Nome *
+                </label>
+                <input
+                  type="text"
+                  value={newClientForm.nome}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, nome: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                  placeholder="Nome da empresa ou pessoa"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={newClientForm.email}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, email: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Valor Mensal (R$)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newClientForm.valor_mensal}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, valor_mensal: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Dia de Vencimento
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={newClientForm.dia_vencimento}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, dia_vencimento: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                  placeholder="15"
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: spacing.md, marginTop: spacing.lg }}>
+                <button
+                  onClick={() => setCreatingClient(false)}
+                  style={{
+                    flex: 1,
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleCreateClient}
+                  style={{
+                    flex: 1,
+                    padding: spacing.md,
+                    border: 'none',
+                    borderRadius: radius.md,
+                    backgroundColor: c.accent,
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  Criar Cliente
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Modal */}
       {editingClient && (
         <div style={{
