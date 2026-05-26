@@ -3,6 +3,8 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
+import adminClientesRoutes from './routes/admin.clientes.js';
+import { initializeWhatsApp, sendWhatsAppMessage } from './services/whatsapp.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,6 +13,10 @@ const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-produ
 // Middleware
 app.use(express.json());
 app.use(cookieParser(SESSION_SECRET));
+app.use((_req: any, _res, next) => {
+  _req.sendWhatsAppMessage = sendWhatsAppMessage;
+  next();
+});
 
 // CORS
 app.use((_req: any, res, next) => {
@@ -30,6 +36,7 @@ app.use((_req: any, res, next) => {
 // Routes
 app.use('/api/auth/admin', authAdminRoutes);
 app.use('/api/cliente/auth', authClienteRoutes);
+app.use('/api/admin', adminClientesRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
@@ -37,9 +44,15 @@ app.get('/health', (_req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log('🚀 MOVE Insights API started');
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Server running on http://localhost:${PORT}`);
   console.log(`✅ Auth endpoints ready at /api/auth/admin/* and /api/cliente/auth/*`);
+
+  // Inicializar WhatsApp em background
+  console.log('📱 Inicializando WhatsApp Web...');
+  initializeWhatsApp().catch((error) => {
+    console.error('⚠️ WhatsApp não foi inicializado (lembretes não funcionarão):', error);
+  });
 });
