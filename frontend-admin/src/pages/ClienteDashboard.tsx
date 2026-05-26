@@ -81,6 +81,9 @@ export default function ClienteDashboard() {
   const [financialLoading, setFinancialLoading] = useState(false);
   const [error, setError] = useState('');
   const [period, setPeriod] = useState<PeriodType>('last_7d');
+  const [customDateStart, setCustomDateStart] = useState<string>('');
+  const [customDateEnd, setCustomDateEnd] = useState<string>('');
+  const [useCustomDate, setUseCustomDate] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('campanhas');
   const [paymentProcessing, setPaymentProcessing] = useState<string | null>(null);
   const [reminderProcessing, setReminderProcessing] = useState<string | null>(null);
@@ -109,7 +112,13 @@ export default function ClienteDashboard() {
           setCliente(clienteData.cliente);
 
           if (clienteData.cliente.meta_ads_account_id) {
-            const relatorioRes = await fetch(`/api/admin/clientes/${clienteId}/relatorio?_=${Date.now()}`, {
+            let url = `/api/admin/clientes/${clienteId}/relatorio?_=${Date.now()}`;
+            if (useCustomDate && customDateStart && customDateEnd) {
+              url += `&since=${customDateStart}&until=${customDateEnd}`;
+            } else {
+              url += `&period=${period}`;
+            }
+            const relatorioRes = await fetch(url, {
               credentials: 'include',
             });
             const relatorioData = await relatorioRes.json();
@@ -128,7 +137,7 @@ export default function ClienteDashboard() {
     };
 
     loadData();
-  }, [clienteId, period]);
+  }, [clienteId, period, customDateStart, customDateEnd, useCustomDate]);
 
   // Recarregar cliente quando muda de aba
   useEffect(() => {
@@ -378,23 +387,117 @@ export default function ClienteDashboard() {
           <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>{cliente.email}</p>
         </div>
         {activeTab === 'campanhas' && (
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value as PeriodType)}
-              style={{
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                backgroundColor: 'white',
-                cursor: 'pointer',
-              }}
-            >
-              <option value="last_7d">Últimos 7 dias</option>
-              <option value="last_30d">Últimos 30 dias</option>
-              <option value="last_90d">Últimos 90 dias</option>
-            </select>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', color: '#666', fontWeight: 'bold', marginBottom: '4px' }}>
+                Período
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={() => {
+                    setUseCustomDate(false);
+                    setPeriod('last_7d');
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: !useCustomDate && period === 'last_7d' ? '#1a73e8' : '#f0f0f0',
+                    color: !useCustomDate && period === 'last_7d' ? 'white' : '#333',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: !useCustomDate && period === 'last_7d' ? 'bold' : 'normal',
+                  }}
+                >
+                  7 dias
+                </button>
+                <button
+                  onClick={() => {
+                    setUseCustomDate(false);
+                    setPeriod('last_30d');
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: !useCustomDate && period === 'last_30d' ? '#1a73e8' : '#f0f0f0',
+                    color: !useCustomDate && period === 'last_30d' ? 'white' : '#333',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: !useCustomDate && period === 'last_30d' ? 'bold' : 'normal',
+                  }}
+                >
+                  30 dias
+                </button>
+                <button
+                  onClick={() => {
+                    setUseCustomDate(false);
+                    setPeriod('last_90d');
+                  }}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: !useCustomDate && period === 'last_90d' ? '#1a73e8' : '#f0f0f0',
+                    color: !useCustomDate && period === 'last_90d' ? 'white' : '#333',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: !useCustomDate && period === 'last_90d' ? 'bold' : 'normal',
+                  }}
+                >
+                  90 dias
+                </button>
+                <button
+                  onClick={() => setUseCustomDate(!useCustomDate)}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: useCustomDate ? '#ff9800' : '#f0f0f0',
+                    color: useCustomDate ? 'white' : '#333',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: useCustomDate ? 'bold' : 'normal',
+                  }}
+                >
+                  📅 Customizado
+                </button>
+              </div>
+              {useCustomDate && (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: '#666' }}>De:</label>
+                    <input
+                      type="date"
+                      value={customDateStart}
+                      onChange={(e) => setCustomDateStart(e.target.value)}
+                      style={{
+                        padding: '6px 8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        width: '140px',
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: '#666' }}>Até:</label>
+                    <input
+                      type="date"
+                      value={customDateEnd}
+                      onChange={(e) => setCustomDateEnd(e.target.value)}
+                      style={{
+                        padding: '6px 8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        width: '140px',
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={handleEnviarRelatorioCampanhas}
               disabled={relatorioProcessing || !cliente?.whatsapp_numero}

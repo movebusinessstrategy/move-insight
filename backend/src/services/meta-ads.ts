@@ -31,6 +31,43 @@ interface Relatorio {
   };
 }
 
+type DatePreset = 'last_7d' | 'last_30d' | 'last_90d';
+
+function getDateRangeFromPreset(preset: DatePreset): { since: string; until: string; display: string } {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const dia = String(hoje.getDate()).padStart(2, '0');
+  const until = `${ano}-${mes}-${dia}`;
+
+  let since: string;
+  let daysAgo: number;
+
+  switch (preset) {
+    case 'last_7d':
+      daysAgo = 7;
+      break;
+    case 'last_30d':
+      daysAgo = 30;
+      break;
+    case 'last_90d':
+      daysAgo = 90;
+      break;
+    default:
+      daysAgo = 7;
+  }
+
+  const dataInicial = new Date(hoje.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+  const anoInicial = dataInicial.getFullYear();
+  const mesInicial = String(dataInicial.getMonth() + 1).padStart(2, '0');
+  const diaInicial = String(dataInicial.getDate()).padStart(2, '0');
+  since = `${anoInicial}-${mesInicial}-${diaInicial}`;
+
+  const display = `${dataInicial.toLocaleDateString('pt-BR')} - ${hoje.toLocaleDateString('pt-BR')}`;
+
+  return { since, until, display };
+}
+
 async function getCampaigns(accountId: string): Promise<any[]> {
   try {
     const response = await axios.get(`${BASE_URL}/act_${accountId}/campaigns`, {
@@ -46,13 +83,15 @@ async function getCampaigns(accountId: string): Promise<any[]> {
   }
 }
 
-async function getCampaignInsights(campaignId: string): Promise<any> {
+async function getCampaignInsights(campaignId: string, since: string, until: string): Promise<any> {
   try {
     const response = await axios.get(`${BASE_URL}/${campaignId}/insights`, {
       params: {
         access_token: ACCESS_TOKEN,
         fields: 'impressions,clicks,ctr,actions,spend,frequency',
-        date_preset: 'last_7d',
+        since,
+        until,
+        time_range: JSON.stringify({ since, until }),
       },
     });
 
@@ -94,16 +133,29 @@ async function getCampaignInsights(campaignId: string): Promise<any> {
   }
 }
 
-export async function gerarRelatorio(accountId: string): Promise<Relatorio> {
+export async function gerarRelatorio(
+  accountId: string,
+  period?: DatePreset | { since: string; until: string }
+): Promise<Relatorio> {
   try {
-    const todasAsCampanhas = await getCampaigns(accountId);
+    let dateRange: { since: string; until: string; display: string };
 
-    // Filtrar apenas campanhas ativas
+    if (!period || typeof period === 'string') {
+      dateRange = getDateRangeFromPreset((period as DatePreset) || 'last_7d');
+    } else {
+      dateRange = {
+        since: period.since,
+        until: period.until,
+        display: `${new Date(period.since).toLocaleDateString('pt-BR')} - ${new Date(period.until).toLocaleDateString('pt-BR')}`,
+      };
+    }
+
+    const todasAsCampanhas = await getCampaigns(accountId);
     const campanhasAtivas = todasAsCampanhas.filter((c: any) => c.status === 'ACTIVE');
 
     const campanhasComDados: Campanha[] = await Promise.all(
       campanhasAtivas.map(async (camp) => {
-        const insights = await getCampaignInsights(camp.id);
+        const insights = await getCampaignInsights(camp.id, dateRange.since, dateRange.until);
         return {
           nome: camp.name,
           ...insights,
@@ -123,13 +175,8 @@ export async function gerarRelatorio(accountId: string): Promise<Relatorio> {
       : 0;
     const roas = totalSpend > 0 ? totalConversoes / totalSpend : 0;
 
-    // Calcular datas do período (últimos 7 dias)
-    const hoje = new Date();
-    const sete_dias_atras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const periodo = `${sete_dias_atras.toLocaleDateString('pt-BR')} - ${hoje.toLocaleDateString('pt-BR')}`;
-
     return {
-      periodo,
+      periodo: dateRange.display,
       campanhas: campanhasComDados,
       resumo: {
         totalSpend,

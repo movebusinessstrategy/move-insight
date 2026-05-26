@@ -153,6 +153,7 @@ export async function handleAtualizarCliente(req: Request, res: Response): Promi
 export async function handleGerarRelatorio(req: Request, res: Response): Promise<void> {
   try {
     const { clienteId } = req.params;
+    const { period = 'last_7d', since, until } = req.query;
 
     if (!clienteId) {
       res.status(400).json({ error: 'ID do cliente é obrigatório' });
@@ -171,7 +172,15 @@ export async function handleGerarRelatorio(req: Request, res: Response): Promise
       return;
     }
 
-    const relatorio = await gerarRelatorio(cliente.meta_ads_account_id);
+    let periodParam: any = period as string;
+    if (since && until) {
+      periodParam = {
+        since: String(since),
+        until: String(until),
+      };
+    }
+
+    const relatorio = await gerarRelatorio(cliente.meta_ads_account_id, periodParam);
     res.status(200).json({ relatorio });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao gerar relatório';
