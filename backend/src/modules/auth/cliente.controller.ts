@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { loginCliente } from './cliente.service.js';
+import { loginCliente, trocarSenhaCliente } from './cliente.service.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -41,4 +41,32 @@ export async function handleClienteLogout(_req: Request, res: Response): Promise
 export function handleClienteMe(req: Request, res: Response): void {
   const cliente = (req as any).clienteUser;
   res.status(200).json({ cliente });
+}
+
+export async function handleClienteTrocarSenha(req: Request, res: Response): Promise<void> {
+  try {
+    const clienteLoginId = (req as any).clienteUser.id;
+    const { senhaAtual, novaSenha, confirmarSenha } = req.body as {
+      senhaAtual?: string;
+      novaSenha?: string;
+      confirmarSenha?: string;
+    };
+
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+      return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+      res.status(400).json({ error: 'As senhas não conferem' });
+      return;
+    }
+
+    await trocarSenhaCliente(clienteLoginId, senhaAtual, novaSenha);
+
+    res.status(200).json({ message: 'Senha alterada com sucesso' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao alterar senha';
+    res.status(400).json({ error: message });
+  }
 }

@@ -38,3 +38,31 @@ export async function loginCliente(req: AuthRequest): Promise<ClienteSession> {
     senha_provisoria: cliente.senha_provisoria,
   };
 }
+
+export async function trocarSenhaCliente(clienteLoginId: string, senhaAtual: string, novaSenha: string): Promise<void> {
+  const result = await db`
+    SELECT senha_hash FROM cliente_logins WHERE id = ${clienteLoginId}
+  `;
+
+  if (result.length === 0) {
+    throw new Error('Cliente não encontrado');
+  }
+
+  const cliente = result[0];
+  const senhaValida = await bcrypt.compare(senhaAtual, cliente.senha_hash);
+  if (!senhaValida) {
+    throw new Error('Senha atual inválida');
+  }
+
+  if (novaSenha.length < 6) {
+    throw new Error('Nova senha deve ter no mínimo 6 caracteres');
+  }
+
+  const novaHash = await bcrypt.hash(novaSenha, 10);
+
+  await db`
+    UPDATE cliente_logins
+    SET senha_hash = ${novaHash}, senha_provisoria = false
+    WHERE id = ${clienteLoginId}
+  `;
+}

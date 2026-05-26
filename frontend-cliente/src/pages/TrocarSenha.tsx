@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Cliente {
@@ -14,11 +15,61 @@ interface TrocarSenhaProps {
 
 export default function TrocarSenha({ cliente }: TrocarSenhaProps) {
   const navigate = useNavigate();
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implementar mudança de senha em Sprint 2
-    console.log('Trocar senha será implementado em Sprint 2');
+    setError('');
+    setSuccess(false);
+
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      setError('Todos os campos são obrigatórios');
+      return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+      setError('As senhas não conferem');
+      return;
+    }
+
+    if (novaSenha.length < 6) {
+      setError('Nova senha deve ter no mínimo 6 caracteres');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/cliente/auth/trocar-senha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ senhaAtual, novaSenha, confirmarSenha }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess(true);
+        setSenhaAtual('');
+        setNovaSenha('');
+        setConfirmarSenha('');
+        setTimeout(() => {
+          navigate('/relatorio', { replace: true });
+        }, 1500);
+      } else {
+        setError(data.error || 'Erro ao alterar senha');
+      }
+    } catch (_error) {
+      setError('Erro ao conectar com servidor');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -59,25 +110,76 @@ export default function TrocarSenha({ cliente }: TrocarSenhaProps) {
         </p>
       </div>
 
+      {error && (
+        <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#fee', borderRadius: '4px', color: '#c33' }}>
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#efe', borderRadius: '4px', color: '#3c3' }}>
+          ✓ Senha alterada com sucesso! Redirecionando...
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Senha Atual</label>
-          <input type="password" disabled style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+          <input
+            type="password"
+            value={senhaAtual}
+            onChange={(e) => setSenhaAtual(e.target.value)}
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '8px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              opacity: loading ? 0.6 : 1,
+            }}
+          />
         </div>
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Nova Senha</label>
-          <input type="password" disabled style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+          <input
+            type="password"
+            value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)}
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '8px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              opacity: loading ? 0.6 : 1,
+            }}
+          />
         </div>
 
         <div style={{ marginBottom: '16px' }}>
           <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>Confirmar Senha</label>
-          <input type="password" disabled style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+          <input
+            type="password"
+            value={confirmarSenha}
+            onChange={(e) => setConfirmarSenha(e.target.value)}
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '8px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              opacity: loading ? 0.6 : 1,
+            }}
+          />
         </div>
 
         <button
           type="submit"
-          disabled
+          disabled={loading}
           style={{
             width: '100%',
             padding: '10px',
@@ -85,21 +187,14 @@ export default function TrocarSenha({ cliente }: TrocarSenhaProps) {
             color: 'white',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'not-allowed',
+            cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '16px',
-            opacity: 0.6,
+            opacity: loading ? 0.6 : 1,
           }}
         >
-          Atualizar Senha
+          {loading ? 'Alterando...' : 'Atualizar Senha'}
         </button>
       </form>
-
-      <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#e7f3ff', borderRadius: '4px', color: '#0066cc' }}>
-        <p>
-          <strong>Nota:</strong> Esta página será completamente implementada em Sprint 2. Por enquanto, você pode pular esta etapa ou testar com
-          uma página diferente.
-        </p>
-      </div>
     </div>
   );
 }
