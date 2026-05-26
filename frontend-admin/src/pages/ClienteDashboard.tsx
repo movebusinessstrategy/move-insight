@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Send } from 'lucide-react';
+import { colors, spacing, typography, shadows, radius, animations } from '../theme';
 
 interface Campanha {
   nome: string;
@@ -88,6 +90,13 @@ export default function ClienteDashboard() {
   const [paymentProcessing, setPaymentProcessing] = useState<string | null>(null);
   const [reminderProcessing, setReminderProcessing] = useState<string | null>(null);
   const [relatorioProcessing, setRelatorioProcessing] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+  }, []);
 
   // Load cliente on mount
   useEffect(() => {
@@ -375,28 +384,68 @@ export default function ClienteDashboard() {
     );
   }
 
+  const currentColors = colors[theme];
+
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
+    <div
+      style={{
+        padding: spacing.lg,
+        maxWidth: '1400px',
+        margin: '0 auto',
+        backgroundColor: currentColors.bg.primary,
+        minHeight: '100vh',
+        transition: 'background-color 0.3s ease',
+      }}
+    >
       {/* HEADER */}
-      <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: spacing.xxl, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <button
             onClick={() => navigate('/dashboard')}
             style={{
-              padding: '8px 16px',
-              backgroundColor: '#e0e0e0',
-              color: '#333',
-              border: 'none',
-              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing.sm,
+              padding: `${spacing.sm} ${spacing.md}`,
+              backgroundColor: currentColors.bg.secondary,
+              color: currentColors.text.primary,
+              border: `1px solid ${currentColors.border}`,
+              borderRadius: radius.md,
               cursor: 'pointer',
-              marginBottom: '12px',
-              fontSize: '14px',
+              marginBottom: spacing.md,
+              fontSize: typography.small.fontSize,
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = currentColors.bg.tertiary;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = currentColors.bg.secondary;
             }}
           >
-            ← Voltar
+            <ArrowLeft size={16} />
+            Voltar
           </button>
-          <h1 style={{ marginTop: 0, marginBottom: '4px' }}>📊 Dashboard - {cliente.nome}</h1>
-          <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>{cliente.email}</p>
+          <h1
+            style={{
+              ...typography.title,
+              color: currentColors.text.primary,
+              marginTop: 0,
+              marginBottom: spacing.xs,
+            }}
+          >
+            {cliente.nome}
+          </h1>
+          <p
+            style={{
+              ...typography.small,
+              color: currentColors.text.secondary,
+              margin: 0,
+            }}
+          >
+            {cliente.email}
+          </p>
         </div>
         {activeTab === 'campanhas' && (
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -533,38 +582,46 @@ export default function ClienteDashboard() {
       </div>
 
       {/* TABS */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '30px', borderBottom: '2px solid #eee', paddingBottom: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: spacing.lg,
+          marginBottom: spacing.xxl,
+          borderBottom: `1px solid ${currentColors.border}`,
+          paddingBottom: 0,
+        }}
+      >
         <button
           onClick={() => setActiveTab('campanhas')}
           style={{
-            padding: '12px 24px',
-            backgroundColor: activeTab === 'campanhas' ? '#1a73e8' : 'transparent',
-            color: activeTab === 'campanhas' ? 'white' : '#666',
+            padding: `${spacing.md} ${spacing.lg}`,
+            backgroundColor: 'transparent',
+            color: activeTab === 'campanhas' ? currentColors.text.primary : currentColors.text.secondary,
             border: 'none',
-            borderBottom: activeTab === 'campanhas' ? '3px solid #1a73e8' : '3px solid transparent',
+            borderBottom: activeTab === 'campanhas' ? `2px solid ${currentColors.accent}` : '2px solid transparent',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'campanhas' ? 'bold' : 'normal',
+            fontSize: typography.body.fontSize,
+            fontWeight: activeTab === 'campanhas' ? '600' : '400',
             transition: 'all 0.2s',
           }}
         >
-          📱 Campanhas
+          Campanhas
         </button>
         <button
           onClick={() => setActiveTab('financeiro')}
           style={{
-            padding: '12px 24px',
-            backgroundColor: activeTab === 'financeiro' ? '#1a73e8' : 'transparent',
-            color: activeTab === 'financeiro' ? 'white' : '#666',
+            padding: `${spacing.md} ${spacing.lg}`,
+            backgroundColor: 'transparent',
+            color: activeTab === 'financeiro' ? currentColors.text.primary : currentColors.text.secondary,
             border: 'none',
-            borderBottom: activeTab === 'financeiro' ? '3px solid #1a73e8' : '3px solid transparent',
+            borderBottom: activeTab === 'financeiro' ? `2px solid ${currentColors.accent}` : '2px solid transparent',
             cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'financeiro' ? 'bold' : 'normal',
+            fontSize: typography.body.fontSize,
+            fontWeight: activeTab === 'financeiro' ? '600' : '400',
             transition: 'all 0.2s',
           }}
         >
-          💰 Financeiro
+          Financeiro
         </button>
       </div>
 
@@ -581,81 +638,223 @@ export default function ClienteDashboard() {
           ) : (
             <>
               {/* CARDS DE RESUMO */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-            <div style={{ padding: '20px', backgroundColor: '#fff3e0', borderRadius: '8px', border: '2px solid #ff9800' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                💰 Investimento Total
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: spacing.lg,
+              marginBottom: spacing.xxl,
+            }}
+          >
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                Investimento Total
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#ff9800' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 R$ {relatorio.resumo.totalSpend.toFixed(2)}
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Gasto em publicidade</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Gasto em publicidade
+              </p>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #2196f3' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                👁️ Visualizações (Cliques)
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                Cliques
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#2196f3' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 {relatorio.resumo.totalCliques.toLocaleString('pt-BR')}
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Pessoas que clicaram</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Pessoas que clicaram
+              </p>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#f3e5f5', borderRadius: '8px', border: '2px solid #9c27b0' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                💬 Mensagens Iniciadas
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                Mensagens Iniciadas
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#9c27b0' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 {relatorio.resumo.totalMensagens.toLocaleString('pt-BR')}
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Conversas no WhatsApp/Messenger</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Conversas no WhatsApp/Messenger
+              </p>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#e8f5e9', borderRadius: '8px', border: '2px solid #4caf50' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                ✅ Conversões
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                Conversões
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#4caf50' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 {relatorio.resumo.totalConversoes.toLocaleString('pt-BR')}
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Vendas/Ações completadas</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Vendas/Ações completadas
+              </p>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#fce4ec', borderRadius: '8px', border: '2px solid #e91e63' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                📊 Eficiência (ROAS)
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                Eficiência (ROAS)
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#e91e63' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 {relatorio.resumo.roas.toFixed(2)}x
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Retorno por real investido</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Retorno por real investido
+              </p>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#f0f4c3', borderRadius: '8px', border: '2px solid #cddc39' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                💵 CPM Médio
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                CPM Médio
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#9ccc65' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 R$ {relatorio.resumo.cpmMedio.toFixed(2)}
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Custo por 1.000 impressões</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Custo por 1.000 impressões
+              </p>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#c8e6c9', borderRadius: '8px', border: '2px solid #66bb6a' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                🎯 CPC Médio
+            <div
+              style={{
+                padding: spacing.lg,
+                backgroundColor: currentColors.bg.secondary,
+                border: `1px solid ${currentColors.border}`,
+                borderRadius: radius.lg,
+                ...animations.slideUp,
+              }}
+            >
+              <p
+                style={{
+                  ...typography.tiny,
+                  color: currentColors.text.secondary,
+                  textTransform: 'uppercase',
+                  fontWeight: '600',
+                  margin: `0 0 ${spacing.sm} 0`,
+                }}
+              >
+                CPC Médio
               </p>
-              <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#43a047' }}>
+              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                 R$ {relatorio.resumo.cpcMedio.toFixed(2)}
               </p>
-              <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Custo por clique</p>
+              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                Custo por clique
+              </p>
             </div>
           </div>
 
           {/* CAMPANHAS ATIVAS */}
           <div>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#333' }}>📱 Campanhas Ativas ({relatorio.campanhas.length})</h2>
+            <h2
+              style={{
+                ...typography.heading,
+                marginTop: 0,
+                marginBottom: spacing.lg,
+                color: currentColors.text.primary,
+              }}
+            >
+              Campanhas Ativas ({relatorio.campanhas.length})
+            </h2>
             {relatorio.campanhas.length === 0 ? (
               <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
                 Nenhuma campanha encontrada
@@ -713,8 +912,21 @@ export default function ClienteDashboard() {
           </div>
 
               {/* PERÍODO */}
-              <div style={{ marginTop: '30px', padding: '16px', backgroundColor: '#f0f7ff', borderRadius: '4px', color: '#0066cc', fontSize: '13px' }}>
-                📅 Dados do período: {relatorio.periodo}
+              <div
+                style={{
+                  marginTop: spacing.xxl,
+                  padding: spacing.md,
+                  backgroundColor:
+                    theme === 'light'
+                      ? 'rgba(0, 122, 255, 0.05)'
+                      : 'rgba(10, 132, 255, 0.05)',
+                  border: `1px solid ${currentColors.border}`,
+                  borderRadius: radius.md,
+                  color: currentColors.accent,
+                  fontSize: typography.small.fontSize,
+                }}
+              >
+                Dados do período: {relatorio.periodo}
               </div>
             </>
           )}
@@ -728,56 +940,153 @@ export default function ClienteDashboard() {
           ) : (
             <>
               {/* FINANCIAL SUMMARY CARDS */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-                <div style={{ padding: '20px', backgroundColor: '#fffacd', borderRadius: '8px', border: '2px solid #ffd700' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                    💰 Total Faturado
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: spacing.lg,
+                  marginBottom: spacing.xxl,
+                }}
+              >
+                <div
+                  style={{
+                    padding: spacing.lg,
+                    backgroundColor: currentColors.bg.secondary,
+                    border: `1px solid ${currentColors.border}`,
+                    borderRadius: radius.lg,
+                    ...animations.slideUp,
+                  }}
+                >
+                  <p
+                    style={{
+                      ...typography.tiny,
+                      color: currentColors.text.secondary,
+                      textTransform: 'uppercase',
+                      fontWeight: '600',
+                      margin: `0 0 ${spacing.sm} 0`,
+                    }}
+                  >
+                    Total Faturado
                   </p>
-                  <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#ff9800' }}>
+                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                     R$ {resumoFinanceiro?.totalFaturado.toFixed(2) || '0.00'}
                   </p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Desde início de trabalhos</p>
+                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                    Desde início de trabalhos
+                  </p>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#e8f5e9', borderRadius: '8px', border: '2px solid #4caf50' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                    ✅ Total Recebido
+                <div
+                  style={{
+                    padding: spacing.lg,
+                    backgroundColor: currentColors.bg.secondary,
+                    border: `1px solid ${currentColors.border}`,
+                    borderRadius: radius.lg,
+                    ...animations.slideUp,
+                  }}
+                >
+                  <p
+                    style={{
+                      ...typography.tiny,
+                      color: currentColors.text.secondary,
+                      textTransform: 'uppercase',
+                      fontWeight: '600',
+                      margin: `0 0 ${spacing.sm} 0`,
+                    }}
+                  >
+                    Total Recebido
                   </p>
-                  <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#4caf50' }}>
+                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                     R$ {resumoFinanceiro?.totalRecebido.toFixed(2) || '0.00'}
                   </p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Pagamentos confirmados</p>
+                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                    Pagamentos confirmados
+                  </p>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#fff3e0', borderRadius: '8px', border: '2px solid #ff9800' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                    ⏳ Em Aberto
+                <div
+                  style={{
+                    padding: spacing.lg,
+                    backgroundColor: currentColors.bg.secondary,
+                    border: `1px solid ${currentColors.border}`,
+                    borderRadius: radius.lg,
+                    ...animations.slideUp,
+                  }}
+                >
+                  <p
+                    style={{
+                      ...typography.tiny,
+                      color: currentColors.text.secondary,
+                      textTransform: 'uppercase',
+                      fontWeight: '600',
+                      margin: `0 0 ${spacing.sm} 0`,
+                    }}
+                  >
+                    Em Aberto
                   </p>
-                  <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#ff9800' }}>
+                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                     R$ {resumoFinanceiro?.totalEmAberto.toFixed(2) || '0.00'}
                   </p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>À receber</p>
+                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                    À receber
+                  </p>
                 </div>
 
-                <div style={{ padding: '20px', backgroundColor: '#ffebee', borderRadius: '8px', border: '2px solid #f44336' }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                    ⚠️ Atrasado
+                <div
+                  style={{
+                    padding: spacing.lg,
+                    backgroundColor: currentColors.bg.secondary,
+                    border: `1px solid ${currentColors.border}`,
+                    borderRadius: radius.lg,
+                    ...animations.slideUp,
+                  }}
+                >
+                  <p
+                    style={{
+                      ...typography.tiny,
+                      color: currentColors.text.secondary,
+                      textTransform: 'uppercase',
+                      fontWeight: '600',
+                      margin: `0 0 ${spacing.sm} 0`,
+                    }}
+                  >
+                    Atrasado
                   </p>
-                  <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#f44336' }}>
+                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                     R$ {resumoFinanceiro?.totalAtrasado.toFixed(2) || '0.00'}
                   </p>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Vencido não pago</p>
+                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                    Vencido não pago
+                  </p>
                 </div>
 
                 {resumoFinanceiro?.proximoVencimento && (
-                  <div style={{ padding: '20px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #2196f3' }}>
-                    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                      📅 Próximo Vencimento
+                  <div
+                    style={{
+                      padding: spacing.lg,
+                      backgroundColor: currentColors.bg.secondary,
+                      border: `1px solid ${currentColors.border}`,
+                      borderRadius: radius.lg,
+                      ...animations.slideUp,
+                    }}
+                  >
+                    <p
+                      style={{
+                        ...typography.tiny,
+                        color: currentColors.text.secondary,
+                        textTransform: 'uppercase',
+                        fontWeight: '600',
+                        margin: `0 0 ${spacing.sm} 0`,
+                      }}
+                    >
+                      Próximo Vencimento
                     </p>
-                    <p style={{ margin: 0, fontSize: '32px', fontWeight: 'bold', color: '#2196f3' }}>
+                    <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
                       {new Date(resumoFinanceiro.proximoVencimento).toLocaleDateString('pt-BR')}
                     </p>
-                    <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#888' }}>Primeira fatura aberta</p>
+                    <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                      Primeira fatura aberta
+                    </p>
                   </div>
                 )}
               </div>
@@ -808,8 +1117,17 @@ export default function ClienteDashboard() {
               </div>
 
               {/* MONTHLY BILLING TABLE */}
-              <div style={{ marginBottom: '30px' }}>
-                <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#333' }}>📊 Faturamento Mensal</h2>
+              <div style={{ marginBottom: spacing.xxl }}>
+                <h2
+                  style={{
+                    ...typography.heading,
+                    marginTop: 0,
+                    marginBottom: spacing.lg,
+                    color: currentColors.text.primary,
+                  }}
+                >
+                  Faturamento Mensal
+                </h2>
                 {faturamentoMensal.length === 0 ? (
                   <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
                     Nenhum faturamento registrado
@@ -848,7 +1166,16 @@ export default function ClienteDashboard() {
 
               {/* INVOICES TABLE */}
               <div>
-                <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#333' }}>📋 Histórico de Faturas</h2>
+                <h2
+                  style={{
+                    ...typography.heading,
+                    marginTop: 0,
+                    marginBottom: spacing.lg,
+                    color: currentColors.text.primary,
+                  }}
+                >
+                  Histórico de Faturas
+                </h2>
                 {faturas.length === 0 ? (
                   <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
                     Nenhuma fatura registrada
