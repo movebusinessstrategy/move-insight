@@ -87,6 +87,10 @@ export default function Dashboard({ user }: DashboardProps) {
   const [viewMode, setViewMode] = useState<'tabela' | 'cards'>('tabela');
   const [sortBy, setSortBy] = useState<'nome' | 'valor' | 'vencimento'>('nome');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [selectedClientIds, setSelectedClientIds] = useState<Set<string>>(new Set());
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [showFrequenciaDialog, setShowFrequenciaDialog] = useState(false);
+  const [selectedFrequencia, setSelectedFrequencia] = useState<'nunca' | 'semanal' | 'mensal'>('semanal');
 
   useEffect(() => {
     const loadClientes = async () => {
@@ -298,6 +302,86 @@ export default function Dashboard({ user }: DashboardProps) {
   const fecharRelatorio = () => {
     setViewingRelatorio(null);
     setRelatorioDateRange(null);
+  };
+
+  const toggleClienteSelection = (clienteId: string) => {
+    setSelectedClientIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(clienteId)) {
+        newSet.delete(clienteId);
+      } else {
+        newSet.add(clienteId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedClientIds.size === clientesFiltrados.length) {
+      setSelectedClientIds(new Set());
+    } else {
+      setSelectedClientIds(new Set(clientesFiltrados.map((c) => c.id)));
+    }
+  };
+
+  const handleEnviarLembracaBatch = async () => {
+    const ids = Array.from(selectedClientIds);
+    if (ids.length === 0) {
+      alert('Selecione pelo menos um cliente');
+      return;
+    }
+
+    setBatchLoading(true);
+    try {
+      const response = await fetch('/api/admin/clientes/batch/lembrar-pagamento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ clienteIds: ids }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(`✅ ${data.resultado.enviados} lembretes disparados\n❌ ${data.resultado.falhados} erros`);
+        setSelectedClientIds(new Set());
+      } else {
+        alert(`Erro: ${data.error}`);
+      }
+    } catch (_error) {
+      alert('Erro ao enviar lembretes');
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  const handleAtualizarClientesBatch = async (updates: any) => {
+    const ids = Array.from(selectedClientIds);
+    if (ids.length === 0) {
+      alert('Selecione pelo menos um cliente');
+      return;
+    }
+
+    setBatchLoading(true);
+    try {
+      const response = await fetch('/api/admin/clientes/batch/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ clienteIds: ids, updates }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert(`✅ ${data.resultado.atualizados} clientes atualizados\n❌ ${data.resultado.falhados} erros`);
+        setSelectedClientIds(new Set());
+        setClientes((prev) => [...prev]);
+        setShowFrequenciaDialog(false);
+      } else {
+        alert(`Erro: ${data.error}`);
+      }
+    } catch (_error) {
+      alert('Erro ao atualizar clientes');
+    } finally {
+      setBatchLoading(false);
+    }
   };
 
   const handleCriarCliente = async () => {
@@ -673,6 +757,65 @@ export default function Dashboard({ user }: DashboardProps) {
             </div>
           )}
 
+          {selectedClientIds.size > 0 && (
+            <div style={{ marginBottom: '20px', backgroundColor: '#f0f7ff', padding: '16px', borderRadius: '8px', border: '2px solid #1a73e8', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                  onClick={() => setSelectedClientIds(new Set())}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  ❌ Limpar
+                </button>
+                <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#1a73e8' }}>
+                  {selectedClientIds.size} cliente{selectedClientIds.size !== 1 ? 's' : ''} selecionado{selectedClientIds.size !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleEnviarLembracaBatch}
+                  disabled={batchLoading}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: batchLoading ? '#ccc' : '#1a73e8',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: batchLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {batchLoading ? '⏳ ...' : '📬 Lembrete'}
+                </button>
+                <button
+                  onClick={() => setShowFrequenciaDialog(true)}
+                  disabled={batchLoading}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: batchLoading ? '#ccc' : '#ff9800',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: batchLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  ⏱️ Frequência
+                </button>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Carregando clientes...</div>
           ) : clientesFiltrados.length === 0 ? (
@@ -684,6 +827,14 @@ export default function Dashboard({ user }: DashboardProps) {
               <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
+                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedClientIds.size === clientesFiltrados.length && clientesFiltrados.length > 0}
+                        onChange={toggleSelectAll}
+                        style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                      />
+                    </th>
                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Cliente</th>
                     <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Email</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Valor Mensal</th>
@@ -696,6 +847,14 @@ export default function Dashboard({ user }: DashboardProps) {
                 <tbody>
                   {clientesFiltrados.map((cliente, idx) => (
                     <tr key={cliente.id} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedClientIds.has(cliente.id)}
+                          onChange={() => toggleClienteSelection(cliente.id)}
+                          style={{ cursor: 'pointer', width: '18px', height: '18px' }}
+                        />
+                      </td>
                       <td style={{ padding: '12px' }}>
                         <strong>{cliente.nome}</strong>
                       </td>
@@ -743,9 +902,10 @@ export default function Dashboard({ user }: DashboardProps) {
                     padding: '20px',
                     backgroundColor: 'white',
                     borderRadius: '8px',
-                    border: '1px solid #ddd',
+                    border: selectedClientIds.has(cliente.id) ? '2px solid #1a73e8' : '1px solid #ddd',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                     transition: 'transform 0.2s, box-shadow 0.2s',
+                    position: 'relative',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-4px)';
@@ -756,7 +916,15 @@ export default function Dashboard({ user }: DashboardProps) {
                     e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                   }}
                 >
-                  <h3 style={{ margin: '0 0 6px 0', color: '#333', fontSize: '16px' }}>{cliente.nome}</h3>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedClientIds.has(cliente.id)}
+                      onChange={() => toggleClienteSelection(cliente.id)}
+                      style={{ cursor: 'pointer', width: '20px', height: '20px' }}
+                    />
+                  </div>
+                  <h3 style={{ margin: '0 0 6px 0', color: '#333', fontSize: '16px', paddingRight: '40px' }}>{cliente.nome}</h3>
                   <p style={{ margin: 0, color: '#666', fontSize: '12px', marginBottom: '16px' }}>{cliente.email}</p>
                   <div style={{ marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid #eee' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1447,6 +1615,78 @@ export default function Dashboard({ user }: DashboardProps) {
         </div>
       )}
 
+      {showFrequenciaDialog && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '400px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>⏱️ Mudar Frequência de Relatório</h2>
+
+            <p style={{ color: '#666', marginBottom: '20px' }}>
+              Aplicar a frequência para {selectedClientIds.size} cliente{selectedClientIds.size !== 1 ? 's' : ''}
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
+                Frequência de Relatório
+              </label>
+              <select
+                value={selectedFrequencia}
+                onChange={(e) => setSelectedFrequencia(e.target.value as 'nunca' | 'semanal' | 'mensal')}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  cursor: 'pointer',
+                }}
+              >
+                <option value="semanal">Semanal</option>
+                <option value="mensal">Mensal</option>
+                <option value="nunca">Nunca</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowFrequenciaDialog(false);
+                  setSelectedFrequencia('semanal');
+                }}
+                disabled={batchLoading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#e0e0e0',
+                  color: '#333',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: batchLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleAtualizarClientesBatch({ relatorio_frequencia: selectedFrequencia })}
+                disabled={batchLoading}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: batchLoading ? '#ccc' : '#ff9800',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: batchLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+              >
+                {batchLoading ? 'Aplicando...' : 'Aplicar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes spin {

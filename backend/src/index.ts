@@ -1,11 +1,14 @@
 import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import { Queue } from 'bullmq';
 import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
 import adminFaturasRoutes from './routes/admin.faturas.js';
 import { initializeWhatsApp, sendWhatsAppMessage } from './services/whatsapp.js';
+import { createRelatorioWorker } from './workers/relatorio.worker.js';
+import { startReportScheduler } from './jobs/schedule-reports.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -56,5 +59,16 @@ app.listen(PORT, async () => {
   console.log('📱 Inicializando WhatsApp Web...');
   initializeWhatsApp().catch((error) => {
     console.error('⚠️ WhatsApp não foi inicializado (lembretes não funcionarão):', error);
+  });
+
+  // Initialize report scheduler
+  const reportQueue = new Queue('relatorio', {
+    connection: { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') }
+  });
+
+  createRelatorioWorker();
+
+  await startReportScheduler(reportQueue).catch((error) => {
+    console.error('⚠️ Report scheduler não foi inicializado:', error);
   });
 });

@@ -6,6 +6,10 @@ import {
   handleEnviarLembrance,
   handleAtualizarCliente,
   handleGerarRelatorio,
+  handleEnviarLembracaBatch,
+  handleAtualizarClientesBatch,
+  handleEnviarRelatorioAgora,
+  handleAtualizarFrequenciaRelatorio,
 } from '../modules/admin/clientes.controller.js';
 import { requireAdminAuth } from '../middlewares/auth.js';
 
@@ -17,5 +21,9 @@ router.get('/clientes/:clienteId', requireAdminAuth, handleObterCliente);
 router.put('/clientes/:clienteId', requireAdminAuth, handleAtualizarCliente);
 router.get('/clientes/:clienteId/relatorio', requireAdminAuth, handleGerarRelatorio);
 router.post('/clientes/:clienteId/lembrar-pagamento', requireAdminAuth, handleEnviarLembrance);
+router.post('/clientes/:clienteId/relatorio/enviar-agora', requireAdminAuth, handleEnviarRelatorioAgora);
+router.put('/clientes/:clienteId/relatorio/frequencia', requireAdminAuth, handleAtualizarFrequenciaRelatorio);
+router.post('/clientes/batch/lembrar-pagamento', requireAdminAuth, handleEnviarLembracaBatch);
+router.post('/clientes/batch/update', requireAdminAuth, handleAtualizarClientesBatch);
 
 export default router;

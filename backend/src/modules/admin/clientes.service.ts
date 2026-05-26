@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { db } from '../../db/client.js';
+import { gerarRelatorio, formatarRelatorioWhatsApp } from '../../services/meta-ads.js';
 
 export interface ClienteComFinanceiro {
   id: string;
@@ -395,4 +396,104 @@ export async function atualizarCliente(
     telefone: c.telefone,
     data_inicio_trabalhos: c.data_inicio_trabalhos,
   };
+}
+
+export async function enviarLembracaPagamentoBatch(
+  clienteIds: string[],
+  sendMessage?: (numero: string, mensagem: string) => Promise<string | null>,
+): Promise<{ enviados: number; falhados: number; detalhes: Array<{ clienteId: string; status: string; erro?: string }> }> {
+  const detalhes: Array<{ clienteId: string; status: string; erro?: string }> = [];
+  let enviados = 0;
+  let falhados = 0;
+
+  for (const clienteId of clienteIds) {
+    try {
+      await enviarLembrancePagamento(clienteId, sendMessage);
+      detalhes.push({ clienteId, status: 'enviado' });
+      enviados++;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
+      detalhes.push({ clienteId, status: 'erro', erro: errorMsg });
+      falhados++;
+    }
+  }
+
+  return { enviados, falhados, detalhes };
+}
+
+export async function atualizarClientesBatch(
+  clienteIds: string[],
+  updates: {
+    billing_reminder_active?: boolean;
+    relatorio_frequencia?: 'nunca' | 'semanal' | 'mensal';
+    status?: 'ativo' | 'inativo';
+  },
+): Promise<{ atualizados: number; falhados: number; detalhes: Array<{ clienteId: string; status: string; erro?: string }> }> {
+  const detalhes: Array<{ clienteId: string; status: string; erro?: string }> = [];
+  let atualizados = 0;
+  let falhados = 0;
+
+  for (const clienteId of clienteIds) {
+    try {
+      await atualizarCliente(clienteId, updates);
+      detalhes.push({ clienteId, status: 'atualizado' });
+      atualizados++;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido';
+      detalhes.push({ clienteId, status: 'erro', erro: errorMsg });
+      falhados++;
+    }
+  }
+
+  return { atualizados, falhados, detalhes };
+}
+
+export async function enviarRelatorioWhatsApp(
+  clienteId: string,
+  frequencia: 'semanal' | 'mensal',
+  sendMessage?: (numero: string, mensagem: string) => Promise<string | null>,
+): Promise<void> {
+  const cliente = await obterClientePorId(clienteId);
+
+  if (!cliente) {
+    throw new Error('Cliente não encontrado');
+  }
+
+  if (!cliente.whatsapp_numero && (!cliente.contatos || !cliente.contatos[0]?.whatsapp)) {
+    throw new Error('Cliente não possui WhatsApp cadastrado');
+  }
+
+  if (!cliente.meta_ads_account_id) {
+    throw new Error('Cliente não possui Meta Ads account configurado');
+  }
+
+  const whatsappNumber = (cliente.whatsapp_numero || cliente.contatos?.[0]?.whatsapp) as string;
+  const period = frequencia === 'semanal' ? 'last_7d' : 'last_30d';
+
+  const relatorio = await gerarRelatorio(cliente.meta_ads_account_id, period);
+  const mensagem = formatarRelatorioWhatsApp(relatorio);
+
+  let msgId: string | null = null;
+  let status = 'pendente';
+
+  try {
+    if (sendMessage) {
+      msgId = await sendMessage(whatsappNumber, mensagem);
+      status = msgId ? 'enviado' : 'erro';
+    }
+  } catch (_error) {
+    status = 'erro';
+  }
+
+  await db`
+    INSERT INTO mensagens_enviadas (id, cliente_id, tipo, status, conteudo, whatsapp_msg_id)
+    VALUES (
+      gen_random_uuid(),
+      ${clienteId},
+      ${'relatorio_' + frequencia},
+      ${status},
+      ${mensagem},
+      ${msgId}
+    )
+  `;
 }

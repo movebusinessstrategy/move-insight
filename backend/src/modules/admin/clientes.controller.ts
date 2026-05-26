@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente } from './clientes.service.js';
+import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente, enviarLembracaPagamentoBatch, atualizarClientesBatch, enviarRelatorioWhatsApp } from './clientes.service.js';
 import { gerarRelatorio } from '../../services/meta-ads.js';
 
 export async function handleCriarCliente(req: Request, res: Response): Promise<void> {
@@ -184,6 +184,96 @@ export async function handleGerarRelatorio(req: Request, res: Response): Promise
     res.status(200).json({ relatorio });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao gerar relatório';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleEnviarLembracaBatch(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteIds } = req.body;
+
+    if (!Array.isArray(clienteIds) || clienteIds.length === 0) {
+      res.status(400).json({ error: 'clienteIds deve ser um array não vazio' });
+      return;
+    }
+
+    const sendMessage = (req as any).sendWhatsAppMessage;
+    const resultado = await enviarLembracaPagamentoBatch(clienteIds, sendMessage);
+
+    res.status(200).json({ resultado, message: `${resultado.enviados} lembretes disparados com sucesso` });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao enviar lembretes';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleAtualizarClientesBatch(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteIds, updates } = req.body;
+
+    if (!Array.isArray(clienteIds) || clienteIds.length === 0) {
+      res.status(400).json({ error: 'clienteIds deve ser um array não vazio' });
+      return;
+    }
+
+    if (!updates || Object.keys(updates).length === 0) {
+      res.status(400).json({ error: 'updates não pode estar vazio' });
+      return;
+    }
+
+    const resultado = await atualizarClientesBatch(clienteIds, updates);
+
+    res.status(200).json({ resultado, message: `${resultado.atualizados} clientes atualizados com sucesso` });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao atualizar clientes';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleEnviarRelatorioAgora(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    const sendMessage = (req as any).sendWhatsAppMessage;
+    await enviarRelatorioWhatsApp(clienteId, 'semanal', sendMessage);
+
+    res.status(200).json({ message: 'Relatório enviado com sucesso' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao enviar relatório';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleAtualizarFrequenciaRelatorio(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+    const { frequencia } = req.body;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    if (!['semanal', 'mensal', 'nunca'].includes(frequencia)) {
+      res.status(400).json({ error: 'Frequência inválida. Use: semanal, mensal ou nunca' });
+      return;
+    }
+
+    const cliente = await atualizarCliente(clienteId, { relatorio_frequencia: frequencia });
+
+    if (!cliente) {
+      res.status(404).json({ error: 'Cliente não encontrado' });
+      return;
+    }
+
+    res.status(200).json({ cliente, message: 'Frequência de relatório atualizada com sucesso' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao atualizar frequência';
     res.status(400).json({ error: message });
   }
 }
