@@ -1,116 +1,265 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex, follow">
-<title>Entrar · ChatMOVE</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--ease:160ms cubic-bezier(.4,0,.2,1)}
-[data-theme="dark"]{--bg:#1c1c1e;--bg2:#2c2c2e;--surface:#252527;--surface2:#303032;--surface3:#3a3a3c;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.11);--border3:rgba(255,255,255,.18);--text:#f5f5f7;--text2:rgba(245,245,247,.64);--text3:rgba(245,245,247,.36);--gold:#c6a96b;--gold2:#d9be86;--gold3:#b89555;--gold-g:linear-gradient(135deg,#b89555 0%,#d7bc83 100%);--gold-bg:rgba(198,169,107,.09);--gold-bg2:rgba(198,169,107,.05);--red:#ff5f57;--green:#30d158;--sh:0 2px 12px rgba(0,0,0,.35),0 12px 32px rgba(0,0,0,.22)}
-body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;-webkit-font-smoothing:antialiased}
-.glow{position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;border-radius:50%;background:radial-gradient(ellipse,rgba(198,169,107,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
-.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:44px 40px;width:100%;max-width:400px;position:relative;z-index:1;box-shadow:var(--sh)}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--gold) 40%,var(--gold2) 60%,transparent 90%);opacity:.5;border-radius:20px 20px 0 0}
-.logo-area{text-align:center;margin-bottom:32px}
-.logo-img{max-width:140px;max-height:48px;object-fit:contain;display:block;margin:0 auto}
-.logo-fallback{font-size:18px;font-weight:800;letter-spacing:-.02em;color:var(--text);display:none}
-.logo-fallback span{color:var(--gold)}
-h2{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
-.subtitle{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5}
-.fg{margin-bottom:18px}
-label{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:inherit;font-size:14px;padding:12px 14px;outline:none;transition:border-color var(--ease),box-shadow var(--ease)}
-input:hover{border-color:var(--border2)}
-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
-.btn{width:100%;height:44px;border-radius:999px;border:none;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:all var(--ease);margin-top:4px}
-.btn-gold{background:var(--gold);color:#111;box-shadow:0 4px 14px rgba(198,169,107,.3)}
-.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(198,169,107,.45)}
-.btn-gold:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.msg{padding:11px 14px;border-radius:10px;font-size:13px;font-weight:500;margin-bottom:16px;display:none;line-height:1.5}
-.msg.erro{background:rgba(255,95,87,.08);border:1px solid rgba(255,95,87,.2);color:var(--red)}
-.msg.ok{background:rgba(48,209,88,.08);border:1px solid rgba(48,209,88,.2);color:var(--green)}
-.divider{display:flex;align-items:center;gap:12px;margin:20px 0;font-size:12px;color:var(--text3)}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.link{color:var(--gold);text-decoration:none;font-weight:600;transition:opacity var(--ease)}
-.link:hover{opacity:.75}
-.foot-link{text-align:center;margin-top:20px;font-size:13px;color:var(--text3)}
-@media(max-width:640px){
-  body{padding:16px}
-  .card{padding:32px 24px}
-  input{font-size:16px !important}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - MOVE Insights</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-card {
+      background: rgba(15, 20, 40, 0.95);
+      border: 1px solid #1a1f3a;
+      border-radius: 12px;
+      padding: 40px;
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 32px;
+      font-weight: bold;
+      color: #00d4ff;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: #ccc;
+      text-transform: uppercase;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      background: #0a0e27;
+      border: 1px solid #262d4f;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-primary {
+      background: #00d4ff;
+      color: #0a0e27;
+    }
+
+    .btn-primary:hover {
+      background: #00a3d4;
+      transform: translateY(-2px);
+    }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .toggle-link a {
+      color: #00d4ff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .toggle-link a:hover {
+      text-decoration: underline;
+    }
+
+    .error {
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid #ff4444;
+      color: #ff8888;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 25px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="glow"></div>
-<div class="card">
-  <div class="logo-area">
-    <img class="logo-img" src="logomidnight.png" alt="ChatMOVE" onerror="this.style.display='none';document.getElementById('logoFb').style.display='block'">
-    <div class="logo-fallback" id="logoFb"><span>Chat</span>MOVE</div>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="logo">MOVE Insights</div>
+
+      <div id="errorBox" class="error"></div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <form onsubmit="fazerLogin(event)">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" required>
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="loginSenha" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+          <div class="toggle-link">
+            Sem conta? <a onclick="mostrarRegistro()">Criar uma</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- REGISTRO -->
+      <div id="registroForm" style="display: none;">
+        <form onsubmit="fazerRegistro(event)">
+          <div class="form-group">
+            <label>Nome da Agência</label>
+            <input type="text" id="registroAgencia" placeholder="Move Business Solution" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="registroEmail" required>
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="registroSenha" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label>Confirmar Senha</label>
+            <input type="password" id="registroSenhaConfirma" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary">Criar Conta</button>
+          <div class="toggle-link">
+            Já tem conta? <a onclick="mostrarLogin()">Faça login</a>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-  <h2>Bem-vindo de volta</h2>
-  <p class="subtitle">Entre na sua conta para continuar</p>
-  <div id="msgBox" class="msg"></div>
-  <div class="fg"><label>E-mail</label><input type="email" id="email" placeholder="seu@email.com" autocomplete="email"></div>
-  <div class="fg"><label>Senha</label><input type="password" id="senha" placeholder="••••••••" autocomplete="current-password"></div>
-  <button class="btn btn-gold" id="btnLogin" onclick="login()">Entrar</button>
-  <div class="divider" id="gsiDivider">ou</div>
-  <div id="gsiBtn" style="display:flex;justify-content:center;margin-bottom:12px"></div>
-  <div style="text-align:center;font-size:13px;color:var(--text2)">Não tem conta? <a href="/registro" class="link">Criar conta</a></div>
-</div>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<div class="foot-link"><a href="/" class="link" style="color:var(--text3);font-size:12px">← Voltar ao site</a></div>
-<script>
-var p=new URLSearchParams(location.search);
-// Se vier do logout, limpa tudo antes de qualquer redirect
-if(p.get('logout')){ try{localStorage.clear(); sessionStorage.clear();}catch(e){} }
-if(localStorage.getItem('cm_token')) window.location.href='/painel';
-if(p.get('ativado')) show('✅ Conta ativada! Faça login para começar.','ok');
-if(p.get('pendente')) show('⏳ Pagamento em análise. Faça login após confirmação.','ok');
-if(p.get('logout')) show('Você saiu da sua conta.','ok');
-function show(t,c){var b=document.getElementById('msgBox');b.textContent=t;b.className='msg '+c;b.style.display='block';}
-document.addEventListener('keydown',function(e){if(e.key==='Enter')login();});
-async function login(){
-  var e=document.getElementById('email').value.trim(),s=document.getElementById('senha').value;
-  if(!e||!s){show('Preencha e-mail e senha','erro');return;}
-  var btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='Entrando...';
-  try{
-    var r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,senha:s})});
-    var d=await r.json();
-    if(!r.ok){show(d.pendente?'💳 Pagamento não confirmado. Complete o pagamento para ativar.':d.erro||'Erro ao entrar','erro');btn.disabled=false;btn.textContent='Entrar';return;}
-    localStorage.setItem('cm_token',d.token);localStorage.setItem('cm_user',JSON.stringify(d.user));
-    window.location.href=d.user.admin?'/admin':'/painel';
-  }catch(err){show('Erro de conexão com o servidor','erro');btn.disabled=false;btn.textContent='Entrar';}
-}
+  <script>
+    function mostrarLogin() {
+      document.getElementById("loginForm").style.display = "block";
+      document.getElementById("registroForm").style.display = "none";
+      document.getElementById("errorBox").style.display = "none";
+    }
 
-// Google Login
-window.onGoogleCredential=async function(resp){
-  try{
-    var r=await fetch('/api/auth/google',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({credential:resp.credential})});
-    var d=await r.json();
-    if(!r.ok){show(d.erro||'Erro no login Google','erro');return;}
-    localStorage.setItem('cm_token',d.token);
-    localStorage.setItem('cm_user',JSON.stringify(d.user));
-    window.location.href=d.user.admin?'/admin':'/painel';
-  }catch(e){show('Erro de conexão','erro');}
-};
-fetch('/api/config/public').then(function(r){return r.json();}).then(function(c){
-  if(!c.googleClientId){
-    var b=document.getElementById('gsiBtn'); if(b)b.style.display='none';
-    var d=document.getElementById('gsiDivider'); if(d)d.style.display='none';
-    return;
-  }
-  function init(){
-    if(!window.google||!google.accounts||!google.accounts.id){setTimeout(init,200);return;}
-    google.accounts.id.initialize({client_id:c.googleClientId,callback:onGoogleCredential});
-    google.accounts.id.renderButton(document.getElementById('gsiBtn'),{theme:'filled_black',size:'large',text:'continue_with',shape:'pill',width:320});
-  }
-  init();
-});
-</script>
+    function mostrarRegistro() {
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("registroForm").style.display = "block";
+      document.getElementById("errorBox").style.display = "none";
+    }
+
+    async function fazerLogin(e) {
+      e.preventDefault();
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: document.getElementById("loginEmail").value,
+          senha: document.getElementById("loginSenha").value
+        })
+      });
+
+      const dados = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", dados.token);
+        window.location.href = "/";
+      } else {
+        mostrarErro(dados.erro);
+      }
+    }
+
+    async function fazerRegistro(e) {
+      e.preventDefault();
+      const senha = document.getElementById("registroSenha").value;
+      const confirma = document.getElementById("registroSenhaConfirma").value;
+
+      if (senha !== confirma) {
+        mostrarErro("Senhas não conferem");
+        return;
+      }
+
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agenciaNome: document.getElementById("registroAgencia").value,
+          email: document.getElementById("registroEmail").value,
+          senha: senha
+        })
+      });
+
+      const dados = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", dados.token);
+        window.location.href = "/";
+      } else {
+        mostrarErro(dados.erro);
+      }
+    }
+
+    function mostrarErro(msg) {
+      const box = document.getElementById("errorBox");
+      box.textContent = msg;
+      box.style.display = "block";
+    }
+
+    // Se já tem token, redireciona
+    if (localStorage.getItem("token")) {
+      window.location.href = "/";
+    }
+  </script>
 </body>
 </html>

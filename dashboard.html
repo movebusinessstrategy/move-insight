@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MOVE Insights</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #0a0e27;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1a1f3a;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00d4ff;
+    }
+
+    .user-info {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #00d4ff;
+      color: #0a0e27;
+    }
+
+    .btn-primary:hover {
+      background: #00a3d4;
+    }
+
+    .btn-secondary {
+      background: #1a1f3a;
+      color: #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background: #262d4f;
+    }
+
+    .btn-danger {
+      background: #ff4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #cc0000;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .card {
+      background: #0f1428;
+      border: 1px solid #1a1f3a;
+      border-radius: 12px;
+      padding: 25px;
+      transition: all 0.3s;
+    }
+
+    .card:hover {
+      border-color: #00d4ff;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #00d4ff;
+    }
+
+    .cliente-item {
+      background: #1a1f3a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cliente-info {
+      flex: 1;
+    }
+
+    .cliente-nome {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .cliente-email {
+      font-size: 13px;
+      color: #888;
+    }
+
+    .cliente-acoes {
+      display: flex;
+      gap: 10px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat {
+      background: #1a1f3a;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .stat-valor {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00d4ff;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #0f1428;
+      border: 1px solid #1a1f3a;
+      border-radius: 12px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .modal-header {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #00d4ff;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 5px;
+      color: #ccc;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: #1a1f3a;
+      border: 1px solid #262d4f;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #00d4ff;
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+      justify-content: flex-end;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #00d4ff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">MOVE Insights</div>
+      <div class="user-info">
+        <span id="agenciaNome">—</span>
+        <button class="btn btn-secondary" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Painel de Controle -->
+      <div class="card">
+        <div class="card-title">Painel de Controle</div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-valor" id="totalClientes">0</div>
+            <div class="stat-label">Clientes Ativos</div>
+          </div>
+          <div class="stat">
+            <div class="stat-valor" id="totalRelatorios">0</div>
+            <div class="stat-label">Relatórios Enviados</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="openModalNovoCliente()">
+          + Novo Cliente
+        </button>
+      </div>
+
+      <!-- Lista de Clientes -->
+      <div class="card">
+        <div class="card-title">Meus Clientes</div>
+        <div id="clientesList" style="max-height: 400px; overflow-y: auto;">
+          <p style="color: #666; text-align: center;">Carregando...</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Novo Cliente -->
+  <div id="modalNovoCliente" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">Novo Cliente</div>
+      <form onsubmit="salvarCliente(event)">
+        <div class="form-group">
+          <label>Nome da Conta</label>
+          <input type="text" id="clienteNome" placeholder="Ex: Pizzaria Dom Pedro" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="clienteEmail" placeholder="contato@pizzaria.com.br" required>
+        </div>
+        <div class="form-group">
+          <label>ID da Conta Meta Ads (opcional)</label>
+          <input type="text" id="clienteMetaId" placeholder="123456789">
+        </div>
+        <div class="form-group">
+          <label>Access Token Meta Ads (opcional)</label>
+          <input type="password" id="clienteMetaToken" placeholder="••••••••">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalNovoCliente')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Criar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/login";
+    }
+
+    async function carregarPerfil() {
+      const res = await fetch("/api/profile", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        return;
+      }
+      const dados = await res.json();
+      document.getElementById("agenciaNome").textContent = dados.agenciaNome;
+      document.getElementById("totalClientes").textContent = dados.totalClientes;
+      carregarClientes();
+    }
+
+    async function carregarClientes() {
+      const res = await fetch("/api/clientes", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const clientes = await res.json();
+
+      const lista = document.getElementById("clientesList");
+      if (clientes.length === 0) {
+        lista.innerHTML = "<p style='color: #666; text-align: center;'>Nenhum cliente cadastrado</p>";
+        return;
+      }
+
+      lista.innerHTML = clientes.map(c => `
+        <div class="cliente-item">
+          <div class="cliente-info">
+            <div class="cliente-nome">${c.nome}</div>
+            <div class="cliente-email">${c.email}</div>
+          </div>
+          <div class="cliente-acoes">
+            <button class="btn btn-secondary" onclick="abrirCliente('${c.clienteId}')">Ver</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function openModalNovoCliente() {
+      document.getElementById("modalNovoCliente").classList.add("active");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("active");
+    }
+
+    async function salvarCliente(e) {
+      e.preventDefault();
+      const res = await fetch("/api/clientes", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nome: document.getElementById("clienteNome").value,
+          email: document.getElementById("clienteEmail").value,
+          metaAccountId: document.getElementById("clienteMetaId").value,
+          metaAccessToken: document.getElementById("clienteMetaToken").value
+        })
+      });
+
+      if (res.ok) {
+        closeModal("modalNovoCliente");
+        carregarClientes();
+        e.target.reset();
+      } else {
+        alert("Erro ao criar cliente");
+      }
+    }
+
+    function abrirCliente(clienteId) {
+      // TODO: Abrir modal de detalhes do cliente com relatórios e cobrança
+      alert("Detalhes do cliente: " + clienteId);
+    }
+
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+
+    carregarPerfil();
+  </script>
+</body>
+</html>
