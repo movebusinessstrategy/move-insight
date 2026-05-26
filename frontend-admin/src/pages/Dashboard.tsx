@@ -66,7 +66,17 @@ export default function Dashboard({ user }: DashboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
   const [editingClient, setEditingClient] = useState<Cliente | null>(null);
-  const [editForm, setEditForm] = useState({ nome: '', email: '', valor_mensal: '', dia_vencimento: '' });
+  const [editForm, setEditForm] = useState({
+    nome: '',
+    email: '',
+    valor_mensal: '',
+    dia_vencimento: '',
+    status: 'ativo',
+    whatsapp_numero: '',
+    meta_ads_account_id: '',
+    relatorio_frequencia: 'nunca',
+    billing_reminder_active: false,
+  });
 
   const c = colors[theme];
 
@@ -83,6 +93,11 @@ export default function Dashboard({ user }: DashboardProps) {
       email: cliente.email,
       valor_mensal: String(cliente.valor_mensal || ''),
       dia_vencimento: String(cliente.dia_vencimento || ''),
+      status: cliente.status || 'ativo',
+      whatsapp_numero: cliente.whatsapp_numero || '',
+      meta_ads_account_id: cliente.meta_ads_account_id || '',
+      relatorio_frequencia: cliente.relatorio_frequencia || 'nunca',
+      billing_reminder_active: cliente.billing_reminder_active || false,
     });
   };
 
@@ -98,6 +113,11 @@ export default function Dashboard({ user }: DashboardProps) {
           email: editForm.email,
           valor_mensal: parseFloat(editForm.valor_mensal) || null,
           dia_vencimento: parseInt(editForm.dia_vencimento) || null,
+          status: editForm.status,
+          whatsapp_numero: editForm.whatsapp_numero || null,
+          meta_ads_account_id: editForm.meta_ads_account_id || null,
+          relatorio_frequencia: editForm.relatorio_frequencia,
+          billing_reminder_active: editForm.billing_reminder_active,
         }),
       });
       if (response.ok) {
@@ -938,105 +958,244 @@ export default function Dashboard({ user }: DashboardProps) {
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 2000,
+          overflowY: 'auto',
         }} onClick={() => setEditingClient(null)}>
           <div style={{
             backgroundColor: c.bg.primary,
             borderRadius: radius.lg,
             border: `1px solid ${c.border}`,
             padding: spacing.xl,
-            maxWidth: '500px',
+            maxWidth: '600px',
             width: '90%',
+            margin: spacing.xl,
             ...glassMorphism[theme === 'light' ? 'light' : 'dark'],
           }} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>
               Editar Cliente
             </h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-              <div>
-                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  value={editForm.nome}
-                  onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: spacing.md,
-                    border: `1px solid ${c.border}`,
-                    borderRadius: radius.md,
-                    backgroundColor: c.bg.secondary,
-                    color: c.text.primary,
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md, maxHeight: '70vh', overflowY: 'auto' }}>
+              {/* Dados Básicos */}
+              <div style={{ borderBottom: `1px solid ${c.border}`, paddingBottom: spacing.lg }}>
+                <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.md} 0`, fontSize: '14px' }}>
+                  Dados Básicos
+                </h3>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Nome
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.nome}
+                    onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                      marginBottom: spacing.md,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                      marginBottom: spacing.md,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Status
+                  </label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="ativo">Ativo</option>
+                    <option value="inativo">Inativo</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: spacing.md,
-                    border: `1px solid ${c.border}`,
-                    borderRadius: radius.md,
-                    backgroundColor: c.bg.secondary,
-                    color: c.text.primary,
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
+              {/* Dados Financeiros */}
+              <div style={{ borderBottom: `1px solid ${c.border}`, paddingBottom: spacing.lg }}>
+                <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.md} 0`, fontSize: '14px' }}>
+                  Dados Financeiros
+                </h3>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Valor Mensal (R$)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editForm.valor_mensal}
+                    onChange={(e) => setEditForm({ ...editForm, valor_mensal: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                      marginBottom: spacing.md,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Dia de Vencimento
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={editForm.dia_vencimento}
+                    onChange={(e) => setEditForm({ ...editForm, dia_vencimento: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                      marginBottom: spacing.md,
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+                  <input
+                    type="checkbox"
+                    checked={editForm.billing_reminder_active}
+                    onChange={(e) => setEditForm({ ...editForm, billing_reminder_active: e.target.checked })}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <label style={{ ...typography.small, margin: 0, cursor: 'pointer' }}>
+                    Lembrete de Cobrança Ativo
+                  </label>
+                </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
-                  Valor Mensal (R$)
-                </label>
-                <input
-                  type="number"
-                  value={editForm.valor_mensal}
-                  onChange={(e) => setEditForm({ ...editForm, valor_mensal: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: spacing.md,
-                    border: `1px solid ${c.border}`,
-                    borderRadius: radius.md,
-                    backgroundColor: c.bg.secondary,
-                    color: c.text.primary,
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
+              {/* Integração Meta Ads */}
+              <div style={{ borderBottom: `1px solid ${c.border}`, paddingBottom: spacing.lg }}>
+                <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.md} 0`, fontSize: '14px' }}>
+                  Integração Meta Ads
+                </h3>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    ID da Conta Meta Ads
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.meta_ads_account_id}
+                    onChange={(e) => setEditForm({ ...editForm, meta_ads_account_id: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                    placeholder="123456789"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
-                  Dia de Vencimento
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={editForm.dia_vencimento}
-                  onChange={(e) => setEditForm({ ...editForm, dia_vencimento: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: spacing.md,
-                    border: `1px solid ${c.border}`,
-                    borderRadius: radius.md,
-                    backgroundColor: c.bg.secondary,
-                    color: c.text.primary,
-                    fontSize: '14px',
-                    boxSizing: 'border-box',
-                  }}
-                />
+              {/* Integração WhatsApp */}
+              <div style={{ borderBottom: `1px solid ${c.border}`, paddingBottom: spacing.lg }}>
+                <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.md} 0`, fontSize: '14px' }}>
+                  Integração WhatsApp
+                </h3>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Número WhatsApp
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.whatsapp_numero}
+                    onChange={(e) => setEditForm({ ...editForm, whatsapp_numero: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                      marginBottom: spacing.md,
+                    }}
+                    placeholder="55 11 99999-9999"
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                    Frequência de Relatórios
+                  </label>
+                  <select
+                    value={editForm.relatorio_frequencia}
+                    onChange={(e) => setEditForm({ ...editForm, relatorio_frequencia: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: spacing.md,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      backgroundColor: c.bg.secondary,
+                      color: c.text.primary,
+                      fontSize: '14px',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <option value="nunca">Nunca</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="mensal">Mensal</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: spacing.md, marginTop: spacing.lg }}>
@@ -1070,7 +1229,7 @@ export default function Dashboard({ user }: DashboardProps) {
                     fontWeight: '500',
                   }}
                 >
-                  Salvar
+                  Salvar Alterações
                 </button>
               </div>
             </div>
