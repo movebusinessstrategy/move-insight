@@ -65,6 +65,8 @@ export default function Dashboard({ user }: DashboardProps) {
   const [whatsappPollingActive, setWhatsappPollingActive] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos');
+  const [editingClient, setEditingClient] = useState<Cliente | null>(null);
+  const [editForm, setEditForm] = useState({ nome: '', email: '', valor_mensal: '', dia_vencimento: '' });
 
   const c = colors[theme];
 
@@ -73,6 +75,42 @@ export default function Dashboard({ user }: DashboardProps) {
     style.textContent = keyframes;
     document.head.appendChild(style);
   }, []);
+
+  const openEditModal = (cliente: Cliente) => {
+    setEditingClient(cliente);
+    setEditForm({
+      nome: cliente.nome,
+      email: cliente.email,
+      valor_mensal: String(cliente.valor_mensal || ''),
+      dia_vencimento: String(cliente.dia_vencimento || ''),
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingClient) return;
+    try {
+      const response = await fetch(`/api/admin/clientes/${editingClient.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          nome: editForm.nome,
+          email: editForm.email,
+          valor_mensal: parseFloat(editForm.valor_mensal) || null,
+          dia_vencimento: parseInt(editForm.dia_vencimento) || null,
+        }),
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setClientes(clientes.map(c => c.id === editingClient.id ? updated.cliente : c));
+        setEditingClient(null);
+      } else {
+        alert('Erro ao salvar cliente');
+      }
+    } catch (err) {
+      alert('Erro ao conectar');
+    }
+  };
 
   useEffect(() => {
     const loadClientes = async () => {
@@ -663,7 +701,7 @@ export default function Dashboard({ user }: DashboardProps) {
                             <Eye size={18} />
                           </button>
                           <button
-                            onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)}
+                            onClick={() => openEditModal(cliente)}
                             style={{
                             background: 'none',
                             border: 'none',
@@ -887,6 +925,159 @@ export default function Dashboard({ user }: DashboardProps) {
       </div>
 
       {/* Error Toast */}
+      {/* Edit Modal */}
+      {editingClient && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000,
+        }} onClick={() => setEditingClient(null)}>
+          <div style={{
+            backgroundColor: c.bg.primary,
+            borderRadius: radius.lg,
+            border: `1px solid ${c.border}`,
+            padding: spacing.xl,
+            maxWidth: '500px',
+            width: '90%',
+            ...glassMorphism[theme === 'light' ? 'light' : 'dark'],
+          }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ ...typography.heading, margin: `0 0 ${spacing.lg} 0` }}>
+              Editar Cliente
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Nome
+                </label>
+                <input
+                  type="text"
+                  value={editForm.nome}
+                  onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Valor Mensal (R$)
+                </label>
+                <input
+                  type="number"
+                  value={editForm.valor_mensal}
+                  onChange={(e) => setEditForm({ ...editForm, valor_mensal: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', ...typography.small, marginBottom: spacing.sm, fontWeight: '500' }}>
+                  Dia de Vencimento
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="31"
+                  value={editForm.dia_vencimento}
+                  onChange={(e) => setEditForm({ ...editForm, dia_vencimento: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    fontSize: '14px',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: spacing.md, marginTop: spacing.lg }}>
+                <button
+                  onClick={() => setEditingClient(null)}
+                  style={{
+                    flex: 1,
+                    padding: spacing.md,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
+                    backgroundColor: c.bg.secondary,
+                    color: c.text.primary,
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  style={{
+                    flex: 1,
+                    padding: spacing.md,
+                    border: 'none',
+                    borderRadius: radius.md,
+                    backgroundColor: c.accent,
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                  }}
+                >
+                  Salvar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div style={{
           position: 'fixed',
