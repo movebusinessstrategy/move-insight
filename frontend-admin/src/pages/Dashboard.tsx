@@ -602,7 +602,9 @@ export default function Dashboard({ user }: DashboardProps) {
                           justifyContent: 'center',
                           gap: spacing.sm,
                         }}>
-                          <button style={{
+                          <button
+                            onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)}
+                            style={{
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',
@@ -617,7 +619,9 @@ export default function Dashboard({ user }: DashboardProps) {
                           >
                             <Eye size={18} />
                           </button>
-                          <button style={{
+                          <button
+                            onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)}
+                            style={{
                             background: 'none',
                             border: 'none',
                             cursor: 'pointer',
