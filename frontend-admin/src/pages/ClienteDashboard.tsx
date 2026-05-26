@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Send } from 'lucide-react';
-import { colors, spacing, typography, shadows, radius, animations } from '../theme';
+import { ArrowLeft, Send, Sun, Moon } from 'lucide-react';
+import { colors, spacing, typography, shadows, radius, animations, glassMorphism, keyframes } from '../theme';
+import type { Theme } from '../theme';
 
 interface Campanha {
   nome: string;
@@ -93,6 +94,10 @@ export default function ClienteDashboard() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = keyframes;
+    document.head.appendChild(style);
+
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
@@ -344,9 +349,17 @@ export default function ClienteDashboard() {
     }
   };
 
+  const c = colors[theme];
+
   if (loading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+      <div style={{
+        padding: spacing.lg,
+        textAlign: 'center',
+        color: c.text.secondary,
+        backgroundColor: c.bg.primary,
+        minHeight: '100vh',
+      }}>
         Carregando dashboard...
       </div>
     );
@@ -354,22 +367,34 @@ export default function ClienteDashboard() {
 
   if (error) {
     return (
-      <div style={{ padding: '20px' }}>
+      <div style={{
+        padding: spacing.lg,
+        backgroundColor: c.bg.primary,
+        minHeight: '100vh',
+      }}>
         <button
           onClick={() => navigate('/dashboard')}
           style={{
-            padding: '8px 16px',
-            backgroundColor: '#1a73e8',
+            padding: `${spacing.sm} ${spacing.md}`,
+            backgroundColor: c.accent,
             color: 'white',
             border: 'none',
-            borderRadius: '4px',
+            borderRadius: radius.md,
             cursor: 'pointer',
-            marginBottom: '20px',
+            marginBottom: spacing.lg,
+            ...typography.small,
+            fontWeight: '500',
           }}
         >
           ← Voltar
         </button>
-        <div style={{ padding: '12px', backgroundColor: '#fee', borderRadius: '4px', color: '#c33' }}>
+        <div style={{
+          padding: spacing.md,
+          backgroundColor: theme === 'light' ? 'rgba(255, 59, 48, 0.1)' : 'rgba(255, 69, 58, 0.2)',
+          borderRadius: radius.md,
+          color: colors[theme].error,
+          border: `1px solid ${colors[theme].error}`,
+        }}>
           {error}
         </div>
       </div>
@@ -378,28 +403,43 @@ export default function ClienteDashboard() {
 
   if (!cliente) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+      <div style={{
+        padding: spacing.lg,
+        textAlign: 'center',
+        color: c.text.secondary,
+        backgroundColor: c.bg.primary,
+        minHeight: '100vh',
+      }}>
         Cliente não encontrado
       </div>
     );
   }
 
-  const currentColors = colors[theme];
-
   return (
-    <div
-      style={{
-        padding: spacing.lg,
-        maxWidth: '1400px',
-        margin: '0 auto',
-        backgroundColor: currentColors.bg.primary,
-        minHeight: '100vh',
-        transition: 'background-color 0.3s ease',
-      }}
-    >
+    <div style={{
+      backgroundColor: c.bg.primary,
+      color: c.text.primary,
+      minHeight: '100vh',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif',
+      transition: 'background-color 0.3s, color 0.3s',
+      background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%, ${c.bg.tertiary} 100%)`,
+      backgroundSize: '200% 200%',
+      ...animations.gradientShift,
+    }}>
       {/* HEADER */}
-      <div style={{ marginBottom: spacing.xxl, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
+      <div style={{
+        backgroundColor: c.bg.primary,
+        borderBottom: `1px solid ${c.border}`,
+        padding: `${spacing.lg} ${spacing.lg}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        minHeight: '80px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <button
             onClick={() => navigate('/dashboard')}
             style={{
@@ -407,151 +447,196 @@ export default function ClienteDashboard() {
               alignItems: 'center',
               gap: spacing.sm,
               padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: currentColors.bg.secondary,
-              color: currentColors.text.primary,
-              border: `1px solid ${currentColors.border}`,
+              backgroundColor: 'transparent',
+              color: c.text.primary,
+              border: `1px solid ${c.border}`,
               borderRadius: radius.md,
               cursor: 'pointer',
-              marginBottom: spacing.md,
               fontSize: typography.small.fontSize,
               fontWeight: '500',
-              transition: 'all 0.2s',
+              transition: 'all 0.3s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = currentColors.bg.tertiary;
+              e.currentTarget.style.backgroundColor = c.bg.secondary;
+              e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = currentColors.bg.secondary;
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <ArrowLeft size={16} />
-            Voltar
           </button>
-          <h1
-            style={{
-              ...typography.title,
-              color: currentColors.text.primary,
-              marginTop: 0,
-              marginBottom: spacing.xs,
-            }}
-          >
-            {cliente.nome}
-          </h1>
-          <p
-            style={{
-              ...typography.small,
-              color: currentColors.text.secondary,
-              margin: 0,
-            }}
-          >
-            {cliente.email}
-          </p>
+          <div>
+            <h1
+              style={{
+                ...typography.title,
+                color: c.text.primary,
+                margin: 0,
+                fontSize: '24px',
+              }}
+            >
+              {cliente.nome}
+            </h1>
+            <p
+              style={{
+                ...typography.small,
+                color: c.text.secondary,
+                margin: `${spacing.xs} 0 0 0`,
+              }}
+            >
+              {cliente.email}
+            </p>
+          </div>
         </div>
+
+        <button
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          style={{
+            background: 'none',
+            border: `1px solid ${c.border}`,
+            borderRadius: radius.md,
+            padding: spacing.sm,
+            cursor: 'pointer',
+            color: c.text.primary,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease-out',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = c.bg.secondary;
+            e.currentTarget.style.boxShadow = `0 0 12px ${c.accent}33`;
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.transform = 'scale(1)';
+          }}
+        >
+          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+        </button>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div style={{
+        padding: spacing.lg,
+        maxWidth: '1400px',
+        margin: '0 auto',
+        animation: 'fadeIn 0.5s ease-out',
+      }}>
+        {/* INFO SECTION */}
+        <div style={{
+          marginBottom: spacing.xxl,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'flex-start',
+        }}>
         {activeTab === 'campanhas' && (
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '12px', color: '#666', fontWeight: 'bold', marginBottom: '4px' }}>
+          <div style={{ display: 'flex', gap: spacing.md, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
+              <label style={{
+                ...typography.small,
+                color: c.text.secondary,
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                fontSize: '11px',
+              }}>
                 Período
               </label>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button
-                  onClick={() => {
-                    setUseCustomDate(false);
-                    setPeriod('last_7d');
-                  }}
-                  style={{
-                    padding: '8px 14px',
-                    backgroundColor: !useCustomDate && period === 'last_7d' ? '#1a73e8' : '#f0f0f0',
-                    color: !useCustomDate && period === 'last_7d' ? 'white' : '#333',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: !useCustomDate && period === 'last_7d' ? 'bold' : 'normal',
-                  }}
-                >
-                  7 dias
-                </button>
-                <button
-                  onClick={() => {
-                    setUseCustomDate(false);
-                    setPeriod('last_30d');
-                  }}
-                  style={{
-                    padding: '8px 14px',
-                    backgroundColor: !useCustomDate && period === 'last_30d' ? '#1a73e8' : '#f0f0f0',
-                    color: !useCustomDate && period === 'last_30d' ? 'white' : '#333',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: !useCustomDate && period === 'last_30d' ? 'bold' : 'normal',
-                  }}
-                >
-                  30 dias
-                </button>
-                <button
-                  onClick={() => {
-                    setUseCustomDate(false);
-                    setPeriod('last_90d');
-                  }}
-                  style={{
-                    padding: '8px 14px',
-                    backgroundColor: !useCustomDate && period === 'last_90d' ? '#1a73e8' : '#f0f0f0',
-                    color: !useCustomDate && period === 'last_90d' ? 'white' : '#333',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: !useCustomDate && period === 'last_90d' ? 'bold' : 'normal',
-                  }}
-                >
-                  90 dias
-                </button>
+              <div style={{ display: 'flex', gap: spacing.sm }}>
+                {['last_7d', 'last_30d', 'last_90d'].map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => {
+                      setUseCustomDate(false);
+                      setPeriod(p as PeriodType);
+                    }}
+                    style={{
+                      padding: `${spacing.sm} ${spacing.md}`,
+                      backgroundColor: !useCustomDate && period === p ? c.accent : c.bg.secondary,
+                      color: !useCustomDate && period === p ? '#FFFFFF' : c.text.primary,
+                      border: `1px solid ${c.border}`,
+                      borderRadius: radius.md,
+                      cursor: 'pointer',
+                      ...typography.small,
+                      fontWeight: !useCustomDate && period === p ? '600' : '400',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (useCustomDate || period !== p) {
+                        e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (useCustomDate || period !== p) {
+                        e.currentTarget.style.backgroundColor = c.bg.secondary;
+                      }
+                    }}
+                  >
+                    {p === 'last_7d' ? '7 dias' : p === 'last_30d' ? '30 dias' : '90 dias'}
+                  </button>
+                ))}
                 <button
                   onClick={() => setUseCustomDate(!useCustomDate)}
                   style={{
-                    padding: '8px 14px',
-                    backgroundColor: useCustomDate ? '#ff9800' : '#f0f0f0',
-                    color: useCustomDate ? 'white' : '#333',
-                    border: 'none',
-                    borderRadius: '4px',
+                    padding: `${spacing.sm} ${spacing.md}`,
+                    backgroundColor: useCustomDate ? colors[theme].warning : c.bg.secondary,
+                    color: useCustomDate ? '#FFFFFF' : c.text.primary,
+                    border: `1px solid ${c.border}`,
+                    borderRadius: radius.md,
                     cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: useCustomDate ? 'bold' : 'normal',
+                    ...typography.small,
+                    fontWeight: useCustomDate ? '600' : '400',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!useCustomDate) {
+                      e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!useCustomDate) {
+                      e.currentTarget.style.backgroundColor = c.bg.secondary;
+                    }
                   }}
                 >
-                  📅 Customizado
+                  Customizado
                 </button>
               </div>
               {useCustomDate && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#666' }}>De:</label>
+                <div style={{ display: 'flex', gap: spacing.sm, marginTop: spacing.sm }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
+                    <label style={{ ...typography.tiny, color: c.text.secondary }}>De:</label>
                     <input
                       type="date"
                       value={customDateStart}
                       onChange={(e) => setCustomDateStart(e.target.value)}
                       style={{
-                        padding: '6px 8px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        fontSize: '12px',
+                        padding: `${spacing.sm} ${spacing.sm}`,
+                        border: `1px solid ${c.border}`,
+                        borderRadius: radius.md,
+                        backgroundColor: c.bg.secondary,
+                        color: c.text.primary,
+                        ...typography.small,
                         width: '140px',
                       }}
                     />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#666' }}>Até:</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
+                    <label style={{ ...typography.tiny, color: c.text.secondary }}>Até:</label>
                     <input
                       type="date"
                       value={customDateEnd}
                       onChange={(e) => setCustomDateEnd(e.target.value)}
                       style={{
-                        padding: '6px 8px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        fontSize: '12px',
+                        padding: `${spacing.sm} ${spacing.sm}`,
+                        border: `1px solid ${c.border}`,
+                        borderRadius: radius.md,
+                        backgroundColor: c.bg.secondary,
+                        color: c.text.primary,
+                        ...typography.small,
                         width: '140px',
                       }}
                     />
@@ -563,346 +648,374 @@ export default function ClienteDashboard() {
               onClick={handleEnviarRelatorioCampanhas}
               disabled={relatorioProcessing || !cliente?.whatsapp_numero}
               style={{
-                padding: '10px 16px',
-                backgroundColor: cliente?.whatsapp_numero ? '#4caf50' : '#ccc',
+                padding: `${spacing.sm} ${spacing.lg}`,
+                backgroundColor: cliente?.whatsapp_numero ? colors[theme].success : c.border,
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: radius.md,
                 cursor: cliente?.whatsapp_numero ? 'pointer' : 'not-allowed',
-                fontSize: '14px',
-                fontWeight: 'bold',
+                ...typography.small,
+                fontWeight: '600',
                 opacity: relatorioProcessing ? 0.6 : 1,
+                transition: 'all 0.2s',
               }}
               title={!cliente?.whatsapp_numero ? 'Configure o número de WhatsApp' : 'Enviar relatório de campanhas'}
+              onMouseEnter={(e) => {
+                if (cliente?.whatsapp_numero && !relatorioProcessing) {
+                  e.currentTarget.style.opacity = '0.9';
+                  e.currentTarget.style.transform = 'scale(1.02)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = relatorioProcessing ? '0.6' : '1';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
-              {relatorioProcessing ? '...' : '📱 Enviar Relatório'}
+              {relatorioProcessing ? 'Enviando...' : 'Enviar Relatório'}
             </button>
           </div>
         )}
-      </div>
+        </div>
 
-      {/* TABS */}
-      <div
-        style={{
-          display: 'flex',
-          gap: spacing.lg,
-          marginBottom: spacing.xxl,
-          borderBottom: `1px solid ${currentColors.border}`,
-          paddingBottom: 0,
-        }}
-      >
-        <button
-          onClick={() => setActiveTab('campanhas')}
+        {/* TABS */}
+        <div
           style={{
-            padding: `${spacing.md} ${spacing.lg}`,
-            backgroundColor: 'transparent',
-            color: activeTab === 'campanhas' ? currentColors.text.primary : currentColors.text.secondary,
-            border: 'none',
-            borderBottom: activeTab === 'campanhas' ? `2px solid ${currentColors.accent}` : '2px solid transparent',
-            cursor: 'pointer',
-            fontSize: typography.body.fontSize,
-            fontWeight: activeTab === 'campanhas' ? '600' : '400',
-            transition: 'all 0.2s',
+            display: 'flex',
+            gap: spacing.lg,
+            marginBottom: spacing.xxl,
+            borderBottom: `1px solid ${c.border}`,
+            paddingBottom: 0,
+            ...animations.slideUp,
+            animation: 'slideUp 0.5s ease-out',
           }}
         >
-          Campanhas
-        </button>
-        <button
-          onClick={() => setActiveTab('financeiro')}
-          style={{
-            padding: `${spacing.md} ${spacing.lg}`,
-            backgroundColor: 'transparent',
-            color: activeTab === 'financeiro' ? currentColors.text.primary : currentColors.text.secondary,
-            border: 'none',
-            borderBottom: activeTab === 'financeiro' ? `2px solid ${currentColors.accent}` : '2px solid transparent',
-            cursor: 'pointer',
-            fontSize: typography.body.fontSize,
-            fontWeight: activeTab === 'financeiro' ? '600' : '400',
-            transition: 'all 0.2s',
-          }}
-        >
-          Financeiro
-        </button>
-      </div>
-
-      {activeTab === 'campanhas' ? (
-        <>
-          {!cliente.meta_ads_account_id ? (
-            <div style={{ padding: '20px', backgroundColor: '#fff3cd', borderRadius: '4px', color: '#856404', marginBottom: '20px' }}>
-              ⚠️ Cliente não possui ID de conta Meta Ads configurado. Configure na página de clientes.
-            </div>
-          ) : !relatorio ? (
-            <div style={{ padding: '20px', backgroundColor: '#e7f3ff', borderRadius: '4px', color: '#0066cc' }}>
-              ℹ️ Carregando dados da Meta Ads...
-            </div>
-          ) : (
-            <>
-              {/* CARDS DE RESUMO */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: spacing.lg,
-              marginBottom: spacing.xxl,
-            }}
-          >
-            <div
+          {['campanhas', 'financeiro'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as TabType)}
               style={{
-                padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
-                borderRadius: radius.lg,
-                ...animations.slideUp,
+                padding: `${spacing.md} ${spacing.lg}`,
+                backgroundColor: 'transparent',
+                color: activeTab === tab ? c.text.primary : c.text.secondary,
+                border: 'none',
+                borderBottom: activeTab === tab ? `2px solid ${c.accent}` : '2px solid transparent',
+                cursor: 'pointer',
+                ...typography.body,
+                fontWeight: activeTab === tab ? '600' : '400',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab) {
+                  e.currentTarget.style.color = c.text.primary;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab) {
+                  e.currentTarget.style.color = c.text.secondary;
+                }
               }}
             >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                Investimento Total
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                R$ {relatorio.resumo.totalSpend.toFixed(2)}
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Gasto em publicidade
-              </p>
-            </div>
+              {tab === 'campanhas' ? 'Campanhas' : 'Financeiro'}
+            </button>
+          ))}
+        </div>
 
-            <div
-              style={{
+        {activeTab === 'campanhas' ? (
+          <>
+            {!cliente.meta_ads_account_id ? (
+              <div style={{
                 padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
+                backgroundColor: theme === 'light' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(255, 152, 0, 0.15)',
+                border: `1px solid ${colors[theme].warning}`,
                 borderRadius: radius.lg,
-                ...animations.slideUp,
-              }}
-            >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                Cliques
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                {relatorio.resumo.totalCliques.toLocaleString('pt-BR')}
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Pessoas que clicaram
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
-                borderRadius: radius.lg,
-                ...animations.slideUp,
-              }}
-            >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                Mensagens Iniciadas
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                {relatorio.resumo.totalMensagens.toLocaleString('pt-BR')}
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Conversas no WhatsApp/Messenger
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
-                borderRadius: radius.lg,
-                ...animations.slideUp,
-              }}
-            >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                Conversões
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                {relatorio.resumo.totalConversoes.toLocaleString('pt-BR')}
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Vendas/Ações completadas
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
-                borderRadius: radius.lg,
-                ...animations.slideUp,
-              }}
-            >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                Eficiência (ROAS)
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                {relatorio.resumo.roas.toFixed(2)}x
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Retorno por real investido
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
-                borderRadius: radius.lg,
-                ...animations.slideUp,
-              }}
-            >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                CPM Médio
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                R$ {relatorio.resumo.cpmMedio.toFixed(2)}
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Custo por 1.000 impressões
-              </p>
-            </div>
-
-            <div
-              style={{
-                padding: spacing.lg,
-                backgroundColor: currentColors.bg.secondary,
-                border: `1px solid ${currentColors.border}`,
-                borderRadius: radius.lg,
-                ...animations.slideUp,
-              }}
-            >
-              <p
-                style={{
-                  ...typography.tiny,
-                  color: currentColors.text.secondary,
-                  textTransform: 'uppercase',
-                  fontWeight: '600',
-                  margin: `0 0 ${spacing.sm} 0`,
-                }}
-              >
-                CPC Médio
-              </p>
-              <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                R$ {relatorio.resumo.cpcMedio.toFixed(2)}
-              </p>
-              <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                Custo por clique
-              </p>
-            </div>
-          </div>
-
-          {/* CAMPANHAS ATIVAS */}
-          <div>
-            <h2
-              style={{
-                ...typography.heading,
-                marginTop: 0,
+                color: colors[theme].warning,
                 marginBottom: spacing.lg,
-                color: currentColors.text.primary,
-              }}
-            >
-              Campanhas Ativas ({relatorio.campanhas.length})
-            </h2>
-            {relatorio.campanhas.length === 0 ? (
-              <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
-                Nenhuma campanha encontrada
+                ...typography.small,
+              }}>
+                ⚠️ Cliente não possui ID de conta Meta Ads configurado. Configure na página de clientes.
+              </div>
+            ) : !relatorio ? (
+              <div style={{
+                padding: spacing.lg,
+                backgroundColor: theme === 'light' ? 'rgba(0, 122, 255, 0.1)' : 'rgba(10, 132, 255, 0.15)',
+                border: `1px solid ${c.accent}`,
+                borderRadius: radius.lg,
+                color: c.accent,
+                marginBottom: spacing.lg,
+                ...typography.small,
+              }}>
+                ℹ️ Carregando dados da Meta Ads...
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
-                      <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>📱 Campanha</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>👁️ Vistos</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>Cliques</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>Taxa Clique</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>✅ Vend.</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>💬 Msgs</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>💵 CPM</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px' }}>🎯 CPC</th>
-                      <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Investido</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {relatorio.campanhas.map((campanha, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
-                        <td style={{ padding: '12px', fontWeight: '500', color: '#333' }}>{campanha.nome}</td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-                          {campanha.impressoes.toLocaleString('pt-BR')}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-                          {campanha.cliques.toLocaleString('pt-BR')}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#2196f3', fontSize: '13px', fontWeight: '500' }}>
-                          {campanha.ctr.toFixed(2)}%
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#4caf50', fontSize: '13px', fontWeight: '500' }}>
-                          {campanha.conversoes.toLocaleString('pt-BR')}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#9c27b0', fontSize: '13px', fontWeight: '500' }}>
-                          {campanha.mensagens.toLocaleString('pt-BR')}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-                          R$ {campanha.cpm.toFixed(2)}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-                          R$ {campanha.cpc.toFixed(2)}
-                        </td>
-                        <td style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#ff9800' }}>
-                          R$ {campanha.spend.toFixed(2)}
-                        </td>
+            <>
+              {/* CARDS DE RESUMO */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: spacing.lg,
+                  marginBottom: spacing.xxl,
+                  animation: 'slideUp 0.5s ease-out',
+                }}
+              >
+                {[
+                  { label: 'Investimento Total', value: `R$ ${relatorio.resumo.totalSpend.toFixed(2)}`, desc: 'Gasto em publicidade' },
+                  { label: 'Cliques', value: relatorio.resumo.totalCliques.toLocaleString('pt-BR'), desc: 'Pessoas que clicaram' },
+                  { label: 'Mensagens Iniciadas', value: relatorio.resumo.totalMensagens.toLocaleString('pt-BR'), desc: 'Conversas no WhatsApp/Messenger' },
+                  { label: 'Conversões', value: relatorio.resumo.totalConversoes.toLocaleString('pt-BR'), desc: 'Vendas/Ações completadas' },
+                  { label: 'Eficiência (ROAS)', value: `${relatorio.resumo.roas.toFixed(2)}x`, desc: 'Retorno por real investido' },
+                  { label: 'CPM Médio', value: `R$ ${relatorio.resumo.cpmMedio.toFixed(2)}`, desc: 'Custo por mil impressões' },
+                ].map((metric, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
+                      borderRadius: radius.lg,
+                      padding: spacing.lg,
+                      ...animations.slideUp,
+                      transitionDelay: `${idx * 50}ms`,
+                      ...animations.float,
+                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = '';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <p
+                      style={{
+                        ...typography.tiny,
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        fontWeight: '600',
+                        margin: `0 0 ${spacing.sm} 0`,
+                      }}
+                    >
+                      {metric.label}
+                    </p>
+                    <p style={{ ...typography.title, color: c.text.primary, margin: 0 }}>
+                      {metric.value}
+                    </p>
+                    <p style={{ ...typography.tiny, color: c.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                      {metric.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              {/* CAMPANHAS ATIVAS */}
+              <div style={{ ...animations.slideUp, animation: 'slideUp 0.5s ease-out 0.15s backwards' }}>
+                <h2
+                  style={{
+                    ...typography.heading,
+                    marginTop: 0,
+                    marginBottom: spacing.lg,
+                    color: c.text.primary,
+                  }}
+                >
+                  Campanhas Ativas ({relatorio.campanhas.length})
+                </h2>
+                {relatorio.campanhas.length === 0 ? (
+                  <div style={{
+                    padding: spacing.lg,
+                    backgroundColor: c.bg.secondary,
+                    borderRadius: radius.lg,
+                    textAlign: 'center',
+                    color: c.text.secondary,
+                    border: `1px solid ${c.border}`,
+                  }}>
+                    Nenhuma campanha encontrada
+                  </div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      backgroundColor: c.bg.secondary,
+                      borderRadius: radius.lg,
+                      border: `1px solid ${c.border}`,
+                      overflow: 'hidden',
+                    }}>
+                      <thead>
+                        <tr style={{
+                          backgroundColor: c.bg.tertiary,
+                          borderBottom: `1px solid ${c.border}`,
+                        }}>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'left',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Campanha</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Vistos</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Cliques</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Taxa</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Conversões</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Msgs</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>CPM</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>CPC</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Investido</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {relatorio.campanhas.map((campanha, idx) => (
+                          <tr
+                            key={idx}
+                            style={{
+                              borderBottom: `1px solid ${c.border}`,
+                              backgroundColor: idx % 2 === 0 ? c.bg.primary : c.bg.secondary,
+                              transition: 'background-color 0.2s',
+                            }}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.backgroundColor = idx % 2 === 0 ? c.bg.primary : c.bg.secondary;
+                            }}
+                          >
+                            <td style={{
+                              padding: spacing.md,
+                              color: c.text.primary,
+                              ...typography.small,
+                              fontWeight: '500',
+                            }}>{campanha.nome}</td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: c.text.secondary,
+                              ...typography.small,
+                            }}>
+                              {campanha.impressoes.toLocaleString('pt-BR')}
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: c.text.secondary,
+                              ...typography.small,
+                            }}>
+                              {campanha.cliques.toLocaleString('pt-BR')}
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: c.accent,
+                              ...typography.small,
+                              fontWeight: '500',
+                            }}>
+                              {campanha.ctr.toFixed(2)}%
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: colors[theme].success,
+                              ...typography.small,
+                              fontWeight: '500',
+                            }}>
+                              {campanha.conversoes.toLocaleString('pt-BR')}
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: c.text.secondary,
+                              ...typography.small,
+                            }}>
+                              {campanha.mensagens.toLocaleString('pt-BR')}
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: c.text.secondary,
+                              ...typography.small,
+                            }}>
+                              R$ {campanha.cpm.toFixed(2)}
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: c.text.secondary,
+                              ...typography.small,
+                            }}>
+                              R$ {campanha.cpc.toFixed(2)}
+                            </td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'center',
+                              color: colors[theme].warning,
+                              ...typography.small,
+                              fontWeight: '600',
+                            }}>
+                              R$ {campanha.spend.toFixed(2)}
+                            </td>
                       </tr>
                     ))}
                   </tbody>
@@ -920,9 +1033,9 @@ export default function ClienteDashboard() {
                     theme === 'light'
                       ? 'rgba(0, 122, 255, 0.05)'
                       : 'rgba(10, 132, 255, 0.05)',
-                  border: `1px solid ${currentColors.border}`,
+                  border: `1px solid ${c.border}`,
                   borderRadius: radius.md,
-                  color: currentColors.accent,
+                  color: c.accent,
                   fontSize: typography.small.fontSize,
                 }}
               >
@@ -946,134 +1059,78 @@ export default function ClienteDashboard() {
                   gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                   gap: spacing.lg,
                   marginBottom: spacing.xxl,
+                  animation: 'slideUp 0.5s ease-out',
                 }}
               >
-                <div
-                  style={{
-                    padding: spacing.lg,
-                    backgroundColor: currentColors.bg.secondary,
-                    border: `1px solid ${currentColors.border}`,
-                    borderRadius: radius.lg,
-                    ...animations.slideUp,
-                  }}
-                >
-                  <p
-                    style={{
-                      ...typography.tiny,
-                      color: currentColors.text.secondary,
-                      textTransform: 'uppercase',
-                      fontWeight: '600',
-                      margin: `0 0 ${spacing.sm} 0`,
-                    }}
-                  >
-                    Total Faturado
-                  </p>
-                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                    R$ {resumoFinanceiro?.totalFaturado.toFixed(2) || '0.00'}
-                  </p>
-                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                    Desde início de trabalhos
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    padding: spacing.lg,
-                    backgroundColor: currentColors.bg.secondary,
-                    border: `1px solid ${currentColors.border}`,
-                    borderRadius: radius.lg,
-                    ...animations.slideUp,
-                  }}
-                >
-                  <p
-                    style={{
-                      ...typography.tiny,
-                      color: currentColors.text.secondary,
-                      textTransform: 'uppercase',
-                      fontWeight: '600',
-                      margin: `0 0 ${spacing.sm} 0`,
-                    }}
-                  >
-                    Total Recebido
-                  </p>
-                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                    R$ {resumoFinanceiro?.totalRecebido.toFixed(2) || '0.00'}
-                  </p>
-                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                    Pagamentos confirmados
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    padding: spacing.lg,
-                    backgroundColor: currentColors.bg.secondary,
-                    border: `1px solid ${currentColors.border}`,
-                    borderRadius: radius.lg,
-                    ...animations.slideUp,
-                  }}
-                >
-                  <p
-                    style={{
-                      ...typography.tiny,
-                      color: currentColors.text.secondary,
-                      textTransform: 'uppercase',
-                      fontWeight: '600',
-                      margin: `0 0 ${spacing.sm} 0`,
-                    }}
-                  >
-                    Em Aberto
-                  </p>
-                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                    R$ {resumoFinanceiro?.totalEmAberto.toFixed(2) || '0.00'}
-                  </p>
-                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                    À receber
-                  </p>
-                </div>
-
-                <div
-                  style={{
-                    padding: spacing.lg,
-                    backgroundColor: currentColors.bg.secondary,
-                    border: `1px solid ${currentColors.border}`,
-                    borderRadius: radius.lg,
-                    ...animations.slideUp,
-                  }}
-                >
-                  <p
-                    style={{
-                      ...typography.tiny,
-                      color: currentColors.text.secondary,
-                      textTransform: 'uppercase',
-                      fontWeight: '600',
-                      margin: `0 0 ${spacing.sm} 0`,
-                    }}
-                  >
-                    Atrasado
-                  </p>
-                  <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
-                    R$ {resumoFinanceiro?.totalAtrasado.toFixed(2) || '0.00'}
-                  </p>
-                  <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                    Vencido não pago
-                  </p>
-                </div>
-
-                {resumoFinanceiro?.proximoVencimento && (
+                {[
+                  { label: 'Total Faturado', value: `R$ ${resumoFinanceiro?.totalFaturado.toFixed(2) || '0.00'}`, desc: 'Desde início de trabalhos' },
+                  { label: 'Total Recebido', value: `R$ ${resumoFinanceiro?.totalRecebido.toFixed(2) || '0.00'}`, desc: 'Pagamentos confirmados' },
+                  { label: 'Em Aberto', value: `R$ ${resumoFinanceiro?.totalEmAberto.toFixed(2) || '0.00'}`, desc: 'À receber' },
+                  { label: 'Atrasado', value: `R$ ${resumoFinanceiro?.totalAtrasado.toFixed(2) || '0.00'}`, desc: 'Vencido não pago' },
+                ].map((card, idx) => (
                   <div
+                    key={idx}
                     style={{
-                      padding: spacing.lg,
-                      backgroundColor: currentColors.bg.secondary,
-                      border: `1px solid ${currentColors.border}`,
+                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
                       borderRadius: radius.lg,
+                      padding: spacing.lg,
                       ...animations.slideUp,
+                      transitionDelay: `${idx * 50}ms`,
+                      ...animations.float,
+                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = '';
+                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
                     <p
                       style={{
                         ...typography.tiny,
-                        color: currentColors.text.secondary,
+                        color: c.text.secondary,
+                        textTransform: 'uppercase',
+                        fontWeight: '600',
+                        margin: `0 0 ${spacing.sm} 0`,
+                      }}
+                    >
+                      {card.label}
+                    </p>
+                    <p style={{ ...typography.title, color: c.text.primary, margin: 0 }}>
+                      {card.value}
+                    </p>
+                    <p style={{ ...typography.tiny, color: c.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                      {card.desc}
+                    </p>
+                  </div>
+                ))}
+                {resumoFinanceiro?.proximoVencimento && (
+                  <div
+                    style={{
+                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
+                      borderRadius: radius.lg,
+                      padding: spacing.lg,
+                      ...animations.slideUp,
+                      transitionDelay: '200ms',
+                      ...animations.float,
+                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.boxShadow = '';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <p
+                      style={{
+                        ...typography.tiny,
+                        color: c.text.secondary,
                         textTransform: 'uppercase',
                         fontWeight: '600',
                         margin: `0 0 ${spacing.sm} 0`,
@@ -1081,10 +1138,10 @@ export default function ClienteDashboard() {
                     >
                       Próximo Vencimento
                     </p>
-                    <p style={{ ...typography.title, color: currentColors.text.primary, margin: 0 }}>
+                    <p style={{ ...typography.title, color: c.text.primary, margin: 0 }}>
                       {new Date(resumoFinanceiro.proximoVencimento).toLocaleDateString('pt-BR')}
                     </p>
-                    <p style={{ ...typography.tiny, color: currentColors.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
+                    <p style={{ ...typography.tiny, color: c.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
                       Primeira fatura aberta
                     </p>
                   </div>
@@ -1092,68 +1149,167 @@ export default function ClienteDashboard() {
               </div>
 
               {/* BOTÃO ENVIAR RELATÓRIO */}
-              <div style={{ marginBottom: '30px', display: 'flex', gap: '12px' }}>
+              <div style={{ marginBottom: spacing.xxl, display: 'flex', gap: spacing.md, alignItems: 'center' }}>
                 <button
                   onClick={handleEnviarRelatorioFinanceiro}
                   disabled={relatorioProcessing || !cliente?.whatsapp_numero}
                   style={{
-                    padding: '12px 24px',
-                    backgroundColor: cliente?.whatsapp_numero ? '#4caf50' : '#ccc',
+                    padding: `${spacing.sm} ${spacing.lg}`,
+                    backgroundColor: cliente?.whatsapp_numero ? colors[theme].success : c.border,
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: radius.md,
                     cursor: cliente?.whatsapp_numero ? 'pointer' : 'not-allowed',
-                    fontSize: '14px',
-                    fontWeight: 'bold',
+                    ...typography.small,
+                    fontWeight: '600',
+                    opacity: relatorioProcessing ? 0.6 : 1,
+                    transition: 'all 0.2s',
+                  }}
+                  title={!cliente?.whatsapp_numero ? 'Configure o número de WhatsApp' : 'Enviar relatório financeiro'}
+                  onMouseEnter={(e) => {
+                    if (cliente?.whatsapp_numero && !relatorioProcessing) {
+                      e.currentTarget.style.opacity = '0.9';
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = relatorioProcessing ? '0.6' : '1';
+                    e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
-                  {relatorioProcessing ? '📱 Enviando...' : '📱 Enviar Relatório Financeiro'}
+                  {relatorioProcessing ? 'Enviando...' : 'Enviar Relatório Financeiro'}
                 </button>
                 {!cliente?.whatsapp_numero && (
-                  <p style={{ margin: 0, color: '#f44336', fontSize: '13px', alignSelf: 'center' }}>
+                  <p style={{
+                    margin: 0,
+                    color: colors[theme].error,
+                    ...typography.small,
+                  }}>
                     Configure o número de WhatsApp na edição do cliente
                   </p>
                 )}
               </div>
 
               {/* MONTHLY BILLING TABLE */}
-              <div style={{ marginBottom: spacing.xxl }}>
+              <div style={{ marginBottom: spacing.xxl, animation: 'slideUp 0.5s ease-out 0.1s backwards' }}>
                 <h2
                   style={{
                     ...typography.heading,
                     marginTop: 0,
                     marginBottom: spacing.lg,
-                    color: currentColors.text.primary,
+                    color: c.text.primary,
                   }}
                 >
                   Faturamento Mensal
                 </h2>
                 {faturamentoMensal.length === 0 ? (
-                  <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
+                  <div style={{
+                    padding: spacing.lg,
+                    backgroundColor: c.bg.secondary,
+                    borderRadius: radius.lg,
+                    textAlign: 'center',
+                    color: c.text.secondary,
+                    border: `1px solid ${c.border}`,
+                  }}>
                     Nenhum faturamento registrado
                   </div>
                 ) : (
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
+                    <table style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      backgroundColor: c.bg.secondary,
+                      borderRadius: radius.lg,
+                      border: `1px solid ${c.border}`,
+                      overflow: 'hidden',
+                    }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
-                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>📅 Mês</th>
-                          <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>💰 Faturado</th>
-                          <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>✅ Recebido</th>
-                          <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>⏳ Pendente</th>
+                        <tr style={{
+                          backgroundColor: c.bg.tertiary,
+                          borderBottom: `1px solid ${c.border}`,
+                        }}>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'left',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>📅 Mês</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'right',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>💰 Faturado</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'right',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>✅ Recebido</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'right',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>⏳ Pendente</th>
                         </tr>
                       </thead>
                       <tbody>
                         {faturamentoMensal.map((f, idx) => (
-                          <tr key={idx} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
-                            <td style={{ padding: '12px', fontWeight: '500', color: '#333' }}>{f.mes}</td>
-                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: '600', color: '#ff9800' }}>
+                          <tr key={idx} style={{
+                            borderBottom: `1px solid ${c.border}`,
+                            backgroundColor: idx % 2 === 0 ? c.bg.primary : c.bg.secondary,
+                            transition: 'background-color 0.2s',
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = idx % 2 === 0 ? c.bg.primary : c.bg.secondary;
+                          }}>
+                            <td style={{
+                              padding: spacing.md,
+                              color: c.text.primary,
+                              ...typography.small,
+                              fontWeight: '500',
+                            }}>{f.mes}</td>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'right',
+                              color: colors[theme].warning,
+                              ...typography.small,
+                              fontWeight: '600',
+                            }}>
                               R$ {f.valor.toFixed(2)}
                             </td>
-                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: '600', color: '#4caf50' }}>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'right',
+                              color: colors[theme].success,
+                              ...typography.small,
+                              fontWeight: '600',
+                            }}>
                               R$ {f.recebido.toFixed(2)}
                             </td>
-                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: '600', color: f.valor - f.recebido > 0 ? '#ff6b6b' : '#ccc' }}>
+                            <td style={{
+                              padding: spacing.md,
+                              textAlign: 'right',
+                              color: f.valor - f.recebido > 0 ? colors[theme].error : c.text.tertiary,
+                              ...typography.small,
+                              fontWeight: '600',
+                            }}>
                               R$ {(f.valor - f.recebido).toFixed(2)}
                             </td>
                           </tr>
@@ -1165,41 +1321,106 @@ export default function ClienteDashboard() {
               </div>
 
               {/* INVOICES TABLE */}
-              <div>
+              <div style={{ animation: 'slideUp 0.5s ease-out 0.2s backwards' }}>
                 <h2
                   style={{
                     ...typography.heading,
                     marginTop: 0,
                     marginBottom: spacing.lg,
-                    color: currentColors.text.primary,
+                    color: c.text.primary,
                   }}
                 >
                   Histórico de Faturas
                 </h2>
                 {faturas.length === 0 ? (
-                  <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', color: '#666' }}>
+                  <div style={{
+                    padding: spacing.lg,
+                    backgroundColor: c.bg.secondary,
+                    borderRadius: radius.lg,
+                    textAlign: 'center',
+                    color: c.text.secondary,
+                    border: `1px solid ${c.border}`,
+                  }}>
                     Nenhuma fatura registrada
                   </div>
                 ) : (
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
+                    <table style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      backgroundColor: c.bg.secondary,
+                      borderRadius: radius.lg,
+                      border: `1px solid ${c.border}`,
+                      overflow: 'hidden',
+                    }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
-                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>📅 Mês</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Vencimento</th>
-                          <th style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>Valor</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Status</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Pago em</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Ações</th>
+                        <tr style={{
+                          backgroundColor: c.bg.tertiary,
+                          borderBottom: `1px solid ${c.border}`,
+                        }}>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'left',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>📅 Mês</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Vencimento</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'right',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Valor</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Status</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Pago em</th>
+                          <th style={{
+                            padding: spacing.md,
+                            textAlign: 'center',
+                            color: c.text.secondary,
+                            ...typography.small,
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            fontWeight: '600',
+                          }}>Ações</th>
                         </tr>
                       </thead>
                       <tbody>
                         {faturas.map((fatura, idx) => {
                           const statusColor = {
-                            paga: '#4caf50',
-                            aberta: '#2196f3',
-                            atrasada: '#f44336',
-                            cancelada: '#999',
+                            paga: colors[theme].success,
+                            aberta: c.accent,
+                            atrasada: colors[theme].error,
+                            cancelada: c.text.tertiary,
                           }[fatura.status];
 
                           const statusLabel = {
@@ -1210,40 +1431,98 @@ export default function ClienteDashboard() {
                           }[fatura.status];
 
                           return (
-                            <tr key={fatura.id} style={{ borderBottom: '1px solid #eee', backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
-                              <td style={{ padding: '12px', fontWeight: '500', color: '#333' }}>
+                            <tr key={fatura.id} style={{
+                              borderBottom: `1px solid ${c.border}`,
+                              backgroundColor: idx % 2 === 0 ? c.bg.primary : c.bg.secondary,
+                              transition: 'background-color 0.2s',
+                            }}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.backgroundColor = idx % 2 === 0 ? c.bg.primary : c.bg.secondary;
+                            }}>
+                              <td style={{
+                                padding: spacing.md,
+                                color: c.text.primary,
+                                ...typography.small,
+                                fontWeight: '500',
+                              }}>
                                 {new Date(fatura.mes_referencia).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
                               </td>
-                              <td style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
+                              <td style={{
+                                padding: spacing.md,
+                                textAlign: 'center',
+                                color: c.text.secondary,
+                                ...typography.small,
+                              }}>
                                 {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
                               </td>
-                              <td style={{ padding: '12px', textAlign: 'right', fontWeight: '600', color: '#ff9800' }}>
+                              <td style={{
+                                padding: spacing.md,
+                                textAlign: 'right',
+                                color: colors[theme].warning,
+                                ...typography.small,
+                                fontWeight: '600',
+                              }}>
                                 R$ {fatura.valor.toFixed(2)}
                               </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                <span style={{ padding: '4px 12px', backgroundColor: statusColor + '22', color: statusColor, borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
+                              <td style={{
+                                padding: spacing.md,
+                                textAlign: 'center',
+                              }}>
+                                <span style={{
+                                  padding: `${spacing.xs} ${spacing.sm}`,
+                                  backgroundColor: theme === 'light' ? `${statusColor}22` : `${statusColor}33`,
+                                  color: statusColor,
+                                  borderRadius: radius.md,
+                                  ...typography.tiny,
+                                  fontWeight: 'bold',
+                                }}>
                                   {statusLabel}
                                 </span>
                               </td>
-                              <td style={{ padding: '12px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
+                              <td style={{
+                                padding: spacing.md,
+                                textAlign: 'center',
+                                color: c.text.secondary,
+                                ...typography.small,
+                              }}>
                                 {fatura.data_pagamento ? new Date(fatura.data_pagamento).toLocaleDateString('pt-BR') : '—'}
                               </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                              <td style={{
+                                padding: spacing.md,
+                                textAlign: 'center',
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  gap: spacing.xs,
+                                  justifyContent: 'center',
+                                  flexWrap: 'wrap',
+                                }}>
                                   {fatura.status !== 'paga' && fatura.status !== 'cancelada' ? (
                                     <button
                                       onClick={() => handlePayment(fatura.id)}
                                       disabled={paymentProcessing === fatura.id}
                                       style={{
-                                        padding: '6px 12px',
-                                        backgroundColor: paymentProcessing === fatura.id ? '#ccc' : '#4caf50',
+                                        padding: `${spacing.xs} ${spacing.sm}`,
+                                        backgroundColor: paymentProcessing === fatura.id ? c.border : colors[theme].success,
                                         color: 'white',
                                         border: 'none',
-                                        borderRadius: '4px',
+                                        borderRadius: radius.sm,
                                         cursor: paymentProcessing === fatura.id ? 'not-allowed' : 'pointer',
-                                        fontSize: '11px',
+                                        ...typography.tiny,
                                         fontWeight: 'bold',
                                         whiteSpace: 'nowrap',
+                                        transition: 'all 0.2s',
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (paymentProcessing !== fatura.id) {
+                                          e.currentTarget.style.opacity = '0.9';
+                                        }
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.opacity = '1';
                                       }}
                                     >
                                       {paymentProcessing === fatura.id ? '...' : '✅ Pago'}
@@ -1254,15 +1533,24 @@ export default function ClienteDashboard() {
                                     disabled={reminderProcessing === fatura.id || !cliente?.whatsapp_numero}
                                     title={!cliente?.whatsapp_numero ? 'Configure o número de WhatsApp' : 'Enviar lembrete via WhatsApp'}
                                     style={{
-                                      padding: '6px 12px',
-                                      backgroundColor: !cliente?.whatsapp_numero ? '#ccc' : reminderProcessing === fatura.id ? '#e0e0e0' : '#2196f3',
+                                      padding: `${spacing.xs} ${spacing.sm}`,
+                                      backgroundColor: !cliente?.whatsapp_numero ? c.border : reminderProcessing === fatura.id ? c.bg.tertiary : c.accent,
                                       color: 'white',
                                       border: 'none',
-                                      borderRadius: '4px',
+                                      borderRadius: radius.sm,
                                       cursor: !cliente?.whatsapp_numero ? 'not-allowed' : 'pointer',
-                                      fontSize: '11px',
+                                      ...typography.tiny,
                                       fontWeight: 'bold',
                                       whiteSpace: 'nowrap',
+                                      transition: 'all 0.2s',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (!reminderProcessing && cliente?.whatsapp_numero) {
+                                        e.currentTarget.style.opacity = '0.9';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.opacity = '1';
                                     }}
                                   >
                                     {reminderProcessing === fatura.id ? '...' : '📱'}
@@ -1281,6 +1569,7 @@ export default function ClienteDashboard() {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
