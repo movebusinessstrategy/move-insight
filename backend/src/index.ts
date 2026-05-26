@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
+import adminFaturasRoutes from './routes/admin.faturas.js';
 import { initializeWhatsApp, sendWhatsAppMessage } from './services/whatsapp.js';
 
 const app = express();
@@ -37,6 +38,7 @@ app.use((_req: any, res, next) => {
 app.use('/api/auth/admin', authAdminRoutes);
 app.use('/api/cliente/auth', authClienteRoutes);
 app.use('/api/admin', adminClientesRoutes);
+app.use('/api/admin', adminFaturasRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

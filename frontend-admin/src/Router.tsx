@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ClienteDashboard from './pages/ClienteDashboard';
 
 interface User {
   id: string;
@@ -59,6 +60,14 @@ export default function Router() {
           element={
             <ProtectedRoute user={user} loading={loading}>
               <Dashboard user={user!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/cliente/:clienteId"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <ClienteDashboard />
             </ProtectedRoute>
           }
         />

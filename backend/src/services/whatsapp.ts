@@ -1,4 +1,5 @@
 import { Client } from 'whatsapp-web.js';
+import qrcode from 'qrcode-terminal';
 
 let whatsappClient: Client | null = null;
 let isInitializing = false;
@@ -23,8 +24,9 @@ export async function initializeWhatsApp(): Promise<Client | null> {
     } as any);
 
     client.on('qr', (qr) => {
-      console.log('📱 QR Code gerado (escaneie com WhatsApp):');
-      console.log(qr);
+      console.log('\n📱 QR Code gerado (escaneie com seu celular):');
+      qrcode.generate(qr, { small: true });
+      console.log('\n');
     });
 
     client.on('authenticated', () => {
