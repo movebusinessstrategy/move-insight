@@ -91,3 +91,99 @@ export const typography = {
     lineHeight: '1.4',
   },
 };
+
+export const glassMorphism = {
+  light: {
+    background: 'rgba(255, 255, 255, 0.7)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.5)',
+  } as React.CSSProperties,
+  dark: {
+    background: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+  } as React.CSSProperties,
+};
+
+export const keyframes = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes gradientShift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(0, 122, 255, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(0, 122, 255, 0.5);
+    }
+  }
+`;
+
+export const animations = {
+  fadeIn: {
+    animation: 'fadeIn 0.4s ease-out',
+  } as React.CSSProperties,
+  slideUp: {
+    animation: 'slideUp 0.5s ease-out',
+  } as React.CSSProperties,
+  slideDown: {
+    animation: 'slideDown 0.5s ease-out',
+  } as React.CSSProperties,
+  gradientShift: {
+    animation: 'gradientShift 6s ease-in-out infinite',
+  } as React.CSSProperties,
+  float: {
+    animation: 'float 3s ease-in-out infinite',
+  } as React.CSSProperties,
+  glow: {
+    animation: 'glow 2s ease-in-out infinite',
+  } as React.CSSProperties,
+};
