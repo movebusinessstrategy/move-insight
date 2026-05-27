@@ -3,7 +3,7 @@ import { criarFornecedor, listarFornecedores, obterFornecedorPorId, atualizarFor
 
 export async function handleCriarFornecedor(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -40,7 +40,7 @@ export async function handleCriarFornecedor(req: Request, res: Response): Promis
 
 export async function handleListarFornecedores(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -56,7 +56,7 @@ export async function handleListarFornecedores(req: Request, res: Response): Pro
 
 export async function handleObterFornecedor(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -85,7 +85,7 @@ export async function handleObterFornecedor(req: Request, res: Response): Promis
 
 export async function handleAtualizarFornecedor(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -114,7 +114,7 @@ export async function handleAtualizarFornecedor(req: Request, res: Response): Pr
 
 export async function handleDeletarFornecedor(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;

@@ -10,7 +10,7 @@ import {
 
 export async function handleCriarReceitaEsporadica(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -46,7 +46,7 @@ export async function handleCriarReceitaEsporadica(req: Request, res: Response):
 
 export async function handleListarReceitasEsporadicas(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -68,7 +68,7 @@ export async function handleListarReceitasEsporadicas(req: Request, res: Respons
 
 export async function handleObterReceitaEsporadica(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -97,7 +97,7 @@ export async function handleObterReceitaEsporadica(req: Request, res: Response):
 
 export async function handleAtualizarReceitaEsporadica(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -134,7 +134,7 @@ export async function handleAtualizarReceitaEsporadica(req: Request, res: Respon
 
 export async function handleMarcarComoRecebida(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -163,7 +163,7 @@ export async function handleMarcarComoRecebida(req: Request, res: Response): Pro
 
 export async function handleDeletarReceitaEsporadica(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;

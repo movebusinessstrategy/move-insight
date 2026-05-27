@@ -11,7 +11,7 @@ import {
 
 export async function handleCriarContaPagar(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -47,7 +47,7 @@ export async function handleCriarContaPagar(req: Request, res: Response): Promis
 
 export async function handleListarContasPagar(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -69,7 +69,7 @@ export async function handleListarContasPagar(req: Request, res: Response): Prom
 
 export async function handleListarContasAtrasadas(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -85,7 +85,7 @@ export async function handleListarContasAtrasadas(req: Request, res: Response): 
 
 export async function handleObterContaPagar(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -114,7 +114,7 @@ export async function handleObterContaPagar(req: Request, res: Response): Promis
 
 export async function handleAtualizarContaPagar(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -151,7 +151,7 @@ export async function handleAtualizarContaPagar(req: Request, res: Response): Pr
 
 export async function handleMarcarComoPago(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
@@ -180,7 +180,7 @@ export async function handleMarcarComoPago(req: Request, res: Response): Promise
 
 export async function handleDeletarContaPagar(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
