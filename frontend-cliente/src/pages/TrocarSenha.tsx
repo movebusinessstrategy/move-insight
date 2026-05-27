@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 interface Cliente {
   id: string;
@@ -104,9 +105,19 @@ export default function TrocarSenha({ cliente }: TrocarSenhaProps) {
         </button>
       </div>
 
-      <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fff3cd', borderRadius: '4px', color: '#856404' }}>
-        <p>
-          <strong>⚠️ Atenção:</strong> Você precisa alterar sua senha antes de acessar seus relatórios.
+      <div style={{
+        marginTop: '16px',
+        padding: '16px',
+        backgroundColor: '#fff3cd',
+        borderRadius: '4px',
+        color: '#856404',
+        display: 'flex',
+        gap: '12px',
+        alignItems: 'flex-start',
+      }}>
+        <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+        <p style={{ margin: 0 }}>
+          <strong>Atenção:</strong> Você precisa alterar sua senha antes de acessar seus relatórios.
         </p>
       </div>
 
@@ -117,8 +128,18 @@ export default function TrocarSenha({ cliente }: TrocarSenhaProps) {
       )}
 
       {success && (
-        <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#efe', borderRadius: '4px', color: '#3c3' }}>
-          ✓ Senha alterada com sucesso! Redirecionando...
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          backgroundColor: '#efe',
+          borderRadius: '4px',
+          color: '#3c3',
+          display: 'flex',
+          gap: '12px',
+          alignItems: 'center',
+        }}>
+          <CheckCircle size={18} style={{ flexShrink: 0 }} />
+          <span>Senha alterada com sucesso! Redirecionando...</span>
         </div>
       )}
 

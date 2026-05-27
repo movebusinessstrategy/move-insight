@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, MessageSquare, Zap, LogOut, LayoutDashboard, FileText, Lightbulb } from 'lucide-react';
+import { BarChart3, TrendingUp, MessageSquare, Zap, LogOut, LayoutDashboard, FileText, Lightbulb, Info } from 'lucide-react';
 import type { Cliente } from '../Router';
 
 interface ResumoCliente {
@@ -309,9 +309,15 @@ export default function Dashboard({ cliente }: { cliente: Cliente }) {
           </div>
 
           {/* Info Footer */}
-          <div style={styles.footer}>
-            <p>
-              ℹ️ Os dados mostrados referem-se ao período de <strong>{periodLabels[periodo]}</strong>. Atualizações
+          <div style={{
+            ...styles.footer,
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'flex-start',
+          }}>
+            <Info size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <p style={{ margin: 0 }}>
+              Os dados mostrados referem-se ao período de <strong>{periodLabels[periodo]}</strong>. Atualizações
               ocorrem a cada 24 horas.
             </p>
           </div>
