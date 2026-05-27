@@ -16,6 +16,7 @@ import {
   handleObterAnaliseIA,
   handleObterPrevisoes,
   handleObterBenchmarks,
+  handleCriarLoginCliente,
 } from '../modules/admin/clientes.controller.js';
 import { requireAdminAuth } from '../middlewares/auth.js';
 
@@ -26,6 +27,7 @@ router.get('/clientes', requireAdminAuth, handleListarClientes);
 router.get('/clientes/:clienteId', requireAdminAuth, handleObterCliente);
 router.put('/clientes/:clienteId', requireAdminAuth, handleAtualizarCliente);
 router.delete('/clientes/:clienteId', requireAdminAuth, handleDeleteClient);
+router.post('/clientes/:clienteId/login', requireAdminAuth, handleCriarLoginCliente);
 router.get('/clientes/:clienteId/relatorio', requireAdminAuth, handleGerarRelatorio);
 router.get('/clientes/:clienteId/relatorio/resumo', requireAdminAuth, handleObterResumoRelatorio);
 router.get('/clientes/:clienteId/relatorio/analise-ia', requireAdminAuth, handleObterAnaliseIA);

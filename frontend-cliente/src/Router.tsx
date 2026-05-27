@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import TrocarSenha from './pages/TrocarSenha';
 import Relatorio from './pages/Relatorio';
+import Dashboard from './pages/Dashboard';
+import ClienteContexto from './pages/ClienteContexto';
+import Criativos from './pages/Criativos';
 
-interface Cliente {
+export interface Cliente {
   id: string;
   cliente_id: string;
   email: string;
@@ -55,12 +58,20 @@ export default function Router() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={cliente ? <Navigate to="/relatorio" replace /> : <Login />} />
+        <Route path="/login" element={cliente ? <Navigate to="/dashboard" replace /> : <Login />} />
         <Route
           path="/trocar-senha"
           element={
             <ProtectedRoute cliente={cliente} loading={loading}>
               <TrocarSenha cliente={cliente!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute cliente={cliente} loading={loading}>
+              <Dashboard cliente={cliente!} />
             </ProtectedRoute>
           }
         />
@@ -72,7 +83,23 @@ export default function Router() {
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to="/relatorio" replace />} />
+        <Route
+          path="/contexto"
+          element={
+            <ProtectedRoute cliente={cliente} loading={loading}>
+              <ClienteContexto cliente={cliente!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/criativos"
+          element={
+            <ProtectedRoute cliente={cliente} loading={loading}>
+              <Criativos cliente={cliente!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );

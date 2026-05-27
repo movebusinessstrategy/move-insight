@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { Send, AlertCircle, BarChart3, RefreshCw, DollarSign } from 'lucide-react';
 
 interface Cliente {
   id: string;
@@ -23,16 +24,16 @@ interface Campanha {
 }
 
 interface Relatorio {
-  periodo: string;
+  periodo: {
+    inicio: string;
+    fim: string;
+  };
   campanhas: Campanha[];
   resumo: {
-    totalSpend: number;
-    totalCliques: number;
-    totalConversoes: number;
-    totalMensagens: number;
+    spend: number;
+    cliques: number;
+    conversoes: number;
     roas: number;
-    cpmMedio: number;
-    cpcMedio: number;
   };
 }
 
@@ -48,6 +49,8 @@ export default function Relatorio({ cliente }: RelatorioProps) {
   const [error, setError] = useState<string | null>(null);
   const [customDateRange, setCustomDateRange] = useState<{ since: string; until: string } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [sendingReport, setSendingReport] = useState(false);
+  const [whatsappError, setWhatsappError] = useState<string | null>(null);
 
   const formatarMoeda = (valor: number): string => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
@@ -61,14 +64,14 @@ export default function Relatorio({ cliente }: RelatorioProps) {
     setLoading(true);
     setError(null);
     try {
-      let url = `/api/admin/clientes/${cliente.cliente_id}/relatorio?period=${periodoSelected}`;
+      let url = `/api/cliente/relatorio/resumo?periodo=${periodoSelected}`;
       if (periodoSelected === 'custom' && customDates) {
-        url += `&since=${customDates.since}&until=${customDates.until}`;
+        url += `&dataInicio=${customDates.since}&dataFim=${customDates.until}`;
       }
       const response = await fetch(url, { credentials: 'include' });
       const data = await response.json();
       if (response.ok) {
-        setRelatorio(data.relatorio);
+        setRelatorio(data);
         setToastMessage('Relatório carregado com sucesso');
         setTimeout(() => setToastMessage(null), 3000);
       } else {
@@ -89,6 +92,43 @@ export default function Relatorio({ cliente }: RelatorioProps) {
   useEffect(() => {
     fetchRelatorio('last_7d');
   }, []);
+
+  const handleEnviarRelatorio = async () => {
+    setSendingReport(true);
+    setWhatsappError(null);
+    try {
+      const response = await fetch('/api/cliente/relatorio/enviar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ periodo }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setToastMessage('Relatório enviado via WhatsApp com sucesso!');
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        if (data.error === 'desconectado') {
+          setWhatsappError('WhatsApp não conectado. Verifique se seu número está configurado.');
+        } else {
+          setWhatsappError(data.error || 'Erro ao enviar relatório');
+        }
+        setToastMessage(data.error || 'Erro ao enviar relatório');
+        setTimeout(() => setToastMessage(null), 4000);
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Erro ao enviar relatório';
+      setWhatsappError(errorMsg);
+      setToastMessage(errorMsg);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setSendingReport(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -123,6 +163,9 @@ export default function Relatorio({ cliente }: RelatorioProps) {
   };
 
   const getRotiluPeriodo = (): string => {
+    if (relatorio) {
+      return `${relatorio.periodo.inicio} até ${relatorio.periodo.fim}`;
+    }
     switch (periodo) {
       case 'last_7d':
         return 'Últimos 7 dias';
@@ -149,7 +192,7 @@ export default function Relatorio({ cliente }: RelatorioProps) {
             top: '20px',
             right: '20px',
             padding: '12px 20px',
-            backgroundColor: error ? '#dc3545' : '#28a745',
+            backgroundColor: error || whatsappError ? '#dc3545' : '#28a745',
             color: 'white',
             borderRadius: '4px',
             zIndex: 2000,
@@ -160,26 +203,72 @@ export default function Relatorio({ cliente }: RelatorioProps) {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-        <div>
-          <h1 style={{ margin: '0 0 8px 0', color: '#333' }}>📊 Seus Relatórios de Meta Ads</h1>
-          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Bem-vindo, {cliente.cliente_nome}</p>
-        </div>
-        <button
-          onClick={handleLogout}
+      {whatsappError && (
+        <div
           style={{
-            padding: '10px 20px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
+            marginBottom: '20px',
+            padding: '16px',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffc107',
             borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'flex-start',
           }}
         >
-          Logout
-        </button>
+          <AlertCircle size={20} style={{ color: '#ff9800', flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <p style={{ margin: '0 0 4px 0', fontWeight: '600', color: '#333' }}>WhatsApp Desconectado</p>
+            <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{whatsappError}</p>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <BarChart3 size={28} style={{ color: '#2563eb' }} />
+          <div>
+            <h1 style={{ margin: '0', color: '#333' }}>Seus Relatórios</h1>
+            <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>Bem-vindo, {cliente.cliente_nome}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            onClick={handleEnviarRelatorio}
+            disabled={sendingReport || !relatorio}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: sendingReport || !relatorio ? '#ccc' : '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: sendingReport || !relatorio ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <Send size={18} />
+            {sendingReport ? 'Enviando...' : 'Enviar via WhatsApp'}
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <div style={{ marginBottom: '25px', padding: '16px', backgroundColor: '#f0f7ff', borderRadius: '4px', borderLeft: '4px solid #1a73e8' }}>
@@ -279,9 +368,13 @@ export default function Relatorio({ cliente }: RelatorioProps) {
                 fontSize: '12px',
                 fontWeight: 'bold',
                 whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              🔄 Carregar
+              <RefreshCw size={14} />
+              Carregar
             </button>
           </div>
         )}
@@ -319,24 +412,27 @@ export default function Relatorio({ cliente }: RelatorioProps) {
       ) : relatorio ? (
         <>
           <div style={{ marginBottom: '25px' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#333' }}>💰 Resumo</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
+              <DollarSign size={20} style={{ color: '#28a745' }} />
+              <h3 style={{ marginTop: 0, marginBottom: 0, color: '#333' }}>Resumo</h3>
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
               <div style={{ padding: '16px', backgroundColor: 'white', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', fontWeight: '500' }}>Total Spend</p>
                 <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#1a73e8' }}>
-                  {formatarMoeda(relatorio.resumo.totalSpend)}
+                  {formatarMoeda(relatorio.resumo.spend)}
                 </p>
               </div>
               <div style={{ padding: '16px', backgroundColor: 'white', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', fontWeight: '500' }}>Total Cliques</p>
                 <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#1a73e8' }}>
-                  {relatorio.resumo.totalCliques.toLocaleString('pt-BR')}
+                  {relatorio.resumo.cliques.toLocaleString('pt-BR')}
                 </p>
               </div>
               <div style={{ padding: '16px', backgroundColor: 'white', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', fontWeight: '500' }}>Total Conversões</p>
                 <p style={{ margin: 0, fontSize: '24px', fontWeight: 'bold', color: '#28a745' }}>
-                  {relatorio.resumo.totalConversoes.toLocaleString('pt-BR')}
+                  {relatorio.resumo.conversoes.toLocaleString('pt-BR')}
                 </p>
               </div>
               <div style={{ padding: '16px', backgroundColor: 'white', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -349,7 +445,10 @@ export default function Relatorio({ cliente }: RelatorioProps) {
           </div>
 
           <div style={{ marginBottom: '25px' }}>
-            <h3 style={{ marginTop: 0, marginBottom: '15px', color: '#333' }}>📱 Campanhas</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
+              <BarChart3 size={20} style={{ color: '#1a73e8' }} />
+              <h3 style={{ marginTop: 0, marginBottom: 0, color: '#333' }}>Campanhas</h3>
+            </div>
             {relatorio.campanhas.length === 0 ? (
               <p style={{ color: '#666', fontStyle: 'italic', padding: '16px', backgroundColor: 'white', borderRadius: '4px' }}>
                 Nenhuma campanha encontrada

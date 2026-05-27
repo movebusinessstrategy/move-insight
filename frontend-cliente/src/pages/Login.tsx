@@ -58,8 +58,8 @@ export default function Login() {
       if (data.senha_provisoria) {
         window.location.href = '/trocar-senha';
       } else {
-        // Caso contrário, vai para relatório
-        window.location.href = '/relatorio';
+        // Caso contrário, vai para dashboard
+        window.location.href = '/dashboard';
       }
     } catch (err) {
       setError({

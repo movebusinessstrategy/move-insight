@@ -4,8 +4,9 @@ import {
   handleObterAnaliseIA,
   handleObterPrevisoes,
   handleObterBenchmarks,
+  handleEnviarRelatorioCliente,
 } from '../modules/cliente/relatorio.controller.js';
-import { requireAdminAuth } from '../middlewares/auth.js';
+import { requireAdminAuth, requireClienteAuth } from '../middlewares/auth.js';
 
 const router = Router();
 
@@ -14,5 +15,9 @@ router.get('/clientes/:clienteId/relatorio/resumo', requireAdminAuth, handleObte
 router.get('/clientes/:clienteId/relatorio/analise-ia', requireAdminAuth, handleObterAnaliseIA);
 router.get('/clientes/:clienteId/relatorio/previsoes', requireAdminAuth, handleObterPrevisoes);
 router.get('/clientes/:clienteId/relatorio/benchmarks', requireAdminAuth, handleObterBenchmarks);
+
+// Client routes: /api/cliente/relatorio/*
+router.get('/resumo', requireClienteAuth, handleObterResumoRelatorio);
+router.post('/enviar', requireClienteAuth, handleEnviarRelatorioCliente);
 
 export default router;

@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente, enviarLembracaPagamentoBatch, atualizarClientesBatch, deletarCliente } from './clientes.service.js';
 import { gerarRelatorio } from '../../services/meta-ads.js';
 import { db } from '../../db/client.js';
@@ -515,6 +516,73 @@ export async function handleObterBenchmarks(req: Request, res: Response): Promis
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao obter benchmarks';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleCriarLoginCliente(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+    const { email, senha } = req.body as { email?: string; senha?: string };
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    if (!email || !senha) {
+      res.status(400).json({ error: 'Email e senha são obrigatórios' });
+      return;
+    }
+
+    // Validar cliente existe
+    const cliente = await obterClientePorId(clienteId);
+    if (!cliente) {
+      res.status(404).json({ error: 'Cliente não encontrado' });
+      return;
+    }
+
+    // Hash da senha
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    // Verificar se já existe login para este cliente
+    const loginExistente = await db`
+      SELECT id FROM cliente_logins WHERE cliente_id = ${clienteId}
+    `;
+
+    let loginId: string;
+
+    if (loginExistente.length > 0) {
+      // Atualizar
+      await db`
+        UPDATE cliente_logins
+        SET email = ${email}, senha_hash = ${senhaHash}, senha_provisoria = true, ativo = true
+        WHERE cliente_id = ${clienteId}
+      `;
+      loginId = loginExistente[0].id;
+    } else {
+      // Criar novo
+      const resultado = await db`
+        INSERT INTO cliente_logins (cliente_id, email, senha_hash, ativo, senha_provisoria)
+        VALUES (${clienteId}, ${email}, ${senhaHash}, true, true)
+        RETURNING id
+      `;
+      loginId = resultado[0].id;
+    }
+
+    res.status(200).json({
+      message: 'Login criado com sucesso',
+      login: {
+        id: loginId,
+        cliente_id: clienteId,
+        email,
+        senha_provisoria: true,
+        ativo: true,
+      },
+      instrucoes: 'Cliente deverá trocar a senha no primeiro acesso',
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao criar login do cliente';
     res.status(400).json({ error: message });
   }
 }

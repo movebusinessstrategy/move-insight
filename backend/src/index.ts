@@ -4,12 +4,11 @@ import cookieParser from 'cookie-parser';
 import { sendWhatsAppMessage } from './services/whatsapp.js';
 import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
+import clienteDashboardRoutes from './routes/cliente.dashboard.js';
+import clienteContextoRoutes from './routes/cliente.contexto.js';
+import clienteCriatativosRoutes from './routes/cliente.criativos.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
 import adminFaturasRoutes from './routes/admin.faturas.js';
-import adminFornecedoresRoutes from './routes/admin.fornecedores.js';
-import adminContasPagarRoutes from './routes/admin.contas-pagar.js';
-import adminReceitasEsporadicasRoutes from './routes/admin.receitas-esporadicas.js';
-import adminFinanceiroRoutes from './routes/admin.financeiro.js';
 import adminRelatorioRoutes from './routes/cliente.relatorio.js';
 import whatsappRoutes from './routes/whatsapp.js';
 
@@ -43,12 +42,12 @@ app.use((_req: any, res, next) => {
 // Routes
 app.use('/api/auth/admin', authAdminRoutes);
 app.use('/api/cliente/auth', authClienteRoutes);
+app.use('/api/cliente/dashboard', clienteDashboardRoutes);
+app.use('/api/cliente/contexto', clienteContextoRoutes);
+app.use('/api/cliente/criativos', clienteCriatativosRoutes);
+app.use('/api/cliente/relatorio', adminRelatorioRoutes);
 app.use('/api/admin', adminClientesRoutes);
 app.use('/api/admin', adminFaturasRoutes);
-app.use('/api/admin', adminFornecedoresRoutes);
-app.use('/api/admin', adminContasPagarRoutes);
-app.use('/api/admin', adminReceitasEsporadicasRoutes);
-app.use('/api/admin', adminFinanceiroRoutes);
 app.use('/api/admin', adminRelatorioRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 

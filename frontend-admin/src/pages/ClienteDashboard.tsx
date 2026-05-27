@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, Wand2, XCircle, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, Wand2, XCircle, MessageSquare, Key } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
+import CriarLoginClienteModal from '../components/CriarLoginClienteModal';
 import type { Theme } from '../theme';
 
 interface Campanha {
@@ -19,7 +20,16 @@ interface Campanha {
 
 interface ResumoRelatorio {
   periodo: { inicio: string; fim: string };
-  resumo: { spend: number; cliques: number; conversoes: number; roas: number };
+  resumo: {
+    totalSpend: number;
+    totalCliques: number;
+    totalConversoes: number;
+    totalConversasIniciadasMensagem: number;
+    roas: number;
+    totalImpressoes: number;
+    cpmMedio: number;
+    cpcMedio: number;
+  };
   analise: { score: number; saude: string; insights: string[]; recomendacoes: string[] };
   comparacao_anterior: {
     variacao_spend: number;
@@ -77,6 +87,7 @@ export default function ClienteDashboard() {
   const [previsao, setPrevisao] = useState<Previsao | null>(null);
   const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [error, setError] = useState('');
+  const [modalLoginAberto, setModalLoginAberto] = useState(false);
 
   const c = colors[theme];
 
@@ -89,8 +100,25 @@ export default function ClienteDashboard() {
   useEffect(() => {
     if (clienteId) {
       carregarDados();
+      carregarClienteInfo();
     }
   }, [clienteId, period]);
+
+  const carregarClienteInfo = async () => {
+    if (!clienteId) return;
+
+    try {
+      const res = await fetch(`/api/admin/clientes/${clienteId}`, {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCliente(data);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar info do cliente:', err);
+    }
+  };
 
   const carregarDados = async () => {
     if (!clienteId) return;
@@ -220,6 +248,35 @@ export default function ClienteDashboard() {
           </button>
 
           <button
+            onClick={() => setModalLoginAberto(true)}
+            style={{
+              backgroundColor: '#6366f1',
+              color: '#fff',
+              border: 'none',
+              padding: `${spacing.sm} ${spacing.md}`,
+              borderRadius: radius.md,
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing.sm,
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.opacity = '0.9';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.opacity = '1';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <Key size={16} />
+            Criar/Resetar Login
+          </button>
+
+          <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.secondary, padding: spacing.sm }}
           >
@@ -227,6 +284,19 @@ export default function ClienteDashboard() {
           </button>
         </div>
       </div>
+
+      {/* Modal de Criar Login */}
+      {clienteId && cliente && (
+        <CriarLoginClienteModal
+          clienteId={clienteId}
+          clienteNome={cliente.nome}
+          isOpen={modalLoginAberto}
+          onClose={() => setModalLoginAberto(false)}
+          onSuccess={() => {
+            setModalLoginAberto(false);
+          }}
+        />
+      )}
 
       {/* Main Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 100%)` }}>
@@ -284,7 +354,7 @@ export default function ClienteDashboard() {
                 <MessageSquare size={20} color={c.accent} />
               </div>
               <p style={{ ...typography.heading, margin: 0, color: c.accent, fontSize: '32px' }}>
-                {resumo.resumo.totalConversasIniciadasMensagem || 0}
+                {(resumo.resumo.totalConversasIniciadasMensagem as any) || 0}
               </p>
               <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.sm} 0 0 0`, fontWeight: '500' }}>
                 Leads gerados no período
@@ -336,7 +406,7 @@ export default function ClienteDashboard() {
                   <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Investimento</h3>
                   <Target size={18} color={c.accent} />
                 </div>
-                <p style={{ ...typography.heading, margin: 0, color: c.accent }}>{formatarMoeda(resumo.resumo.spend)}</p>
+                <p style={{ ...typography.heading, margin: 0, color: c.accent }}>{formatarMoeda(resumo.resumo.totalSpend)}</p>
               </div>
             </div>
 
