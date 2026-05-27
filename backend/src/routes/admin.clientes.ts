@@ -5,6 +5,7 @@ import {
   handleObterCliente,
   handleEnviarLembrance,
   handleAtualizarCliente,
+  handleDeleteClient,
   handleGerarRelatorio,
   handleEnviarLembracaBatch,
   handleAtualizarClientesBatch,
@@ -20,6 +21,7 @@ router.post('/clientes', requireAdminAuth, handleCriarCliente);
 router.get('/clientes', requireAdminAuth, handleListarClientes);
 router.get('/clientes/:clienteId', requireAdminAuth, handleObterCliente);
 router.put('/clientes/:clienteId', requireAdminAuth, handleAtualizarCliente);
+router.delete('/clientes/:clienteId', requireAdminAuth, handleDeleteClient);
 router.get('/clientes/:clienteId/relatorio', requireAdminAuth, handleGerarRelatorio);
 router.post('/clientes/:clienteId/lembrar-pagamento', requireAdminAuth, handleEnviarLembrance);
 router.get('/clientes/:clienteId/relatorio/preview', requireAdminAuth, handlePreviewRelatorio);

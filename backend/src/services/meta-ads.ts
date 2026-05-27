@@ -182,31 +182,55 @@ export async function obterContasMetaAds(
 
     console.log(`[obterContasMetaAds] Buscando campanhas para account ${accountId}, período ${since} a ${until}`);
     const todasAsCampanhas = await getCampaigns(accountId);
-    console.log(`[obterContasMetaAds] Total de campanhas: ${todasAsCampanhas.length}`);
-    const campanhasAtivas = todasAsCampanhas.filter((c: any) => c.status === 'ACTIVE');
-    console.log(`[obterContasMetaAds] Campanhas ativas: ${campanhasAtivas.length}`);
+    console.log(`[obterContasMetaAds] Total de campanhas encontradas: ${todasAsCampanhas.length}`);
+
+    if (todasAsCampanhas.length === 0) {
+      console.warn(`[obterContasMetaAds] ⚠️ Nenhuma campanha encontrada para account ${accountId}. Verifique o token ou a conta Meta Ads.`);
+      return [];
+    }
+
+    // Usar todas as campanhas, não apenas ativas
+    const campanhasParaAnalisar = todasAsCampanhas;
+    console.log(`[obterContasMetaAds] Analisando ${campanhasParaAnalisar.length} campanhas...`);
 
     const campanhasComDados = await Promise.all(
-      campanhasAtivas.map(async (camp) => {
-        const insights = await getCampaignInsights(camp.id, since, until);
-        const roas =
-          insights.conversoes > 0 && insights.spend > 0 ? insights.conversoes / insights.spend : 0;
+      campanhasParaAnalisar.map(async (camp) => {
+        try {
+          const insights = await getCampaignInsights(camp.id, since, until);
+          const roas =
+            insights.conversoes > 0 && insights.spend > 0 ? insights.conversoes / insights.spend : 0;
 
-        return {
-          id: camp.id,
-          name: camp.name,
-          impressions: insights.impressoes,
-          clicks: insights.cliques,
-          conversions: Math.round(insights.conversoes),
-          spend: insights.spend,
-          ctr: insights.ctr,
-          cpc: insights.cpc,
-          ctr_rate: insights.ctr,
-          roas,
-        };
+          return {
+            id: camp.id,
+            name: camp.name,
+            impressions: insights.impressoes,
+            clicks: insights.cliques,
+            conversions: Math.round(insights.conversoes),
+            spend: insights.spend,
+            ctr: insights.ctr,
+            cpc: insights.cpc,
+            ctr_rate: insights.ctr,
+            roas,
+          };
+        } catch (campError) {
+          console.error(`[obterContasMetaAds] Erro ao processar campanha ${camp.id}:`, campError);
+          return {
+            id: camp.id,
+            name: camp.name,
+            impressions: 0,
+            clicks: 0,
+            conversions: 0,
+            spend: 0,
+            ctr: 0,
+            cpc: 0,
+            ctr_rate: 0,
+            roas: 0,
+          };
+        }
       })
     );
 
+    console.log(`[obterContasMetaAds] ✅ Retornando ${campanhasComDados.length} campanhas com dados`);
     return campanhasComDados;
   } catch (error) {
     console.error('Erro ao obter contas Meta Ads:', error);

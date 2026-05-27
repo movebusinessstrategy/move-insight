@@ -77,6 +77,14 @@ export default function Router() {
           }
         />
         <Route
+          path="/relatorio/:clienteId"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <RelatorioClienteDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/dashboard/cliente/:clienteId"
           element={
             <ProtectedRoute user={user} loading={loading}>

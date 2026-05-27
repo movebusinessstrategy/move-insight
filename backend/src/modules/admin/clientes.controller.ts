@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente, enviarLembracaPagamentoBatch, atualizarClientesBatch } from './clientes.service.js';
+import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente, enviarLembracaPagamentoBatch, atualizarClientesBatch, deletarCliente } from './clientes.service.js';
 import { gerarRelatorio } from '../../services/meta-ads.js';
 import { db } from '../../db/client.js';
 
@@ -359,6 +359,29 @@ export async function handleAtualizarFrequenciaRelatorio(req: Request, res: Resp
     res.status(200).json({ cliente, message: 'Frequência de relatório atualizada com sucesso' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro ao atualizar frequência';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleDeleteClient(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    const deleted = await deletarCliente(clienteId);
+
+    if (!deleted) {
+      res.status(404).json({ error: 'Cliente não encontrado' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Cliente excluído com sucesso' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao excluir cliente';
     res.status(400).json({ error: message });
   }
 }

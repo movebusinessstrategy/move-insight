@@ -270,6 +270,13 @@ MOVE Insights
   `;
 }
 
+export async function deletarCliente(clienteId: string): Promise<boolean> {
+  const result = await db`
+    DELETE FROM clientes WHERE id = ${clienteId}
+  `;
+  return result.count > 0;
+}
+
 export async function atualizarCliente(
   clienteId: string,
   dados: {

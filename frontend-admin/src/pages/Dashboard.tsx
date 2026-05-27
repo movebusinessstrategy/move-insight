@@ -1095,22 +1095,81 @@ export default function Dashboard({ user }: DashboardProps) {
                 ...typography.heading,
                 margin: `0 0 ${spacing.lg} 0`,
                 animation: 'slideUp 0.5s ease-out',
-              }}>Meta Ads</h2>
-              <div style={{
-                backgroundColor: c.bg.secondary,
-                borderRadius: radius.lg,
-                border: `1px solid ${c.border}`,
-                padding: spacing.lg,
-                textAlign: 'center',
-                color: c.text.secondary,
-                ...animations.slideUp,
-              }}>
-                <BarChart3 size={48} style={{
-                  margin: `0 auto ${spacing.md}`,
-                  opacity: 0.5,
-                }} />
-                <p style={{ fontSize: '14px' }}>Em desenvolvimento</p>
-              </div>
+              }}>📊 Meta Ads - Visão Geral</h2>
+
+              {clientes.length === 0 ? (
+                <div style={{
+                  backgroundColor: c.bg.secondary,
+                  borderRadius: radius.lg,
+                  border: `1px solid ${c.border}`,
+                  padding: spacing.lg,
+                  textAlign: 'center',
+                  color: c.text.secondary,
+                }}>
+                  <BarChart3 size={48} style={{
+                    margin: `0 auto ${spacing.md}`,
+                    opacity: 0.5,
+                  }} />
+                  <p style={{ fontSize: '14px' }}>Nenhum cliente com Meta Ads configurado</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: spacing.lg }}>
+                  {clientes.filter(c => c.meta_ads_account_id).map(cliente => (
+                    <div
+                      key={cliente.id}
+                      style={{
+                        backgroundColor: c.bg.secondary,
+                        borderRadius: radius.lg,
+                        border: `1px solid ${c.border}`,
+                        padding: spacing.lg,
+                        boxShadow: shadows.md,
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = shadows.lg;
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = shadows.md;
+                      }}
+                      onClick={() => navigate(`/relatorio-cliente/${cliente.id}`)}
+                    >
+                      <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.md} 0` }}>{cliente.nome}</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing.md, marginBottom: spacing.lg }}>
+                        <div style={{ backgroundColor: c.bg.tertiary, padding: spacing.md, borderRadius: radius.md }}>
+                          <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Meta Ads ID</p>
+                          <p style={{ fontSize: '13px', color: c.accent, fontWeight: '600', margin: 0 }}>
+                            {cliente.meta_ads_account_id?.substring(0, 10)}...
+                          </p>
+                        </div>
+                        <div style={{ backgroundColor: c.bg.tertiary, padding: spacing.md, borderRadius: radius.md }}>
+                          <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Status</p>
+                          <p style={{ fontSize: '13px', color: cliente.status === 'ativo' ? '#10b981' : c.warning, fontWeight: '600', margin: 0 }}>
+                            {cliente.status === 'ativo' ? '✓ Ativo' : '○ Inativo'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        style={{
+                          width: '100%',
+                          padding: spacing.md,
+                          backgroundColor: c.accent,
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: radius.md,
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                        }}
+                      >
+                        Ver Relatório Detalhado →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

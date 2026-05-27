@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
@@ -26,7 +26,7 @@ interface Campanha {
 
 interface ResumoRelatorio {
   periodo: { inicio: string; fim: string };
-  resumo: { spend: number; cliques: number; conversoes: number; roas: number };
+  resumo: { spend: number; cliques: number; conversoes: number; conversasIniciadasMensagem?: number; roas: number };
   analise: { score: number; saude: string; insights: string[]; recomendacoes: string[] };
   comparacao_anterior: {
     variacao_spend: number;
@@ -68,6 +68,7 @@ type TabType = 'analise' | 'campanhas' | 'previsoes' | 'benchmarks';
 
 export default function RelatorioClienteDashboard() {
   const navigate = useNavigate();
+  const { clienteId: clienteIdFromUrl } = useParams<{ clienteId?: string }>();
   const [theme, setTheme] = useState<Theme>('light');
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<string>('');
@@ -91,11 +92,15 @@ export default function RelatorioClienteDashboard() {
     carregarClientes();
   }, []);
 
+  // Auto-select client if provided via URL params
   useEffect(() => {
-    if (clienteSelecionado) {
-      carregarRelatorio();
+    if (clienteIdFromUrl && clientes.length > 0) {
+      const clienteValido = clientes.find((c) => c.id === clienteIdFromUrl);
+      if (clienteValido) {
+        setClienteSelecionado(clienteIdFromUrl);
+      }
     }
-  }, [clienteSelecionado, period]);
+  }, [clienteIdFromUrl, clientes]);
 
   const carregarClientes = async () => {
     try {
@@ -411,68 +416,132 @@ export default function RelatorioClienteDashboard() {
                   <>
                     {insights && (
                       <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                        <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>Análise Detalhada</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg }}>
+                          <div style={{ fontSize: '24px' }}>🤖</div>
+                          <h2 style={{ ...typography.heading, margin: 0 }}>Análise Detalhada com IA</h2>
+                        </div>
 
-                        {insights.oportunidades.length > 0 && (
-                          <div style={{ marginBottom: spacing.lg }}>
-                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm }}>✓ Oportunidades</h3>
-                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                              {insights.oportunidades.map((item, i) => (
-                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
-                                  • {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing.md }}>
+                          {insights.oportunidades.length > 0 && (
+                            <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.lg, padding: spacing.lg, borderTop: `3px solid #10b981` }}>
+                              <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#10b981', marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                                <span style={{ fontSize: '18px' }}>✓</span> Oportunidades
+                              </h3>
+                              <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+                                {insights.oportunidades.map((item, i) => (
+                                  <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px', color: c.text.primary, display: 'flex', gap: spacing.sm }}>
+                                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>→</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
 
-                        {insights.alertas.length > 0 && (
-                          <div style={{ marginBottom: spacing.lg }}>
-                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm }}>⚠️ Alertas</h3>
-                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                              {insights.alertas.map((item, i) => (
-                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
-                                  • {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                          {insights.alertas.length > 0 && (
+                            <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.lg, padding: spacing.lg, borderTop: `3px solid ${c.error}` }}>
+                              <h3 style={{ fontSize: '14px', fontWeight: '700', color: c.error, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                                <span style={{ fontSize: '18px' }}>⚠️</span> Alertas
+                              </h3>
+                              <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+                                {insights.alertas.map((item, i) => (
+                                  <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px', color: c.text.primary, display: 'flex', gap: spacing.sm }}>
+                                    <span style={{ color: c.error, fontWeight: 'bold' }}>!</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
 
-                        {insights.proximos_passos.length > 0 && (
-                          <div style={{ marginBottom: spacing.lg }}>
-                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.accent, marginBottom: spacing.sm }}>🎯 Próximos Passos</h3>
-                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                              {insights.proximos_passos.map((item, i) => (
-                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
-                                  • {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                          {insights.proximos_passos.length > 0 && (
+                            <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.lg, padding: spacing.lg, borderTop: `3px solid ${c.accent}` }}>
+                              <h3 style={{ fontSize: '14px', fontWeight: '700', color: c.accent, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                                <span style={{ fontSize: '18px' }}>🎯</span> Próximos Passos
+                              </h3>
+                              <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+                                {insights.proximos_passos.map((item, i) => (
+                                  <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px', color: c.text.primary, display: 'flex', gap: spacing.sm }}>
+                                    <span style={{ color: c.accent, fontWeight: 'bold' }}>&gt;</span>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
 
                     {resumo.analise.insights.length > 0 && (
                       <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                        <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>💡 Insights</h2>
-                        {resumo.analise.insights.map((insight, i) => (
-                          <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '13px', marginBottom: spacing.md, borderLeft: `3px solid ${c.accent}` }}>
-                            {insight}
-                          </div>
-                        ))}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg }}>
+                          <div style={{ fontSize: '24px' }}>💡</div>
+                          <h2 style={{ ...typography.heading, margin: 0 }}>Insights Principais</h2>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: spacing.md }}>
+                          {resumo.analise.insights.map((insight, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                padding: spacing.lg,
+                                backgroundColor: c.bg.tertiary,
+                                borderRadius: radius.lg,
+                                fontSize: '14px',
+                                lineHeight: '1.6',
+                                borderLeft: `4px solid ${c.accent}`,
+                                boxShadow: `0 2px 8px ${c.accent}15`,
+                                transition: 'transform 0.2s, box-shadow 0.2s',
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = `0 4px 16px ${c.accent}25`;
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = `0 2px 8px ${c.accent}15`;
+                              }}
+                            >
+                              {insight}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
                     {resumo.analise.recomendacoes.length > 0 && (
                       <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                        <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🎯 Recomendações</h2>
-                        {resumo.analise.recomendacoes.map((rec, i) => (
-                          <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '13px', marginBottom: spacing.md, borderLeft: `3px solid #fbbf24` }}>
-                            {rec}
-                          </div>
-                        ))}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg }}>
+                          <div style={{ fontSize: '24px' }}>🎯</div>
+                          <h2 style={{ ...typography.heading, margin: 0 }}>Recomendações de Ação</h2>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: spacing.md }}>
+                          {resumo.analise.recomendacoes.map((rec, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                padding: spacing.lg,
+                                backgroundColor: c.bg.tertiary,
+                                borderRadius: radius.lg,
+                                fontSize: '14px',
+                                lineHeight: '1.6',
+                                borderLeft: `4px solid #fbbf24`,
+                                boxShadow: `0 2px 8px #fbbf2415`,
+                                transition: 'transform 0.2s, box-shadow 0.2s',
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = `0 4px 16px #fbbf2425`;
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = `0 2px 8px #fbbf2415`;
+                              }}
+                            >
+                              {rec}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </>
