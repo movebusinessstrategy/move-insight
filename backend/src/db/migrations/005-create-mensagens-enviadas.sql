@@ -1,5 +1,5 @@
 -- Registro de mensagens enviadas via WhatsApp
-CREATE TABLE mensagens_enviadas (
+CREATE TABLE IF NOT EXISTS mensagens_enviadas (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cliente_id      UUID NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
   tipo            TEXT NOT NULL,
@@ -12,6 +12,6 @@ CREATE TABLE mensagens_enviadas (
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_mensagens_cliente ON mensagens_enviadas(cliente_id);
-CREATE INDEX idx_mensagens_status ON mensagens_enviadas(status);
-CREATE INDEX idx_mensagens_created ON mensagens_enviadas(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mensagens_cliente ON mensagens_enviadas(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_mensagens_status ON mensagens_enviadas(status);
+CREATE INDEX IF NOT EXISTS idx_mensagens_created ON mensagens_enviadas(created_at DESC);

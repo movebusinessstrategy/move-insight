@@ -1,5 +1,5 @@
 -- Clientes cadastrados pela equipe
-CREATE TABLE clientes (
+CREATE TABLE IF NOT EXISTS clientes (
   id                          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome                        TEXT NOT NULL,
   empresa                     TEXT,
@@ -25,5 +25,5 @@ CREATE TABLE clientes (
   updated_at                  TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_clientes_status ON clientes(status);
-CREATE INDEX idx_clientes_dia_vencimento ON clientes(dia_vencimento);
+CREATE INDEX IF NOT EXISTS idx_clientes_status ON clientes(status);
+CREATE INDEX IF NOT EXISTS idx_clientes_dia_vencimento ON clientes(dia_vencimento);

@@ -1,5 +1,5 @@
 -- Credenciais de login do cliente final
-CREATE TABLE cliente_logins (
+CREATE TABLE IF NOT EXISTS cliente_logins (
   id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cliente_id              UUID NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
   email                   TEXT NOT NULL UNIQUE,
@@ -12,5 +12,5 @@ CREATE TABLE cliente_logins (
   created_by              UUID REFERENCES users(id)
 );
 
-CREATE INDEX idx_cliente_logins_cliente ON cliente_logins(cliente_id);
-CREATE INDEX idx_cliente_logins_email ON cliente_logins(email);
+CREATE INDEX IF NOT EXISTS idx_cliente_logins_cliente ON cliente_logins(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_cliente_logins_email ON cliente_logins(email);

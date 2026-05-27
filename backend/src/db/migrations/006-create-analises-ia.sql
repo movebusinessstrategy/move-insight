@@ -1,5 +1,5 @@
 -- Análises e resultados da IA (Claude API)
-CREATE TABLE analises_ia (
+CREATE TABLE IF NOT EXISTS analises_ia (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cliente_id      UUID NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
   periodo_inicio  DATE NOT NULL,
@@ -15,6 +15,6 @@ CREATE TABLE analises_ia (
   updated_at      TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_analises_cliente ON analises_ia(cliente_id);
-CREATE INDEX idx_analises_periodo ON analises_ia(periodo_inicio, periodo_fim);
-CREATE INDEX idx_analises_created ON analises_ia(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analises_cliente ON analises_ia(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_analises_periodo ON analises_ia(periodo_inicio, periodo_fim);
+CREATE INDEX IF NOT EXISTS idx_analises_created ON analises_ia(created_at DESC);

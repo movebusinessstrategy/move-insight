@@ -1,5 +1,5 @@
 -- Usuários da equipe (admin)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome            TEXT NOT NULL,
   email           TEXT NOT NULL UNIQUE,
@@ -10,5 +10,5 @@ CREATE TABLE users (
   last_login_at   TIMESTAMPTZ
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_ativo ON users(ativo);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_ativo ON users(ativo);

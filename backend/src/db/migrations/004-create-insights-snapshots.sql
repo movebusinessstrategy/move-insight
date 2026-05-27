@@ -1,5 +1,5 @@
 -- Snapshots de insights (Meta API)
-CREATE TABLE insights_snapshots (
+CREATE TABLE IF NOT EXISTS insights_snapshots (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cliente_id      UUID REFERENCES clientes(id) ON DELETE CASCADE,
   ad_account_id   TEXT NOT NULL,
@@ -26,5 +26,5 @@ CREATE TABLE insights_snapshots (
   raw_response    JSONB
 );
 
-CREATE INDEX idx_snapshots_cliente_fetched ON insights_snapshots(cliente_id, fetched_at DESC);
-CREATE INDEX idx_snapshots_period ON insights_snapshots(period_type, period_start, period_end);
+CREATE INDEX IF NOT EXISTS idx_snapshots_cliente_fetched ON insights_snapshots(cliente_id, fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_snapshots_period ON insights_snapshots(period_type, period_start, period_end);
