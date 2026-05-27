@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, LogOut, Plus, Edit2, Trash2, X, ArrowLeft, Check } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, keyframes } from '../theme';
+import { getPageStyles } from '../styles/global';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
@@ -36,6 +37,7 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
   });
 
   const c = colors[theme];
+  const styles = getPageStyles(theme);
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -156,17 +158,9 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
   const filteredReceitas = statusFilter === 'todos' ? receitas : receitas.filter(r => r.status === statusFilter);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: c.bg.primary, color: c.text.primary }}>
+    <div style={styles.page}>
       {/* Header */}
-      <div style={{
-        backgroundColor: c.bg.secondary,
-        borderBottom: `1px solid ${c.border}`,
-        padding: `${spacing.md} ${spacing.lg}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: shadows.sm,
-      }}>
+      <div style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <button
             onClick={() => navigate('/financeiro')}
@@ -181,7 +175,7 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
             <ArrowLeft size={20} />
           </button>
           <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '32px' }} />
-          <h1 style={{ ...typography.heading, margin: 0, fontSize: '20px' }}>Receitas Esporádicas</h1>
+          <h1 style={{ ...typography.subheading, margin: 0 }}>Receitas Esporádicas</h1>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
@@ -209,9 +203,9 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%)` }}>
+      <div style={styles.content}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-          <h2 style={{ ...typography.heading, margin: 0 }}>Lista de Receitas Esporádicas</h2>
+          <h2 style={styles.title}>Lista de Receitas Esporádicas</h2>
           <button
             onClick={() => {
               setEditingId(null);
@@ -222,13 +216,7 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
               display: 'flex',
               alignItems: 'center',
               gap: spacing.sm,
-              padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: c.accent,
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: radius.md,
-              cursor: 'pointer',
-              fontWeight: '600',
+              ...styles.button('primary'),
             }}
           >
             <Plus size={18} />
@@ -261,25 +249,20 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
         {loading ? (
           <div style={{ textAlign: 'center', padding: spacing.lg }}>Carregando...</div>
         ) : (
-          <div style={{
-            backgroundColor: c.bg.secondary,
-            borderRadius: radius.lg,
-            boxShadow: shadows.md,
-            overflow: 'hidden',
-          }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          <div style={styles.card}>
+            <table style={styles.table}>
               <thead>
                 <tr style={{ backgroundColor: c.bg.tertiary, borderBottom: `1px solid ${c.border}` }}>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Descrição</th>
-                  <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary }}>Valor</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Data</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Status</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Ações</th>
+                  <th style={styles.tableHeader}>Descrição</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'right' }}>Valor</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Data</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Status</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredReceitas.map((receita) => (
-                  <tr key={receita.id} style={{ borderBottom: `1px solid ${c.border}`, transition: 'background-color 0.2s' }}
+                  <tr key={receita.id} style={styles.tableRow}
                     onMouseOver={(e) => {
                       e.currentTarget.style.backgroundColor = c.bg.tertiary;
                     }}
@@ -287,11 +270,11 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <td style={{ padding: spacing.md, fontWeight: '600' }}>{receita.descricao}</td>
-                    <td style={{ padding: spacing.md, textAlign: 'right', fontWeight: '600' }}>
+                    <td style={{ ...styles.tableRow, fontWeight: '600' }}>{receita.descricao}</td>
+                    <td style={{ ...styles.tableRow, textAlign: 'right', fontWeight: '600' }}>
                       {formatarMoeda(receita.valor)}
                     </td>
-                    <td style={{ padding: spacing.md, textAlign: 'center' }}>
+                    <td style={{ ...styles.tableRow, textAlign: 'center' }}>
                       {new Date(receita.data_receita).toLocaleDateString('pt-BR')}
                     </td>
                     <td style={{ padding: spacing.md, textAlign: 'center' }}>
@@ -364,30 +347,10 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
 
       {/* Modal Form */}
       {showForm && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: c.bg.secondary,
-            borderRadius: radius.lg,
-            padding: spacing.lg,
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: shadows.lg,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }}>
+        <div style={styles.modal}>
+          <div style={styles.modalContent}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-              <h3 style={{ ...typography.heading, margin: 0 }}>
+              <h3 style={styles.title}>
                 {editingId ? 'Editar' : 'Nova'} Receita Esporádica
               </h3>
               <button
@@ -407,25 +370,14 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
                 { field: 'tipo', label: 'Tipo' },
               ].map(({ field, label, type, options }) => (
                 <div key={field} style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
-                  <label style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: c.text.secondary,
-                  }}>
+                  <label style={styles.label}>
                     {label}
                   </label>
                   {type === 'select' ? (
                     <select
                       value={formData[field as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                      style={{
-                        padding: spacing.sm,
-                        borderRadius: radius.md,
-                        border: `1px solid ${c.border}`,
-                        backgroundColor: c.bg.tertiary,
-                        color: c.text.primary,
-                        fontSize: '14px',
-                      }}
+                      style={styles.input}
                     >
                       {options?.map((opt) => (
                         <option key={opt} value={opt}>
@@ -438,14 +390,7 @@ export default function ReceitasEsporadicasPage({ user }: ReceitasEsporadicasPag
                       type={type || 'text'}
                       value={formData[field as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                      style={{
-                        padding: spacing.sm,
-                        borderRadius: radius.md,
-                        border: `1px solid ${c.border}`,
-                        backgroundColor: c.bg.tertiary,
-                        color: c.text.primary,
-                        fontSize: '14px',
-                      }}
+                      style={styles.input}
                     />
                   )}
                 </div>

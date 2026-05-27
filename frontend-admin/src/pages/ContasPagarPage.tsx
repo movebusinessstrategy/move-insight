@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, LogOut, Plus, Edit2, Trash2, X, ArrowLeft, Check } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, keyframes } from '../theme';
+import { getPageStyles } from '../styles/global';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
@@ -45,6 +46,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
   });
 
   const c = colors[theme];
+  const styles = getPageStyles(theme);
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -180,17 +182,9 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
   const filteredContas = statusFilter === 'todos' ? contas : contas.filter(c => c.status === statusFilter);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: c.bg.primary, color: c.text.primary }}>
+    <div style={styles.page}>
       {/* Header */}
-      <div style={{
-        backgroundColor: c.bg.secondary,
-        borderBottom: `1px solid ${c.border}`,
-        padding: `${spacing.md} ${spacing.lg}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: shadows.sm,
-      }}>
+      <div style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <button
             onClick={() => navigate('/financeiro')}
@@ -205,7 +199,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
             <ArrowLeft size={20} />
           </button>
           <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '32px' }} />
-          <h1 style={{ ...typography.heading, margin: 0, fontSize: '20px' }}>Contas a Pagar</h1>
+          <h1 style={{ ...typography.subheading, margin: 0 }}>Contas a Pagar</h1>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
@@ -233,9 +227,9 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%)` }}>
+      <div style={styles.content}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-          <h2 style={{ ...typography.heading, margin: 0 }}>Lista de Contas a Pagar</h2>
+          <h2 style={styles.title}>Lista de Contas a Pagar</h2>
           <button
             onClick={() => {
               setEditingId(null);
@@ -246,13 +240,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
               display: 'flex',
               alignItems: 'center',
               gap: spacing.sm,
-              padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: c.accent,
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: radius.md,
-              cursor: 'pointer',
-              fontWeight: '600',
+              ...styles.button('primary'),
             }}
           >
             <Plus size={18} />
@@ -285,26 +273,21 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
         {loading ? (
           <div style={{ textAlign: 'center', padding: spacing.lg }}>Carregando...</div>
         ) : (
-          <div style={{
-            backgroundColor: c.bg.secondary,
-            borderRadius: radius.lg,
-            boxShadow: shadows.md,
-            overflow: 'hidden',
-          }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          <div style={styles.card}>
+            <table style={styles.table}>
               <thead>
                 <tr style={{ backgroundColor: c.bg.tertiary, borderBottom: `1px solid ${c.border}` }}>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Descrição</th>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Fornecedor</th>
-                  <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary }}>Valor</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Vencimento</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Status</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Ações</th>
+                  <th style={styles.tableHeader}>Descrição</th>
+                  <th style={styles.tableHeader}>Fornecedor</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'right' }}>Valor</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Vencimento</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Status</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredContas.map((conta) => (
-                  <tr key={conta.id} style={{ borderBottom: `1px solid ${c.border}`, transition: 'background-color 0.2s' }}
+                  <tr key={conta.id} style={styles.tableRow}
                     onMouseOver={(e) => {
                       e.currentTarget.style.backgroundColor = c.bg.tertiary;
                     }}
@@ -312,12 +295,12 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <td style={{ padding: spacing.md, fontWeight: '600' }}>{conta.descricao}</td>
-                    <td style={{ padding: spacing.md }}>{conta.fornecedor_nome || '-'}</td>
-                    <td style={{ padding: spacing.md, textAlign: 'right', fontWeight: '600' }}>
+                    <td style={{ ...styles.tableRow, fontWeight: '600' }}>{conta.descricao}</td>
+                    <td style={styles.tableRow}>{conta.fornecedor_nome || '-'}</td>
+                    <td style={{ ...styles.tableRow, textAlign: 'right', fontWeight: '600' }}>
                       {formatarMoeda(conta.valor)}
                     </td>
-                    <td style={{ padding: spacing.md, textAlign: 'center' }}>
+                    <td style={{ ...styles.tableRow, textAlign: 'center' }}>
                       {new Date(conta.data_vencimento).toLocaleDateString('pt-BR')}
                     </td>
                     <td style={{ padding: spacing.md, textAlign: 'center' }}>
@@ -390,30 +373,10 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
 
       {/* Modal Form */}
       {showForm && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: c.bg.secondary,
-            borderRadius: radius.lg,
-            padding: spacing.lg,
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: shadows.lg,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }}>
+        <div style={styles.modal}>
+          <div style={styles.modalContent}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-              <h3 style={{ ...typography.heading, margin: 0 }}>
+              <h3 style={styles.title}>
                 {editingId ? 'Editar' : 'Nova'} Conta a Pagar
               </h3>
               <button
@@ -434,25 +397,14 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                 { field: 'categoria', label: 'Categoria' },
               ].map(({ field, label, type, options }) => (
                 <div key={field} style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
-                  <label style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: c.text.secondary,
-                  }}>
+                  <label style={styles.label}>
                     {label}
                   </label>
                   {type === 'supplier-select' ? (
                     <select
                       value={formData[field as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                      style={{
-                        padding: spacing.sm,
-                        borderRadius: radius.md,
-                        border: `1px solid ${c.border}`,
-                        backgroundColor: c.bg.tertiary,
-                        color: c.text.primary,
-                        fontSize: '14px',
-                      }}
+                      style={styles.input}
                     >
                       <option value="">Selecione um fornecedor</option>
                       {fornecedores.map((f) => (
@@ -465,14 +417,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                     <select
                       value={formData[field as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                      style={{
-                        padding: spacing.sm,
-                        borderRadius: radius.md,
-                        border: `1px solid ${c.border}`,
-                        backgroundColor: c.bg.tertiary,
-                        color: c.text.primary,
-                        fontSize: '14px',
-                      }}
+                      style={styles.input}
                     >
                       {options?.map((opt) => (
                         <option key={opt} value={opt}>
@@ -485,14 +430,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                       type={type || 'text'}
                       value={formData[field as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                      style={{
-                        padding: spacing.sm,
-                        borderRadius: radius.md,
-                        border: `1px solid ${c.border}`,
-                        backgroundColor: c.bg.tertiary,
-                        color: c.text.primary,
-                        fontSize: '14px',
-                      }}
+                      style={styles.input}
                     />
                   )}
                 </div>
@@ -504,13 +442,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                 onClick={handleSave}
                 style={{
                   flex: 1,
-                  padding: spacing.md,
-                  backgroundColor: c.accent,
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: radius.md,
-                  cursor: 'pointer',
-                  fontWeight: '600',
+                  ...styles.button('primary'),
                 }}
               >
                 Salvar
@@ -519,13 +451,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                 onClick={() => setShowForm(false)}
                 style={{
                   flex: 1,
-                  padding: spacing.md,
-                  backgroundColor: c.bg.tertiary,
-                  color: c.text.primary,
-                  border: `1px solid ${c.border}`,
-                  borderRadius: radius.md,
-                  cursor: 'pointer',
-                  fontWeight: '600',
+                  ...styles.button('secondary'),
                 }}
               >
                 Cancelar

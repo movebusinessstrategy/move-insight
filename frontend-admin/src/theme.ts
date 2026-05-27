@@ -59,33 +59,41 @@ export const spacing = {
   xxl: '48px',
 };
 
+export const fontFamily = "-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif";
+
 export const typography = {
   title: {
+    fontFamily,
     fontSize: '32px',
     fontWeight: '700',
     lineHeight: '1.2',
   },
   heading: {
+    fontFamily,
     fontSize: '24px',
     fontWeight: '600',
     lineHeight: '1.2',
   },
   subheading: {
+    fontFamily,
     fontSize: '18px',
     fontWeight: '600',
     lineHeight: '1.3',
   },
   body: {
+    fontFamily,
     fontSize: '16px',
     fontWeight: '400',
     lineHeight: '1.5',
   },
   small: {
+    fontFamily,
     fontSize: '14px',
     fontWeight: '400',
     lineHeight: '1.4',
   },
   tiny: {
+    fontFamily,
     fontSize: '12px',
     fontWeight: '400',
     lineHeight: '1.4',

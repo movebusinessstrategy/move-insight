@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, LogOut, DollarSign, TrendingUp, AlertCircle, Plus, ArrowRight, Users, Calendar } from 'lucide-react';
+import { Moon, Sun, LogOut, DollarSign, TrendingUp, AlertCircle, Plus, ArrowRight, Users, Calendar, ArrowLeft } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, animations, keyframes, glassMorphism } from '../theme';
+import { getPageStyles } from '../styles/global';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
@@ -50,11 +51,22 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
   const [error, setError] = useState('');
 
   const c = colors[theme];
+  const styles = getPageStyles(theme);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = keyframes;
     document.head.appendChild(style);
+
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      setSidebarOpen(!e.matches);
+    };
+    mediaQuery.addEventListener('change', handleMediaChange);
+    setSidebarOpen(!mediaQuery.matches);
+
+    return () => mediaQuery.removeEventListener('change', handleMediaChange);
   }, []);
 
   useEffect(() => {
@@ -117,13 +129,29 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        boxShadow: shadows.sm,
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
+        minHeight: '70px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
-          <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '32px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: c.text.primary,
+              padding: spacing.sm,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '40px', width: 'auto' }} />
           <div>
-            <h1 style={{ ...typography.body, margin: 0, fontWeight: '600' }}>MOVE Insights</h1>
-            <p style={{ fontSize: '12px', color: c.text.secondary, margin: '2px 0 0 0' }}>Financeiro</p>
+            <h1 style={{ ...typography.heading, margin: 0, fontSize: '18px' }}>MOVE Insights</h1>
+            <p style={{ ...typography.tiny, color: c.text.secondary, margin: '2px 0 0 0', fontSize: '12px' }}>Financeiro</p>
           </div>
         </div>
 
@@ -199,15 +227,63 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
         </div>
       </div>
 
-      {/* Main Content */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: spacing.lg,
-        background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%, ${c.bg.tertiary} 100%)`,
-        backgroundSize: '200% 200%',
-      }}>
-        {loading ? (
+      {/* Sidebar + Content Container */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Sidebar */}
+        {sidebarOpen && (
+          <div style={{
+            width: '200px',
+            backgroundColor: c.bg.secondary,
+            borderRight: `1px solid ${c.border}`,
+            padding: spacing.lg,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: spacing.md,
+            overflowY: 'auto',
+          }}>
+            <button
+              onClick={() => navigate('/dashboard')}
+              style={{
+                background: 'transparent',
+                color: c.text.primary,
+                border: 'none',
+                borderRadius: radius.md,
+                padding: `${spacing.sm} ${spacing.md}`,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: spacing.sm,
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = c.bg.tertiary;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <Users size={18} />
+              Voltar
+            </button>
+
+            <div style={{
+              height: '1px',
+              backgroundColor: c.border,
+              margin: `${spacing.sm} 0`,
+            }} />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: spacing.lg,
+          background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%)`,
+        }}>
+          {loading ? (
           <div style={{ textAlign: 'center', padding: spacing.xl }}>Carregando...</div>
         ) : error ? (
           <div style={{
@@ -314,43 +390,33 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
 
             {/* Próximas Contas */}
             {resumo.proximasContas.length > 0 && (
-              <div style={{
-                backgroundColor: c.bg.secondary,
-                borderRadius: radius.lg,
-                padding: spacing.lg,
-                boxShadow: shadows.md,
-                border: `1px solid ${c.border}`,
-              }}>
-                <h3 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>Próximas Contas a Vencer</h3>
+              <div style={styles.card}>
+                <h3 style={{ ...styles.title, marginTop: 0, marginBottom: spacing.md }}>Próximas Contas a Vencer</h3>
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    fontSize: '14px',
-                  }}>
+                  <table style={styles.table}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${c.border}` }}>
-                        <th style={{ textAlign: 'left', padding: spacing.sm, color: c.text.secondary }}>Descrição</th>
-                        <th style={{ textAlign: 'left', padding: spacing.sm, color: c.text.secondary }}>Fornecedor</th>
-                        <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary }}>Valor</th>
-                        <th style={{ textAlign: 'center', padding: spacing.sm, color: c.text.secondary }}>Vencimento</th>
-                        <th style={{ textAlign: 'center', padding: spacing.sm, color: c.text.secondary }}>Dias</th>
+                        <th style={styles.tableHeader}>Descrição</th>
+                        <th style={styles.tableHeader}>Fornecedor</th>
+                        <th style={{ ...styles.tableHeader, textAlign: 'right' }}>Valor</th>
+                        <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Vencimento</th>
+                        <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Dias</th>
                       </tr>
                     </thead>
                     <tbody>
                       {resumo.proximasContas.map((conta) => (
-                        <tr key={conta.id} style={{ borderBottom: `1px solid ${c.border}` }}>
-                          <td style={{ padding: spacing.sm }}>{conta.descricao}</td>
-                          <td style={{ padding: spacing.sm }}>{conta.fornecedor_nome}</td>
-                          <td style={{ textAlign: 'right', padding: spacing.sm, fontWeight: '600' }}>
+                        <tr key={conta.id} style={styles.tableRow}>
+                          <td style={styles.tableRow}>{conta.descricao}</td>
+                          <td style={styles.tableRow}>{conta.fornecedor_nome}</td>
+                          <td style={{ ...styles.tableRow, textAlign: 'right', fontWeight: '600' }}>
                             {formatarMoeda(conta.valor)}
                           </td>
-                          <td style={{ textAlign: 'center', padding: spacing.sm }}>
+                          <td style={{ ...styles.tableRow, textAlign: 'center' }}>
                             {new Date(conta.data_vencimento).toLocaleDateString('pt-BR')}
                           </td>
                           <td style={{
+                            ...styles.tableRow,
                             textAlign: 'center',
-                            padding: spacing.sm,
                             color: conta.dias_faltam <= 3 ? '#f59e0b' : c.text.primary,
                             fontWeight: conta.dias_faltam <= 3 ? '600' : '400',
                           }}>
@@ -380,19 +446,11 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
                   key={path}
                   onClick={() => navigate(path)}
                   style={{
-                    backgroundColor: c.accent,
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: radius.lg,
-                    padding: spacing.md,
-                    cursor: 'pointer',
+                    ...styles.button('primary'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: spacing.sm,
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    transition: 'all 0.2s',
                     boxShadow: shadows.md,
                   }}
                   onMouseOver={(e) => {
@@ -411,6 +469,7 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
             </div>
           </div>
         ) : null}
+        </div>
       </div>
     </div>
   );

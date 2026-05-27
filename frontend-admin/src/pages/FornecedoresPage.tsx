@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, LogOut, Plus, Edit2, Trash2, X, ArrowLeft } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, keyframes } from '../theme';
+import { getPageStyles } from '../styles/global';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
@@ -36,6 +37,7 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
   });
 
   const c = colors[theme];
+  const styles = getPageStyles(theme);
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -123,17 +125,9 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: c.bg.primary, color: c.text.primary }}>
+    <div style={styles.page}>
       {/* Header */}
-      <div style={{
-        backgroundColor: c.bg.secondary,
-        borderBottom: `1px solid ${c.border}`,
-        padding: `${spacing.md} ${spacing.lg}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: shadows.sm,
-      }}>
+      <div style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <button
             onClick={() => navigate('/financeiro')}
@@ -148,7 +142,7 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
             <ArrowLeft size={20} />
           </button>
           <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '32px' }} />
-          <h1 style={{ ...typography.heading, margin: 0, fontSize: '20px' }}>Fornecedores</h1>
+          <h1 style={{ ...typography.subheading, margin: 0 }}>Fornecedores</h1>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
@@ -176,9 +170,9 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%)` }}>
+      <div style={styles.content}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-          <h2 style={{ ...typography.heading, margin: 0 }}>Lista de Fornecedores</h2>
+          <h2 style={styles.title}>Lista de Fornecedores</h2>
           <button
             onClick={() => {
               setEditingId(null);
@@ -189,13 +183,7 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
               display: 'flex',
               alignItems: 'center',
               gap: spacing.sm,
-              padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: c.accent,
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: radius.md,
-              cursor: 'pointer',
-              fontWeight: '600',
+              ...styles.button('primary'),
             }}
           >
             <Plus size={18} />
@@ -206,25 +194,20 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
         {loading ? (
           <div style={{ textAlign: 'center', padding: spacing.lg }}>Carregando...</div>
         ) : (
-          <div style={{
-            backgroundColor: c.bg.secondary,
-            borderRadius: radius.lg,
-            boxShadow: shadows.md,
-            overflow: 'hidden',
-          }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          <div style={styles.card}>
+            <table style={styles.table}>
               <thead>
                 <tr style={{ backgroundColor: c.bg.tertiary, borderBottom: `1px solid ${c.border}` }}>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Nome</th>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Email</th>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Telefone</th>
-                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Categoria</th>
-                  <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Ações</th>
+                  <th style={styles.tableHeader}>Nome</th>
+                  <th style={styles.tableHeader}>Email</th>
+                  <th style={styles.tableHeader}>Telefone</th>
+                  <th style={styles.tableHeader}>Categoria</th>
+                  <th style={{ ...styles.tableHeader, textAlign: 'center' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {fornecedores.map((f) => (
-                  <tr key={f.id} style={{ borderBottom: `1px solid ${c.border}`, transition: 'background-color 0.2s' }}
+                  <tr key={f.id} style={styles.tableRow}
                     onMouseOver={(e) => {
                       e.currentTarget.style.backgroundColor = c.bg.tertiary;
                     }}
@@ -232,11 +215,11 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <td style={{ padding: spacing.md, fontWeight: '600' }}>{f.nome}</td>
-                    <td style={{ padding: spacing.md }}>{f.email || '-'}</td>
-                    <td style={{ padding: spacing.md }}>{f.telefone || '-'}</td>
-                    <td style={{ padding: spacing.md }}>{f.categoria || '-'}</td>
-                    <td style={{ padding: spacing.md, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: spacing.sm }}>
+                    <td style={{ ...styles.tableRow, fontWeight: '600' }}>{f.nome}</td>
+                    <td style={styles.tableRow}>{f.email || '-'}</td>
+                    <td style={styles.tableRow}>{f.telefone || '-'}</td>
+                    <td style={styles.tableRow}>{f.categoria || '-'}</td>
+                    <td style={{ ...styles.tableRow, textAlign: 'center', display: 'flex', justifyContent: 'center', gap: spacing.sm }}>
                       <button
                         onClick={() => handleEdit(f)}
                         style={{
@@ -276,30 +259,10 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
 
       {/* Modal Form */}
       {showForm && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: c.bg.secondary,
-            borderRadius: radius.lg,
-            padding: spacing.lg,
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: shadows.lg,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }}>
+        <div style={styles.modal}>
+          <div style={styles.modalContent}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg }}>
-              <h3 style={{ ...typography.heading, margin: 0 }}>
+              <h3 style={styles.title}>
                 {editingId ? 'Editar' : 'Novo'} Fornecedor
               </h3>
               <button
@@ -313,26 +276,14 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
               {['nome', 'email', 'telefone', 'cnpj_cpf', 'categoria'].map((field) => (
                 <div key={field} style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
-                  <label style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: c.text.secondary,
-                    textTransform: 'capitalize',
-                  }}>
+                  <label style={styles.label}>
                     {field === 'cnpj_cpf' ? 'CNPJ/CPF' : field}
                   </label>
                   <input
                     type="text"
                     value={formData[field as keyof typeof formData]}
                     onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
-                    style={{
-                      padding: spacing.sm,
-                      borderRadius: radius.md,
-                      border: `1px solid ${c.border}`,
-                      backgroundColor: c.bg.tertiary,
-                      color: c.text.primary,
-                      fontSize: '14px',
-                    }}
+                    style={styles.input}
                   />
                 </div>
               ))}
@@ -343,13 +294,7 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
                 onClick={handleSave}
                 style={{
                   flex: 1,
-                  padding: spacing.md,
-                  backgroundColor: c.accent,
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: radius.md,
-                  cursor: 'pointer',
-                  fontWeight: '600',
+                  ...styles.button('primary'),
                 }}
               >
                 Salvar
@@ -358,13 +303,7 @@ export default function FornecedoresPage({ user }: FornecedoresPageProps) {
                 onClick={() => setShowForm(false)}
                 style={{
                   flex: 1,
-                  padding: spacing.md,
-                  backgroundColor: c.bg.tertiary,
-                  color: c.text.primary,
-                  border: `1px solid ${c.border}`,
-                  borderRadius: radius.md,
-                  cursor: 'pointer',
-                  fontWeight: '600',
+                  ...styles.button('secondary'),
                 }}
               >
                 Cancelar
