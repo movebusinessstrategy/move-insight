@@ -13,7 +13,13 @@ interface ContaPagar {
   data_vencimento: string;
   status: string;
   fornecedor_nome?: string;
+  fornecedor_id?: string;
   categoria?: string;
+}
+
+interface Fornecedor {
+  id: string;
+  nome: string;
 }
 
 interface ContasPagarPageProps {
@@ -24,6 +30,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
   const navigate = useNavigate();
   const [theme, setTheme] = useState<Theme>('light');
   const [contas, setContas] = useState<ContaPagar[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'todos' | 'pendente' | 'pago' | 'atrasado'>('todos');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,6 +41,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
     data_vencimento: '',
     status: 'pendente',
     categoria: '',
+    fornecedor_id: '',
   });
 
   const c = colors[theme];
@@ -42,8 +50,21 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
     const style = document.createElement('style');
     style.textContent = keyframes;
     document.head.appendChild(style);
+    carregarFornecedores();
     carregarContas();
   }, []);
+
+  const carregarFornecedores = async () => {
+    try {
+      const response = await fetch('/api/admin/fornecedores', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setFornecedores(data.fornecedores || []);
+      }
+    } catch (_err) {
+      // Error handling
+    }
+  };
 
   const carregarContas = async () => {
     try {
@@ -71,7 +92,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
   };
 
   const handleSave = async () => {
-    if (!formData.descricao || !formData.valor || !formData.data_vencimento) {
+    if (!formData.descricao || !formData.valor || !formData.data_vencimento || !formData.fornecedor_id) {
       alert('Preencha todos os campos obrigatórios');
       return;
     }
@@ -90,7 +111,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
       if (response.ok) {
         setShowForm(false);
         setEditingId(null);
-        setFormData({ descricao: '', valor: '', data_vencimento: '', status: 'pendente', categoria: '' });
+        setFormData({ descricao: '', valor: '', data_vencimento: '', status: 'pendente', categoria: '', fornecedor_id: '' });
         carregarContas();
       }
     } catch (_err) {
@@ -135,6 +156,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
       data_vencimento: conta.data_vencimento,
       status: conta.status,
       categoria: conta.categoria || '',
+      fornecedor_id: conta.fornecedor_id || '',
     });
     setShowForm(true);
   };
@@ -217,7 +239,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
           <button
             onClick={() => {
               setEditingId(null);
-              setFormData({ descricao: '', valor: '', data_vencimento: '', status: 'pendente', categoria: '' });
+              setFormData({ descricao: '', valor: '', data_vencimento: '', status: 'pendente', categoria: '', fornecedor_id: '' });
               setShowForm(true);
             }}
             style={{
@@ -273,6 +295,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
               <thead>
                 <tr style={{ backgroundColor: c.bg.tertiary, borderBottom: `1px solid ${c.border}` }}>
                   <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Descrição</th>
+                  <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary }}>Fornecedor</th>
                   <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary }}>Valor</th>
                   <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Vencimento</th>
                   <th style={{ textAlign: 'center', padding: spacing.md, color: c.text.secondary }}>Status</th>
@@ -290,6 +313,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                     }}
                   >
                     <td style={{ padding: spacing.md, fontWeight: '600' }}>{conta.descricao}</td>
+                    <td style={{ padding: spacing.md }}>{conta.fornecedor_nome || '-'}</td>
                     <td style={{ padding: spacing.md, textAlign: 'right', fontWeight: '600' }}>
                       {formatarMoeda(conta.valor)}
                     </td>
@@ -402,6 +426,7 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
               {[
+                { field: 'fornecedor_id', label: 'Fornecedor *', type: 'supplier-select' },
                 { field: 'descricao', label: 'Descrição' },
                 { field: 'valor', label: 'Valor', type: 'number' },
                 { field: 'data_vencimento', label: 'Vencimento', type: 'date' },
@@ -416,7 +441,27 @@ export default function ContasPagarPage({ user }: ContasPagarPageProps) {
                   }}>
                     {label}
                   </label>
-                  {type === 'select' ? (
+                  {type === 'supplier-select' ? (
+                    <select
+                      value={formData[field as keyof typeof formData]}
+                      onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}
+                      style={{
+                        padding: spacing.sm,
+                        borderRadius: radius.md,
+                        border: `1px solid ${c.border}`,
+                        backgroundColor: c.bg.tertiary,
+                        color: c.text.primary,
+                        fontSize: '14px',
+                      }}
+                    >
+                      <option value="">Selecione um fornecedor</option>
+                      {fornecedores.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.nome}
+                        </option>
+                      ))}
+                    </select>
+                  ) : type === 'select' ? (
                     <select
                       value={formData[field as keyof typeof formData]}
                       onChange={(e) => setFormData({ ...formData, [field]: e.target.value })}

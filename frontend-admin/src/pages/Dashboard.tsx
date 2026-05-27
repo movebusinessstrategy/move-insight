@@ -139,6 +139,25 @@ export default function Dashboard({ user }: DashboardProps) {
     }
   };
 
+  const handleDeleteClient = async (clienteId: string) => {
+    if (!confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/admin/clientes/${clienteId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        setClientes(clientes.filter(c => c.id !== clienteId));
+      } else {
+        alert('Erro ao excluir cliente');
+      }
+    } catch (err) {
+      alert('Erro ao conectar');
+    }
+  };
+
   const handleCreateClient = async () => {
     if (!newClientForm.nome || !newClientForm.email) {
       alert('Nome e Email são obrigatórios');
@@ -843,6 +862,23 @@ export default function Dashboard({ user }: DashboardProps) {
                             onMouseOut={(e) => e.currentTarget.style.color = c.text.secondary}
                           >
                             <Edit2 size={18} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClient(cliente.id)}
+                            style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: c.text.secondary,
+                            padding: spacing.sm,
+                            display: 'flex',
+                            alignItems: 'center',
+                            transition: 'color 0.2s',
+                          }}
+                            onMouseOver={(e) => e.currentTarget.style.color = c.error}
+                            onMouseOut={(e) => e.currentTarget.style.color = c.text.secondary}
+                          >
+                            <Trash2 size={18} />
                           </button>
                         </td>
                       </tr>

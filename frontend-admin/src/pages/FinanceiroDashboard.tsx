@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, LogOut, DollarSign, TrendingUp, AlertCircle, Plus, Menu } from 'lucide-react';
-import { colors, spacing, radius, typography, shadows, animations, keyframes } from '../theme';
+import { Moon, Sun, LogOut, DollarSign, TrendingUp, AlertCircle, Plus, ArrowRight, Users, Calendar } from 'lucide-react';
+import { colors, spacing, radius, typography, shadows, animations, keyframes, glassMorphism } from '../theme';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
 import logoDark from '../assets/logo-dark.png';
@@ -107,6 +107,8 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
       backgroundColor: c.bg.primary,
       color: c.text.primary,
     }}>
+      <style>{keyframes}</style>
+
       {/* Header */}
       <div style={{
         backgroundColor: c.bg.secondary,
@@ -117,9 +119,12 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
         alignItems: 'center',
         boxShadow: shadows.sm,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, cursor: 'pointer' }} onClick={() => navigate('/dashboard')}>
           <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '32px' }} />
-          <h1 style={{ ...typography.heading, margin: 0, fontSize: '20px' }}>Financeiro</h1>
+          <div>
+            <h1 style={{ ...typography.body, margin: 0, fontWeight: '600' }}>MOVE Insights</h1>
+            <p style={{ fontSize: '12px', color: c.text.secondary, margin: '2px 0 0 0' }}>Financeiro</p>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
@@ -203,32 +208,34 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
         backgroundSize: '200% 200%',
       }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: spacing.lg }}>Carregando...</div>
+          <div style={{ textAlign: 'center', padding: spacing.xl }}>Carregando...</div>
         ) : error ? (
           <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#991b1b',
+            backgroundColor: c.error + '20',
+            color: c.error,
             padding: spacing.md,
-            borderRadius: radius.md,
+            borderRadius: radius.lg,
             marginBottom: spacing.md,
+            border: `1px solid ${c.error}40`,
           }}>
-            {error}
+            ⚠️ {error}
           </div>
         ) : resumo ? (
           <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+            {/* Cards Grid */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
               gap: spacing.md,
               marginBottom: spacing.lg,
             }}>
               {/* Card Receita */}
               <div style={{
-                backgroundColor: c.bg.secondary,
+                ...glassMorphism[theme],
                 borderRadius: radius.lg,
                 padding: spacing.lg,
                 boxShadow: shadows.md,
-                border: `1px solid ${c.border}`,
+                border: theme === 'light' ? '1px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
                   <h3 style={{ margin: 0, fontSize: '14px', color: c.text.secondary }}>Receita Total</h3>
@@ -247,43 +254,37 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
 
               {/* Card Despesa */}
               <div style={{
-                backgroundColor: c.bg.secondary,
+                ...glassMorphism[theme],
                 borderRadius: radius.lg,
                 padding: spacing.lg,
                 boxShadow: shadows.md,
-                border: `1px solid ${c.border}`,
+                border: theme === 'light' ? '1px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-                  <h3 style={{ margin: 0, fontSize: '14px', color: c.text.secondary }}>Despesa Total</h3>
-                  <TrendingUp size={20} color="#ef4444" />
+                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary, fontWeight: '500' }}>Despesa Total</h3>
+                  <TrendingUp size={18} color={c.error} />
                 </div>
-                <p style={{ ...typography.heading, margin: 0, color: '#ef4444' }}>
+                <p style={{ ...typography.heading, margin: 0, color: c.error }}>
                   {formatarMoeda(resumo.despesa.total)}
-                </p>
-                <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.sm} 0 0 0` }}>
-                  Pendente: {formatarMoeda(resumo.despesa.pendente)}
-                </p>
-                <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>
-                  Pago: {formatarMoeda(resumo.despesa.pago)}
                 </p>
               </div>
 
               {/* Card Saldo */}
               <div style={{
-                backgroundColor: c.bg.secondary,
+                ...glassMorphism[theme],
                 borderRadius: radius.lg,
                 padding: spacing.lg,
                 boxShadow: shadows.md,
-                border: `1px solid ${c.border}`,
+                border: theme === 'light' ? '1px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-                  <h3 style={{ margin: 0, fontSize: '14px', color: c.text.secondary }}>Saldo</h3>
-                  <DollarSign size={20} color={resumo.saldo >= 0 ? '#3b82f6' : '#ef4444'} />
+                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary, fontWeight: '500' }}>Saldo</h3>
+                  <DollarSign size={18} color={resumo.saldo >= 0 ? c.success : c.error} />
                 </div>
                 <p style={{
                   ...typography.heading,
                   margin: 0,
-                  color: resumo.saldo >= 0 ? '#3b82f6' : '#ef4444',
+                  color: resumo.saldo >= 0 ? c.success : c.error,
                 }}>
                   {formatarMoeda(resumo.saldo)}
                 </p>
@@ -291,11 +292,11 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
 
               {/* Card Contas Atrasadas */}
               <div style={{
-                backgroundColor: c.bg.secondary,
+                ...glassMorphism[theme],
                 borderRadius: radius.lg,
                 padding: spacing.lg,
                 boxShadow: shadows.md,
-                border: `1px solid ${c.border}`,
+                border: theme === 'light' ? '1px solid rgba(255, 255, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
                   <h3 style={{ margin: 0, fontSize: '14px', color: c.text.secondary }}>Contas Atrasadas</h3>

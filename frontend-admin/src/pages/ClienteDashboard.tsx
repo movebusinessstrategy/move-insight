@@ -1,1700 +1,451 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Send, Sun, Moon } from 'lucide-react';
-import { colors, spacing, typography, shadows, radius, animations, glassMorphism, keyframes } from '../theme';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader } from 'lucide-react';
+import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 
 interface Campanha {
-  nome: string;
-  impressoes: number;
-  cliques: number;
-  ctr: number;
-  conversoes: number;
-  spend: number;
-  cpm: number;
-  cpc: number;
-  frequencia: number;
-  conversasIniciadasMensagem?: number;
-}
-
-interface Relatorio {
-  periodo: string;
-  campanhas: Campanha[];
-  resumo: {
-    totalSpend: number;
-    totalImpressoes: number;
-    totalCliques: number;
-    totalConversoes: number;
-    roas: number;
-    cpmMedio: number;
-    cpcMedio: number;
-  };
-}
-
-interface Fatura {
   id: string;
-  cliente_id: string;
-  mes_referencia: string;
-  valor: number;
-  data_vencimento: string;
-  status: 'aberta' | 'paga' | 'atrasada' | 'cancelada';
-  data_pagamento: string | null;
-  observacoes: string | null;
-  criada_em: string;
-  atualizada_em: string;
+  name: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  spend: number;
+  ctr: number;
+  cpc: number;
+  ctr_rate: number;
+  roas: number;
 }
 
-interface ResumoFinanceiro {
-  totalFaturado: number;
-  totalRecebido: number;
-  totalEmAberto: number;
-  totalAtrasado: number;
-  proximoVencimento: string | null;
+interface ResumoRelatorio {
+  periodo: { inicio: string; fim: string };
+  resumo: { spend: number; cliques: number; conversoes: number; roas: number };
+  analise: { score: number; saude: string; insights: string[]; recomendacoes: string[] };
+  comparacao_anterior: {
+    variacao_spend: number;
+    variacao_cliques: number;
+    variacao_conversoes: number;
+    tendencia: string;
+    analise: string;
+  };
+  campanhas: Campanha[];
 }
 
-interface FaturamentoMensal {
-  mes: string;
-  valor: number;
-  recebido: number;
+interface InsightsCampanha {
+  oportunidades: string[];
+  alertas: string[];
+  proximos_passos: string[];
+  analise_concorrencial: string;
+}
+
+interface Previsao {
+  roas_forecast: number;
+  confianca: number;
+  fatores: string[];
+}
+
+interface Benchmark {
+  seu_cpm: string;
+  industria_cpm: string;
+  seu_cpc: string;
+  industria_cpc: string;
+  seu_roas: string;
+  industria_roas: string;
+  posicao_cpm: string;
+  posicao_cpc: string;
+  posicao_roas: string;
 }
 
 interface Cliente {
   id: string;
   nome: string;
   email: string;
-  meta_ads_account_id?: string;
-  whatsapp_numero?: string;
 }
 
 type PeriodType = 'last_7d' | 'last_30d' | 'last_90d';
-type TabType = 'campanhas' | 'financeiro';
 
 export default function ClienteDashboard() {
   const navigate = useNavigate();
   const { clienteId } = useParams<{ clienteId: string }>();
 
-  console.log('🚀 ClienteDashboard componente renderizado, clienteId:', clienteId);
-
   const [cliente, setCliente] = useState<Cliente | null>(null);
-  const [relatorio, setRelatorio] = useState<Relatorio | null>(null);
-  const [resumoFinanceiro, setResumoFinanceiro] = useState<ResumoFinanceiro | null>(null);
-  const [faturamentoMensal, setFaturamentoMensal] = useState<FaturamentoMensal[]>([]);
-  const [faturas, setFaturas] = useState<Fatura[]>([]);
+  const [theme, setTheme] = useState<Theme>('light');
   const [loading, setLoading] = useState(true);
-  const [financialLoading, setFinancialLoading] = useState(false);
+  const [period, setPeriod] = useState<PeriodType>('last_30d');
+  const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
+  const [insights, setInsights] = useState<InsightsCampanha | null>(null);
+  const [previsao, setPrevisao] = useState<Previsao | null>(null);
+  const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [error, setError] = useState('');
-  const [period, setPeriod] = useState<PeriodType>('last_7d');
-  const [customDateStart, setCustomDateStart] = useState<string>('');
-  const [customDateEnd, setCustomDateEnd] = useState<string>('');
-  const [useCustomDate, setUseCustomDate] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>('campanhas');
-  const [paymentProcessing, setPaymentProcessing] = useState<string | null>(null);
-  const [reminderProcessing, setReminderProcessing] = useState<string | null>(null);
-  const [relatorioProcessing, setRelatorioProcessing] = useState(false);
-  const [relatorioPreview, setRelatorioPreview] = useState<{ mensagem: string; periodo: string } | null>(null);
-  const [relatorioMensagem, setRelatorioMensagem] = useState('');
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const c = colors[theme];
 
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = keyframes;
     document.head.appendChild(style);
-
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
   }, []);
 
-  // Load cliente on mount
   useEffect(() => {
-    const loadCliente = async () => {
-      if (!clienteId) return;
+    if (clienteId) {
+      carregarDados();
+    }
+  }, [clienteId, period]);
+
+  const carregarDados = async () => {
+    try {
       setLoading(true);
-      try {
-        const clienteRes = await fetch(`/api/admin/clientes/${clienteId}?_=${Date.now()}`, {
-          credentials: 'include',
-        });
-        const clienteData = await clienteRes.json();
-        if (clienteRes.ok) {
-          setCliente(clienteData.cliente);
-        } else {
-          setError(clienteData.error || 'Erro ao carregar cliente');
-        }
-      } catch (_error) {
-        setError('Erro ao conectar com servidor');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadCliente();
-  }, [clienteId]);
+      setError('');
 
-  // Load relatório when period or custom dates change
-  useEffect(() => {
-    const loadRelatorio = async () => {
-      if (!clienteId || !cliente?.meta_ads_account_id) return;
-
-      try {
-        let url = `/api/admin/clientes/${clienteId}/relatorio?_=${Date.now()}`;
-
-        console.log('📅 Construindo URL:', { useCustomDate, customDateStart, customDateEnd, period });
-
-        if (useCustomDate && customDateStart && customDateEnd) {
-          console.log('✅ Usando datas customizadas:', customDateStart, 'a', customDateEnd);
-          url += `&since=${customDateStart}&until=${customDateEnd}`;
-        } else {
-          console.log('✅ Usando período:', period);
-          url += `&period=${period}`;
-        }
-
-        console.log('🔗 URL final:', url);
-
-        const relatorioRes = await fetch(url, {
-          credentials: 'include',
-        });
-        const relatorioData = await relatorioRes.json();
-        if (relatorioRes.ok) {
-          setRelatorio(relatorioData.relatorio);
-          console.log('📊 Relatório carregado:', relatorioData.relatorio.periodo);
-        } else {
-          console.error('❌ Erro ao carregar relatório:', relatorioData.error);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar relatório:', error);
-      }
-    };
-
-    loadRelatorio();
-  }, [clienteId, cliente?.meta_ads_account_id, period, customDateStart, customDateEnd, useCustomDate]);
-
-  // Recarregar cliente quando muda de aba
-  useEffect(() => {
-    if (!clienteId) return;
-
-    const reloadCliente = async () => {
-      try {
-        const res = await fetch(`/api/admin/clientes/${clienteId}?_=${Date.now()}`, {
-          credentials: 'include',
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setCliente(data.cliente);
-        }
-      } catch (_error) {
-        console.error('Erro ao recarregar cliente:', _error);
-      }
-    };
-
-    reloadCliente();
-  }, [activeTab, clienteId]);
-
-  useEffect(() => {
-    const loadFinancialData = async () => {
-      if (!clienteId || activeTab !== 'financeiro') return;
-
-      setFinancialLoading(true);
-      try {
-        const [resumoRes, faturamentoRes, faturasRes] = await Promise.all([
-          fetch(`/api/admin/clientes/${clienteId}/resumo-financeiro`, { credentials: 'include' }),
-          fetch(`/api/admin/clientes/${clienteId}/faturamento-mensal`, { credentials: 'include' }),
-          fetch(`/api/admin/clientes/${clienteId}/faturas`, { credentials: 'include' }),
-        ]);
-
-        if (resumoRes.ok) {
-          const resumoData = await resumoRes.json();
-          setResumoFinanceiro(resumoData.resumo);
-        }
-
-        if (faturamentoRes.ok) {
-          const faturamentoData = await faturamentoRes.json();
-          setFaturamentoMensal(faturamentoData.faturamento);
-        }
-
-        if (faturasRes.ok) {
-          const faturasData = await faturasRes.json();
-          setFaturas(faturasData.faturas);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar dados financeiros:', err);
-      } finally {
-        setFinancialLoading(false);
-      }
-    };
-
-    loadFinancialData();
-  }, [clienteId, activeTab]);
-
-  const handlePayment = async (faturaId: string) => {
-    if (!clienteId) return;
-    setPaymentProcessing(faturaId);
-
-    try {
-      const res = await fetch(`/api/admin/clientes/${clienteId}/faturas/${faturaId}/pagar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Carregar resumo do relatório
+      const resResumo = await fetch(`/api/cliente/relatorio/resumo?periodo=${period}`, {
         credentials: 'include',
-        body: JSON.stringify({ observacoes: 'Pagamento registrado pelo admin' }),
       });
+      if (resResumo.ok) {
+        const dataResumo = await resResumo.json();
+        setResumo(dataResumo);
+      }
 
-      if (res.ok) {
-        setFaturas(faturas.map((f) => (f.id === faturaId ? { ...f, status: 'paga', data_pagamento: new Date().toISOString() } : f)));
-        if (resumoFinanceiro) {
-          const updatedFatura = faturas.find((f) => f.id === faturaId);
-          if (updatedFatura) {
-            setResumoFinanceiro({
-              ...resumoFinanceiro,
-              totalRecebido: resumoFinanceiro.totalRecebido + updatedFatura.valor,
-              totalEmAberto: resumoFinanceiro.totalEmAberto - updatedFatura.valor,
-            });
-          }
-        }
+      // Carregar análise IA
+      const resInsights = await fetch('/api/cliente/relatorio/analise-ia', { credentials: 'include' });
+      if (resInsights.ok) {
+        const dataInsights = await resInsights.json();
+        setInsights(dataInsights);
+      }
+
+      // Carregar previsões
+      const resPrevisao = await fetch('/api/cliente/relatorio/previsoes', { credentials: 'include' });
+      if (resPrevisao.ok) {
+        const dataPrevisao = await resPrevisao.json();
+        setPrevisao(dataPrevisao);
+      }
+
+      // Carregar benchmarks
+      const resBenchmark = await fetch('/api/cliente/relatorio/benchmarks', { credentials: 'include' });
+      if (resBenchmark.ok) {
+        const dataBenchmark = await resBenchmark.json();
+        setBenchmark(dataBenchmark);
       }
     } catch (err) {
-      console.error('Erro ao registrar pagamento:', err);
+      setError('Erro ao carregar dados');
+      console.error(err);
     } finally {
-      setPaymentProcessing(null);
+      setLoading(false);
     }
   };
 
-  const handleEnviarReminderFatura = async (faturaId: string) => {
-    if (!clienteId || !cliente?.whatsapp_numero) {
-      alert('Número de WhatsApp não configurado para este cliente');
-      return;
-    }
-
-    setReminderProcessing(faturaId);
-    try {
-      const res = await fetch(`/api/admin/clientes/${clienteId}/faturas/${faturaId}/enviar-reminder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ numero: cliente.whatsapp_numero }),
-      });
-
-      if (res.ok) {
-        alert('Reminder enviado com sucesso!');
-      } else {
-        const data = await res.json();
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (err) {
-      console.error('Erro ao enviar reminder:', err);
-      alert('Erro ao enviar reminder');
-    } finally {
-      setReminderProcessing(null);
-    }
+  const formatarMoeda = (valor: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   };
 
-  const handleEnviarRelatorioFinanceiro = async () => {
-    if (!clienteId || !cliente?.whatsapp_numero) {
-      alert('Número de WhatsApp não configurado para este cliente');
-      return;
-    }
-
-    setRelatorioProcessing(true);
-    try {
-      const res = await fetch(`/api/admin/clientes/${clienteId}/enviar-relatorio`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ numero: cliente.whatsapp_numero }),
-      });
-
-      if (res.ok) {
-        alert('Relatório financeiro enviado com sucesso!');
-      } else {
-        const data = await res.json();
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (err) {
-      console.error('Erro ao enviar relatório:', err);
-      alert('Erro ao enviar relatório');
-    } finally {
-      setRelatorioProcessing(false);
+  const obterCorSaude = (saude: string) => {
+    switch (saude) {
+      case 'excelente':
+        return '#10b981';
+      case 'bom':
+        return '#3b82f6';
+      case 'regular':
+        return '#f59e0b';
+      case 'crítico':
+        return '#ef4444';
+      default:
+        return c.text.secondary;
     }
   };
-
-  const handleEnviarRelatorioCampanhas = async () => {
-    if (!clienteId || !cliente?.whatsapp_numero) {
-      alert('Número de WhatsApp não configurado para este cliente');
-      return;
-    }
-
-    setRelatorioProcessing(true);
-    try {
-      const params = new URLSearchParams();
-      if (useCustomDate && customDateStart && customDateEnd) {
-        params.append('since', customDateStart);
-        params.append('until', customDateEnd);
-      } else {
-        params.append('period', period);
-      }
-
-      const res = await fetch(`/api/admin/clientes/${clienteId}/relatorio/preview?${params.toString()}`, {
-        credentials: 'include',
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setRelatorioPreview(data);
-        setRelatorioMensagem(data.mensagem);
-      } else {
-        const data = await res.json();
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (err) {
-      console.error('Erro ao gerar preview:', err);
-      alert('Erro ao gerar preview do relatório');
-    } finally {
-      setRelatorioProcessing(false);
-    }
-  };
-
-  const handleConfirmarEnvio = async () => {
-    if (!clienteId) return;
-
-    setRelatorioProcessing(true);
-    try {
-      const res = await fetch(`/api/admin/clientes/${clienteId}/relatorio/enviar-agora`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ mensagem: relatorioMensagem }),
-      });
-
-      if (res.ok) {
-        alert('Relatório enviado com sucesso!');
-        setRelatorioPreview(null);
-        setRelatorioMensagem('');
-      } else {
-        const data = await res.json();
-        alert(`Erro: ${data.error}`);
-      }
-    } catch (err) {
-      console.error('Erro ao enviar relatório:', err);
-      alert('Erro ao enviar relatório');
-    } finally {
-      setRelatorioProcessing(false);
-    }
-  };
-
-  const c = colors[theme];
-
-  if (loading) {
-    return (
-      <div style={{
-        padding: spacing.lg,
-        textAlign: 'center',
-        color: c.text.secondary,
-        backgroundColor: c.bg.primary,
-        minHeight: '100vh',
-      }}>
-        Carregando dashboard...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{
-        padding: spacing.lg,
-        backgroundColor: c.bg.primary,
-        minHeight: '100vh',
-      }}>
-        <button
-          onClick={() => navigate('/dashboard')}
-          style={{
-            padding: `${spacing.sm} ${spacing.md}`,
-            backgroundColor: c.accent,
-            color: 'white',
-            border: 'none',
-            borderRadius: radius.md,
-            cursor: 'pointer',
-            marginBottom: spacing.lg,
-            ...typography.small,
-            fontWeight: '500',
-          }}
-        >
-          ← Voltar
-        </button>
-        <div style={{
-          padding: spacing.md,
-          backgroundColor: theme === 'light' ? 'rgba(255, 59, 48, 0.1)' : 'rgba(255, 69, 58, 0.2)',
-          borderRadius: radius.md,
-          color: colors[theme].error,
-          border: `1px solid ${colors[theme].error}`,
-        }}>
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  if (!cliente) {
-    return (
-      <div style={{
-        padding: spacing.lg,
-        textAlign: 'center',
-        color: c.text.secondary,
-        backgroundColor: c.bg.primary,
-        minHeight: '100vh',
-      }}>
-        Cliente não encontrado
-      </div>
-    );
-  }
 
   return (
-    <div style={{
-      backgroundColor: c.bg.primary,
-      color: c.text.primary,
-      minHeight: '100vh',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", sans-serif',
-      transition: 'background-color 0.3s, color 0.3s',
-      background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%, ${c.bg.tertiary} 100%)`,
-      backgroundSize: '200% 200%',
-      ...animations.gradientShift,
-    }}>
-      {/* HEADER */}
-      <div style={{
-        backgroundColor: c.bg.primary,
-        borderBottom: `1px solid ${c.border}`,
-        padding: `${spacing.lg} ${spacing.lg}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        minHeight: '80px',
-      }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: c.bg.primary, color: c.text.primary }}>
+      <style>{keyframes}</style>
+
+      {/* Header */}
+      <div style={{ backgroundColor: c.bg.secondary, borderBottom: `1px solid ${c.border}`, padding: `${spacing.md} ${spacing.lg}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: shadows.sm }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: spacing.sm,
-              padding: `${spacing.sm} ${spacing.md}`,
-              backgroundColor: 'transparent',
-              color: c.text.primary,
-              border: `1px solid ${c.border}`,
-              borderRadius: radius.md,
-              cursor: 'pointer',
-              fontSize: typography.small.fontSize,
-              fontWeight: '500',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = c.bg.secondary;
-              e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <ArrowLeft size={16} />
+          <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.primary }}>
+            <ArrowLeft size={24} />
           </button>
           <div>
-            <h1
-              style={{
-                ...typography.title,
-                color: c.text.primary,
-                margin: 0,
-                fontSize: '24px',
-              }}
-            >
-              {cliente.nome}
-            </h1>
-            <p
-              style={{
-                ...typography.small,
-                color: c.text.secondary,
-                margin: `${spacing.xs} 0 0 0`,
-              }}
-            >
-              {cliente.email}
-            </p>
+            <h1 style={{ ...typography.heading, margin: 0 }}>{cliente?.nome || 'Dashboard'}</h1>
+            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Relatórios e Análise</p>
           </div>
         </div>
 
         <button
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-          style={{
-            background: 'none',
-            border: `1px solid ${c.border}`,
-            borderRadius: radius.md,
-            padding: spacing.sm,
-            cursor: 'pointer',
-            color: c.text.primary,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.3s ease-out',
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.backgroundColor = c.bg.secondary;
-            e.currentTarget.style.boxShadow = `0 0 12px ${c.accent}33`;
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.secondary, padding: spacing.sm }}
         >
           {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
         </button>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div style={{
-        padding: spacing.lg,
-        maxWidth: '1400px',
-        margin: '0 auto',
-        animation: 'fadeIn 0.5s ease-out',
-      }}>
-        {/* INFO SECTION */}
-        <div style={{
-          marginBottom: spacing.xxl,
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'flex-start',
-        }}>
-        {activeTab === 'campanhas' && (
-          <div style={{ display: 'flex', gap: spacing.md, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.sm }}>
-              <label style={{
-                ...typography.small,
-                color: c.text.secondary,
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                fontSize: '11px',
-              }}>
-                Período
-              </label>
-              <div style={{ display: 'flex', gap: spacing.sm }}>
-                {['last_7d', 'last_30d', 'last_90d'].map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => {
-                      setUseCustomDate(false);
-                      setPeriod(p as PeriodType);
-                    }}
-                    style={{
-                      padding: `${spacing.sm} ${spacing.md}`,
-                      backgroundColor: !useCustomDate && period === p ? c.accent : c.bg.secondary,
-                      color: !useCustomDate && period === p ? '#FFFFFF' : c.text.primary,
-                      border: `1px solid ${c.border}`,
-                      borderRadius: radius.md,
-                      cursor: 'pointer',
-                      ...typography.small,
-                      fontWeight: !useCustomDate && period === p ? '600' : '400',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (useCustomDate || period !== p) {
-                        e.currentTarget.style.backgroundColor = c.bg.tertiary;
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (useCustomDate || period !== p) {
-                        e.currentTarget.style.backgroundColor = c.bg.secondary;
-                      }
-                    }}
-                  >
-                    {p === 'last_7d' ? '7 dias' : p === 'last_30d' ? '30 dias' : '90 dias'}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setUseCustomDate(!useCustomDate)}
-                  style={{
-                    padding: `${spacing.sm} ${spacing.md}`,
-                    backgroundColor: useCustomDate ? colors[theme].warning : c.bg.secondary,
-                    color: useCustomDate ? '#FFFFFF' : c.text.primary,
-                    border: `1px solid ${c.border}`,
-                    borderRadius: radius.md,
-                    cursor: 'pointer',
-                    ...typography.small,
-                    fontWeight: useCustomDate ? '600' : '400',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!useCustomDate) {
-                      e.currentTarget.style.backgroundColor = c.bg.tertiary;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!useCustomDate) {
-                      e.currentTarget.style.backgroundColor = c.bg.secondary;
-                    }
-                  }}
-                >
-                  Customizado
-                </button>
-              </div>
-              {useCustomDate && (
-                <div style={{ display: 'flex', gap: spacing.sm, marginTop: spacing.sm }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
-                    <label style={{ ...typography.tiny, color: c.text.secondary }}>De:</label>
-                    <input
-                      type="date"
-                      value={customDateStart}
-                      onChange={(e) => setCustomDateStart(e.target.value)}
-                      style={{
-                        padding: `${spacing.sm} ${spacing.sm}`,
-                        border: `1px solid ${c.border}`,
-                        borderRadius: radius.md,
-                        backgroundColor: c.bg.secondary,
-                        color: c.text.primary,
-                        ...typography.small,
-                        width: '140px',
-                      }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xs }}>
-                    <label style={{ ...typography.tiny, color: c.text.secondary }}>Até:</label>
-                    <input
-                      type="date"
-                      value={customDateEnd}
-                      onChange={(e) => setCustomDateEnd(e.target.value)}
-                      style={{
-                        padding: `${spacing.sm} ${spacing.sm}`,
-                        border: `1px solid ${c.border}`,
-                        borderRadius: radius.md,
-                        backgroundColor: c.bg.secondary,
-                        color: c.text.primary,
-                        ...typography.small,
-                        width: '140px',
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleEnviarRelatorioCampanhas}
-              disabled={relatorioProcessing || !cliente?.whatsapp_numero}
-              style={{
-                padding: `${spacing.sm} ${spacing.lg}`,
-                backgroundColor: cliente?.whatsapp_numero ? colors[theme].success : c.border,
-                color: 'white',
-                border: 'none',
-                borderRadius: radius.md,
-                cursor: cliente?.whatsapp_numero ? 'pointer' : 'not-allowed',
-                ...typography.small,
-                fontWeight: '600',
-                opacity: relatorioProcessing ? 0.6 : 1,
-                transition: 'all 0.2s',
-              }}
-              title={!cliente?.whatsapp_numero ? 'Configure o número de WhatsApp' : 'Enviar relatório de campanhas'}
-              onMouseEnter={(e) => {
-                if (cliente?.whatsapp_numero && !relatorioProcessing) {
-                  e.currentTarget.style.opacity = '0.9';
-                  e.currentTarget.style.transform = 'scale(1.02)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = relatorioProcessing ? '0.6' : '1';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              {relatorioProcessing ? 'Enviando...' : 'Enviar Relatório'}
-            </button>
+      {/* Main Content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 100%)` }}>
+        {error && (
+          <div style={{ backgroundColor: c.error + '20', color: c.error, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, border: `1px solid ${c.error}40` }}>
+            ⚠️ {error}
           </div>
         )}
-        </div>
 
-        {/* TABS */}
-        <div
-          style={{
-            display: 'flex',
-            gap: spacing.lg,
-            marginBottom: spacing.xxl,
-            borderBottom: `1px solid ${c.border}`,
-            paddingBottom: 0,
-            ...animations.slideUp,
-            animation: 'slideUp 0.5s ease-out',
-          }}
-        >
-          {['campanhas', 'financeiro'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as TabType)}
-              style={{
-                padding: `${spacing.md} ${spacing.lg}`,
-                backgroundColor: 'transparent',
-                color: activeTab === tab ? c.text.primary : c.text.secondary,
-                border: 'none',
-                borderBottom: activeTab === tab ? `2px solid ${c.accent}` : '2px solid transparent',
-                cursor: 'pointer',
-                ...typography.body,
-                fontWeight: activeTab === tab ? '600' : '400',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                if (activeTab !== tab) {
-                  e.currentTarget.style.color = c.text.primary;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeTab !== tab) {
-                  e.currentTarget.style.color = c.text.secondary;
-                }
-              }}
-            >
-              {tab === 'campanhas' ? 'Campanhas' : 'Financeiro'}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === 'campanhas' ? (
-          <>
-            {!cliente.meta_ads_account_id ? (
-              <div style={{
-                padding: spacing.lg,
-                backgroundColor: theme === 'light' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(255, 152, 0, 0.15)',
-                border: `1px solid ${colors[theme].warning}`,
-                borderRadius: radius.lg,
-                color: colors[theme].warning,
-                marginBottom: spacing.lg,
-                ...typography.small,
-              }}>
-                ⚠️ Cliente não possui ID de conta Meta Ads configurado. Configure na página de clientes.
-              </div>
-            ) : !relatorio ? (
-              <div style={{
-                padding: spacing.lg,
-                backgroundColor: theme === 'light' ? 'rgba(0, 122, 255, 0.1)' : 'rgba(10, 132, 255, 0.15)',
-                border: `1px solid ${c.accent}`,
-                borderRadius: radius.lg,
-                color: c.accent,
-                marginBottom: spacing.lg,
-                ...typography.small,
-              }}>
-                ℹ️ Carregando dados da Meta Ads...
-              </div>
-            ) : (
-            <>
-              {/* CARDS DE RESUMO */}
-              <div
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+            <Loader size={48} style={{ animation: 'spin 1s linear infinite' }} />
+          </div>
+        ) : !resumo ? (
+          <div style={{ textAlign: 'center', padding: spacing.xl }}>Sem dados disponíveis</div>
+        ) : (
+          <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
+            {/* Período Seletor */}
+            <div style={{ display: 'flex', gap: spacing.md, marginBottom: spacing.lg, alignItems: 'center' }}>
+              <label style={{ fontSize: '14px', fontWeight: '600', color: c.text.secondary }}>Período:</label>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value as PeriodType)}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: spacing.lg,
-                  marginBottom: spacing.xxl,
-                  animation: 'slideUp 0.5s ease-out',
+                  padding: `${spacing.sm} ${spacing.md}`,
+                  borderRadius: radius.md,
+                  backgroundColor: c.bg.secondary,
+                  color: c.text.primary,
+                  border: `1px solid ${c.border}`,
+                  fontSize: '14px',
+                  cursor: 'pointer',
                 }}
               >
-                {[
-                  { label: 'Investimento Total', value: `R$ ${relatorio.resumo.totalSpend.toFixed(2)}`, desc: 'Gasto em publicidade' },
-                  { label: 'Visualizações', value: relatorio.resumo.totalImpressoes.toLocaleString('pt-BR'), desc: 'Pessoas que viram seus anúncios' },
-                  { label: 'Cliques', value: relatorio.resumo.totalCliques.toLocaleString('pt-BR'), desc: 'Pessoas que clicaram' },
-                  { label: 'Conversões', value: relatorio.resumo.totalConversoes.toLocaleString('pt-BR'), desc: 'Vendas/Ações completadas' },
-                ].map((metric, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
-                      borderRadius: radius.lg,
-                      padding: spacing.lg,
-                      ...animations.slideUp,
-                      transitionDelay: `${idx * 50}ms`,
-                      ...animations.float,
-                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.boxShadow = '';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <p
-                      style={{
-                        ...typography.tiny,
-                        color: c.text.secondary,
-                        textTransform: 'uppercase',
-                        fontWeight: '600',
-                        margin: `0 0 ${spacing.sm} 0`,
-                      }}
-                    >
-                      {metric.label}
-                    </p>
-                    <p style={{ ...typography.title, color: c.text.primary, margin: 0 }}>
-                      {metric.value}
-                    </p>
-                    <p style={{ ...typography.tiny, color: c.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                      {metric.desc}
-                    </p>
-                  </div>
-                ))}
+                <option value="last_7d">Últimos 7 dias</option>
+                <option value="last_30d">Últimos 30 dias</option>
+                <option value="last_90d">Últimos 90 dias</option>
+              </select>
+            </div>
+
+            {/* Resumo Executivo - Cards Principais */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: spacing.md,
+                marginBottom: spacing.lg,
+              }}
+            >
+              {/* Card Score */}
+              <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Score de Desempenho</h3>
+                  <TrendingUp size={18} color={c.accent} />
+                </div>
+                <p style={{ ...typography.heading, margin: 0, color: obterCorSaude(resumo.analise.saude) }}>{resumo.analise.score}</p>
+                <div style={{ width: '100%', height: '4px', backgroundColor: c.bg.tertiary, borderRadius: radius.sm, marginTop: spacing.md, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${resumo.analise.score}%`, backgroundColor: obterCorSaude(resumo.analise.saude), transition: 'width 0.3s' }} />
+                </div>
               </div>
-              {/* CAMPANHAS ATIVAS */}
-              <div style={{ ...animations.slideUp, animation: 'slideUp 0.5s ease-out 0.15s backwards' }}>
-                <h2
-                  style={{
-                    ...typography.heading,
-                    marginTop: 0,
-                    marginBottom: spacing.lg,
-                    color: c.text.primary,
-                  }}
-                >
-                  Campanhas Ativas ({relatorio.campanhas.length})
-                </h2>
-                {relatorio.campanhas.length === 0 ? (
-                  <div style={{
-                    padding: spacing.lg,
-                    backgroundColor: c.bg.secondary,
-                    borderRadius: radius.lg,
-                    textAlign: 'center',
-                    color: c.text.secondary,
-                    border: `1px solid ${c.border}`,
-                  }}>
-                    Nenhuma campanha encontrada
+
+              {/* Card Saúde */}
+              <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Status</h3>
+                  <AlertCircle size={18} color={obterCorSaude(resumo.analise.saude)} />
+                </div>
+                <p style={{ ...typography.heading, margin: 0, color: obterCorSaude(resumo.analise.saude), textTransform: 'capitalize' }}>{resumo.analise.saude}</p>
+              </div>
+
+              {/* Card ROAS */}
+              <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>ROAS</h3>
+                  <Zap size={18} color="#fbbf24" />
+                </div>
+                <p style={{ ...typography.heading, margin: 0, color: '#fbbf24' }}>{resumo.resumo.roas.toFixed(2)}x</p>
+              </div>
+
+              {/* Card Spend */}
+              <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Investimento</h3>
+                  <Target size={18} color={c.accent} />
+                </div>
+                <p style={{ ...typography.heading, margin: 0, color: c.accent }}>{formatarMoeda(resumo.resumo.spend)}</p>
+              </div>
+            </div>
+
+            {/* Insights de IA */}
+            {insights && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🤖 Análise com IA</h2>
+
+                {insights.analise_concorrencial && (
+                  <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', lineHeight: '1.6' }}>
+                    <p style={{ margin: 0 }}>{insights.analise_concorrencial}</p>
                   </div>
-                ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{
-                      width: '100%',
-                      borderCollapse: 'collapse',
-                      backgroundColor: c.bg.secondary,
-                      borderRadius: radius.lg,
-                      border: `1px solid ${c.border}`,
-                      overflow: 'hidden',
-                    }}>
-                      <thead>
-                        <tr style={{
-                          backgroundColor: c.bg.tertiary,
-                          borderBottom: `1px solid ${c.border}`,
-                        }}>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'left',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Campanha</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Vistos</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Cliques</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Taxa</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Conversões</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Msgs</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>CPM</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>CPC</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Investido</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {relatorio.campanhas.map((campanha, idx) => (
-                          <tr
-                            key={idx}
-                            style={{
-                              borderBottom: `1px solid ${c.border}`,
-                              backgroundColor: idx % 2 === 0 ? c.bg.primary : c.bg.secondary,
-                              transition: 'background-color 0.2s',
-                            }}
-                            onMouseOver={(e) => {
-                              e.currentTarget.style.backgroundColor = c.bg.tertiary;
-                            }}
-                            onMouseOut={(e) => {
-                              e.currentTarget.style.backgroundColor = idx % 2 === 0 ? c.bg.primary : c.bg.secondary;
-                            }}
-                          >
-                            <td style={{
-                              padding: spacing.md,
-                              color: c.text.primary,
-                              ...typography.small,
-                              fontWeight: '500',
-                            }}>{campanha.nome}</td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: c.text.secondary,
-                              ...typography.small,
-                            }}>
-                              {campanha.impressoes.toLocaleString('pt-BR')}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: c.text.secondary,
-                              ...typography.small,
-                            }}>
-                              {campanha.cliques.toLocaleString('pt-BR')}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: c.accent,
-                              ...typography.small,
-                              fontWeight: '500',
-                            }}>
-                              {campanha.ctr.toFixed(2)}%
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: colors[theme].success,
-                              ...typography.small,
-                              fontWeight: '500',
-                            }}>
-                              {campanha.conversoes.toLocaleString('pt-BR')}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: c.text.secondary,
-                              ...typography.small,
-                            }}>
-                              R$ {campanha.cpm.toFixed(2)}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: c.text.secondary,
-                              ...typography.small,
-                            }}>
-                              R$ {campanha.cpc.toFixed(2)}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: colors[theme].warning,
-                              ...typography.small,
-                              fontWeight: '600',
-                            }}>
-                              R$ {campanha.spend.toFixed(2)}
-                            </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                )}
+
+                {insights.oportunidades.length > 0 && (
+                  <div style={{ marginBottom: spacing.lg }}>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm }}>✓ Oportunidades</h3>
+                    <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                      {insights.oportunidades.map((oportunidade, i) => (
+                        <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
+                          • {oportunidade}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {insights.alertas.length > 0 && (
+                  <div style={{ marginBottom: spacing.lg }}>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm }}>⚠️ Alertas</h3>
+                    <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                      {insights.alertas.map((alerta, i) => (
+                        <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
+                          • {alerta}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {insights.proximos_passos.length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.accent, marginBottom: spacing.sm }}>→ Próximos Passos</h3>
+                    <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                      {insights.proximos_passos.map((passo, i) => (
+                        <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
+                          □ {passo}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Insights Principais */}
+            {resumo.analise.insights.length > 0 && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>💡 Insights Principais</h2>
+                <div style={{ display: 'grid', gap: spacing.md }}>
+                  {resumo.analise.insights.map((insight, i) => (
+                    <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', borderLeft: `3px solid ${c.accent}` }}>
+                      {insight}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recomendações */}
+            {resumo.analise.recomendacoes.length > 0 && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🎯 Recomendações</h2>
+                <div style={{ display: 'grid', gap: spacing.md }}>
+                  {resumo.analise.recomendacoes.map((rec, i) => (
+                    <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', borderLeft: `3px solid #fbbf24` }}>
+                      {rec}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Comparação Período Anterior */}
+            {resumo.comparacao_anterior && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>📊 Comparação com Período Anterior</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: spacing.md }}>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Spend</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_spend > 0 ? c.error : '#10b981' }}>
+                      {resumo.comparacao_anterior.variacao_spend > 0 ? '+' : ''}{resumo.comparacao_anterior.variacao_spend.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Cliques</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_cliques > 0 ? '#10b981' : c.error }}>
+                      {resumo.comparacao_anterior.variacao_cliques > 0 ? '+' : ''}{resumo.comparacao_anterior.variacao_cliques.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Conversões</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_conversoes > 0 ? '#10b981' : c.error }}>
+                      {resumo.comparacao_anterior.variacao_conversoes > 0 ? '+' : ''}{resumo.comparacao_anterior.variacao_conversoes.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Tendência</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, textTransform: 'capitalize' }}>
+                      {resumo.comparacao_anterior.tendencia}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Previsões */}
+            {previsao && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🔮 Previsões para Próximos 30 Dias</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS Previsto</p>
+                    <p style={{ ...typography.heading, margin: `${spacing.sm} 0 0 0` }}>{previsao.roas_forecast.toFixed(2)}x</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Confiança</p>
+                    <p style={{ ...typography.heading, margin: `${spacing.sm} 0 0 0` }}>{previsao.confianca}%</p>
+                  </div>
+                </div>
+                {previsao.fatores.length > 0 && (
+                  <div style={{ marginTop: spacing.md }}>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `0 0 ${spacing.sm} 0` }}>Fatores Considerados:</p>
+                    <ul style={{ margin: 0, paddingLeft: spacing.lg, color: c.text.primary, fontSize: '13px' }}>
+                      {previsao.fatores.map((fator, i) => (
+                        <li key={i}>{fator}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Benchmarks */}
+            {benchmark && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>📈 Benchmarks vs Indústria</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>CPM</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpm}</p>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: R$ {benchmark.industria_cpm}</p>
+                    <p style={{ fontSize: '11px', color: benchmark.posicao_cpm === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
+                      {benchmark.posicao_cpm === 'melhor' ? '✓ Melhor' : '✗ Acima da média'}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>CPC</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpc}</p>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: R$ {benchmark.industria_cpc}</p>
+                    <p style={{ fontSize: '11px', color: benchmark.posicao_cpc === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
+                      {benchmark.posicao_cpc === 'melhor' ? '✓ Melhor' : '✗ Acima da média'}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS</p>
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: {benchmark.seu_roas}x</p>
+                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: {benchmark.industria_roas}x</p>
+                    <p style={{ fontSize: '11px', color: benchmark.posicao_roas === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
+                      {benchmark.posicao_roas === 'melhor' ? '✓ Melhor' : '✗ Abaixo da média'}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-              {/* PERÍODO */}
-              <div
-                style={{
-                  marginTop: spacing.xxl,
-                  padding: spacing.md,
-                  backgroundColor:
-                    theme === 'light'
-                      ? 'rgba(0, 122, 255, 0.05)'
-                      : 'rgba(10, 132, 255, 0.05)',
-                  border: `1px solid ${c.border}`,
-                  borderRadius: radius.md,
-                  color: c.accent,
-                  fontSize: typography.small.fontSize,
-                }}
-              >
-                Dados do período: {relatorio.periodo}
-              </div>
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          {financialLoading ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-              Carregando dados financeiros...
-            </div>
-          ) : (
-            <>
-              {/* FINANCIAL SUMMARY CARDS */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: spacing.lg,
-                  marginBottom: spacing.xxl,
-                  animation: 'slideUp 0.5s ease-out',
-                }}
-              >
-                {[
-                  { label: 'Total Faturado', value: `R$ ${resumoFinanceiro?.totalFaturado.toFixed(2) || '0.00'}`, desc: 'Desde início de trabalhos' },
-                  { label: 'Total Recebido', value: `R$ ${resumoFinanceiro?.totalRecebido.toFixed(2) || '0.00'}`, desc: 'Pagamentos confirmados' },
-                  { label: 'Em Aberto', value: `R$ ${resumoFinanceiro?.totalEmAberto.toFixed(2) || '0.00'}`, desc: 'À receber' },
-                  { label: 'Atrasado', value: `R$ ${resumoFinanceiro?.totalAtrasado.toFixed(2) || '0.00'}`, desc: 'Vencido não pago' },
-                ].map((card, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
-                      borderRadius: radius.lg,
-                      padding: spacing.lg,
-                      ...animations.slideUp,
-                      transitionDelay: `${idx * 50}ms`,
-                      ...animations.float,
-                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.boxShadow = '';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <p
-                      style={{
-                        ...typography.tiny,
-                        color: c.text.secondary,
-                        textTransform: 'uppercase',
-                        fontWeight: '600',
-                        margin: `0 0 ${spacing.sm} 0`,
-                      }}
-                    >
-                      {card.label}
-                    </p>
-                    <p style={{ ...typography.title, color: c.text.primary, margin: 0 }}>
-                      {card.value}
-                    </p>
-                    <p style={{ ...typography.tiny, color: c.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                      {card.desc}
-                    </p>
-                  </div>
-                ))}
-                {resumoFinanceiro?.proximoVencimento && (
-                  <div
-                    style={{
-                      ...(theme === 'light' ? glassMorphism.light : glassMorphism.dark),
-                      borderRadius: radius.lg,
-                      padding: spacing.lg,
-                      ...animations.slideUp,
-                      transitionDelay: '200ms',
-                      ...animations.float,
-                      transition: 'all 0.3s ease-out, box-shadow 0.3s ease',
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.2)';
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.boxShadow = '';
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  >
-                    <p
-                      style={{
-                        ...typography.tiny,
-                        color: c.text.secondary,
-                        textTransform: 'uppercase',
-                        fontWeight: '600',
-                        margin: `0 0 ${spacing.sm} 0`,
-                      }}
-                    >
-                      Próximo Vencimento
-                    </p>
-                    <p style={{ ...typography.title, color: c.text.primary, margin: 0 }}>
-                      {new Date(resumoFinanceiro.proximoVencimento).toLocaleDateString('pt-BR')}
-                    </p>
-                    <p style={{ ...typography.tiny, color: c.text.tertiary, margin: `${spacing.sm} 0 0 0` }}>
-                      Primeira fatura aberta
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* BOTÃO ENVIAR RELATÓRIO */}
-              <div style={{ marginBottom: spacing.xxl, display: 'flex', gap: spacing.md, alignItems: 'center' }}>
-                <button
-                  onClick={handleEnviarRelatorioFinanceiro}
-                  disabled={relatorioProcessing || !cliente?.whatsapp_numero}
-                  style={{
-                    padding: `${spacing.sm} ${spacing.lg}`,
-                    backgroundColor: cliente?.whatsapp_numero ? colors[theme].success : c.border,
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: radius.md,
-                    cursor: cliente?.whatsapp_numero ? 'pointer' : 'not-allowed',
-                    ...typography.small,
-                    fontWeight: '600',
-                    opacity: relatorioProcessing ? 0.6 : 1,
-                    transition: 'all 0.2s',
-                  }}
-                  title={!cliente?.whatsapp_numero ? 'Configure o número de WhatsApp' : 'Enviar relatório financeiro'}
-                  onMouseEnter={(e) => {
-                    if (cliente?.whatsapp_numero && !relatorioProcessing) {
-                      e.currentTarget.style.opacity = '0.9';
-                      e.currentTarget.style.transform = 'scale(1.02)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = relatorioProcessing ? '0.6' : '1';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  {relatorioProcessing ? 'Enviando...' : 'Enviar Relatório Financeiro'}
-                </button>
-                {!cliente?.whatsapp_numero && (
-                  <p style={{
-                    margin: 0,
-                    color: colors[theme].error,
-                    ...typography.small,
-                  }}>
-                    Configure o número de WhatsApp na edição do cliente
-                  </p>
-                )}
-              </div>
-
-              {/* MONTHLY BILLING TABLE */}
-              <div style={{ marginBottom: spacing.xxl, animation: 'slideUp 0.5s ease-out 0.1s backwards' }}>
-                <h2
-                  style={{
-                    ...typography.heading,
-                    marginTop: 0,
-                    marginBottom: spacing.lg,
-                    color: c.text.primary,
-                  }}
-                >
-                  Faturamento Mensal
-                </h2>
-                {faturamentoMensal.length === 0 ? (
-                  <div style={{
-                    padding: spacing.lg,
-                    backgroundColor: c.bg.secondary,
-                    borderRadius: radius.lg,
-                    textAlign: 'center',
-                    color: c.text.secondary,
-                    border: `1px solid ${c.border}`,
-                  }}>
-                    Nenhum faturamento registrado
-                  </div>
-                ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{
-                      width: '100%',
-                      borderCollapse: 'collapse',
-                      backgroundColor: c.bg.secondary,
-                      borderRadius: radius.lg,
-                      border: `1px solid ${c.border}`,
-                      overflow: 'hidden',
-                    }}>
-                      <thead>
-                        <tr style={{
-                          backgroundColor: c.bg.tertiary,
-                          borderBottom: `1px solid ${c.border}`,
-                        }}>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'left',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>📅 Mês</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'right',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>💰 Faturado</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'right',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>✅ Recebido</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'right',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>⏳ Pendente</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {faturamentoMensal.map((f, idx) => (
-                          <tr key={idx} style={{
-                            borderBottom: `1px solid ${c.border}`,
-                            backgroundColor: idx % 2 === 0 ? c.bg.primary : c.bg.secondary,
-                            transition: 'background-color 0.2s',
-                          }}
-                          onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = c.bg.tertiary;
-                          }}
-                          onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = idx % 2 === 0 ? c.bg.primary : c.bg.secondary;
-                          }}>
-                            <td style={{
-                              padding: spacing.md,
-                              color: c.text.primary,
-                              ...typography.small,
-                              fontWeight: '500',
-                            }}>{f.mes}</td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'right',
-                              color: colors[theme].warning,
-                              ...typography.small,
-                              fontWeight: '600',
-                            }}>
-                              R$ {f.valor.toFixed(2)}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'right',
-                              color: colors[theme].success,
-                              ...typography.small,
-                              fontWeight: '600',
-                            }}>
-                              R$ {f.recebido.toFixed(2)}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'right',
-                              color: f.valor - f.recebido > 0 ? colors[theme].error : c.text.tertiary,
-                              ...typography.small,
-                              fontWeight: '600',
-                            }}>
-                              R$ {(f.valor - f.recebido).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              {/* INVOICES TABLE */}
-              <div style={{ animation: 'slideUp 0.5s ease-out 0.2s backwards' }}>
-                <h2
-                  style={{
-                    ...typography.heading,
-                    marginTop: 0,
-                    marginBottom: spacing.lg,
-                    color: c.text.primary,
-                  }}
-                >
-                  Histórico de Faturas
-                </h2>
-                {faturas.length === 0 ? (
-                  <div style={{
-                    padding: spacing.lg,
-                    backgroundColor: c.bg.secondary,
-                    borderRadius: radius.lg,
-                    textAlign: 'center',
-                    color: c.text.secondary,
-                    border: `1px solid ${c.border}`,
-                  }}>
-                    Nenhuma fatura registrada
-                  </div>
-                ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{
-                      width: '100%',
-                      borderCollapse: 'collapse',
-                      backgroundColor: c.bg.secondary,
-                      borderRadius: radius.lg,
-                      border: `1px solid ${c.border}`,
-                      overflow: 'hidden',
-                    }}>
-                      <thead>
-                        <tr style={{
-                          backgroundColor: c.bg.tertiary,
-                          borderBottom: `1px solid ${c.border}`,
-                        }}>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'left',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>📅 Mês</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Vencimento</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'right',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Valor</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Status</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Pago em</th>
-                          <th style={{
-                            padding: spacing.md,
-                            textAlign: 'center',
-                            color: c.text.secondary,
-                            ...typography.small,
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            fontWeight: '600',
-                          }}>Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {faturas.map((fatura, idx) => {
-                          const statusColor = {
-                            paga: colors[theme].success,
-                            aberta: c.accent,
-                            atrasada: colors[theme].error,
-                            cancelada: c.text.tertiary,
-                          }[fatura.status];
-
-                          const statusLabel = {
-                            paga: '✅ Paga',
-                            aberta: '⏳ Aberta',
-                            atrasada: '⚠️ Atrasada',
-                            cancelada: '❌ Cancelada',
-                          }[fatura.status];
-
-                          return (
-                            <tr key={fatura.id} style={{
-                              borderBottom: `1px solid ${c.border}`,
-                              backgroundColor: idx % 2 === 0 ? c.bg.primary : c.bg.secondary,
-                              transition: 'background-color 0.2s',
-                            }}
-                            onMouseOver={(e) => {
-                              e.currentTarget.style.backgroundColor = c.bg.tertiary;
-                            }}
-                            onMouseOut={(e) => {
-                              e.currentTarget.style.backgroundColor = idx % 2 === 0 ? c.bg.primary : c.bg.secondary;
-                            }}>
-                              <td style={{
-                                padding: spacing.md,
-                                color: c.text.primary,
-                                ...typography.small,
-                                fontWeight: '500',
-                              }}>
-                                {new Date(fatura.mes_referencia).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                              </td>
-                              <td style={{
-                                padding: spacing.md,
-                                textAlign: 'center',
-                                color: c.text.secondary,
-                                ...typography.small,
-                              }}>
-                                {new Date(fatura.data_vencimento).toLocaleDateString('pt-BR')}
-                              </td>
-                              <td style={{
-                                padding: spacing.md,
-                                textAlign: 'right',
-                                color: colors[theme].warning,
-                                ...typography.small,
-                                fontWeight: '600',
-                              }}>
-                                R$ {fatura.valor.toFixed(2)}
-                              </td>
-                              <td style={{
-                                padding: spacing.md,
-                                textAlign: 'center',
-                              }}>
-                                <span style={{
-                                  padding: `${spacing.xs} ${spacing.sm}`,
-                                  backgroundColor: theme === 'light' ? `${statusColor}22` : `${statusColor}33`,
-                                  color: statusColor,
-                                  borderRadius: radius.md,
-                                  ...typography.tiny,
-                                  fontWeight: 'bold',
-                                }}>
-                                  {statusLabel}
-                                </span>
-                              </td>
-                              <td style={{
-                                padding: spacing.md,
-                                textAlign: 'center',
-                                color: c.text.secondary,
-                                ...typography.small,
-                              }}>
-                                {fatura.data_pagamento ? new Date(fatura.data_pagamento).toLocaleDateString('pt-BR') : '—'}
-                              </td>
-                              <td style={{
-                                padding: spacing.md,
-                                textAlign: 'center',
-                              }}>
-                                <div style={{
-                                  display: 'flex',
-                                  gap: spacing.xs,
-                                  justifyContent: 'center',
-                                  flexWrap: 'wrap',
-                                }}>
-                                  {fatura.status !== 'paga' && fatura.status !== 'cancelada' ? (
-                                    <button
-                                      onClick={() => handlePayment(fatura.id)}
-                                      disabled={paymentProcessing === fatura.id}
-                                      style={{
-                                        padding: `${spacing.xs} ${spacing.sm}`,
-                                        backgroundColor: paymentProcessing === fatura.id ? c.border : colors[theme].success,
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: radius.sm,
-                                        cursor: paymentProcessing === fatura.id ? 'not-allowed' : 'pointer',
-                                        ...typography.tiny,
-                                        fontWeight: 'bold',
-                                        whiteSpace: 'nowrap',
-                                        transition: 'all 0.2s',
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (paymentProcessing !== fatura.id) {
-                                          e.currentTarget.style.opacity = '0.9';
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        e.currentTarget.style.opacity = '1';
-                                      }}
-                                    >
-                                      {paymentProcessing === fatura.id ? '...' : '✅ Pago'}
-                                    </button>
-                                  ) : null}
-                                  <button
-                                    onClick={() => handleEnviarReminderFatura(fatura.id)}
-                                    disabled={reminderProcessing === fatura.id || !cliente?.whatsapp_numero}
-                                    title={!cliente?.whatsapp_numero ? 'Configure o número de WhatsApp' : 'Enviar lembrete via WhatsApp'}
-                                    style={{
-                                      padding: `${spacing.xs} ${spacing.sm}`,
-                                      backgroundColor: !cliente?.whatsapp_numero ? c.border : reminderProcessing === fatura.id ? c.bg.tertiary : c.accent,
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: radius.sm,
-                                      cursor: !cliente?.whatsapp_numero ? 'not-allowed' : 'pointer',
-                                      ...typography.tiny,
-                                      fontWeight: 'bold',
-                                      whiteSpace: 'nowrap',
-                                      transition: 'all 0.2s',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (!reminderProcessing && cliente?.whatsapp_numero) {
-                                        e.currentTarget.style.opacity = '0.9';
-                                      }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                      e.currentTarget.style.opacity = '1';
-                                    }}
-                                  >
-                                    {reminderProcessing === fatura.id ? '...' : '📱'}
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </>
-      )}
-
-      {relatorioPreview && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: c.bg.primary,
-            borderRadius: radius.xl,
-            padding: spacing.xl,
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            boxShadow: shadows.lg,
-            border: `1px solid ${c.border}`,
-          }}>
-            <h2 style={{...typography.heading, color: c.text.primary, marginBottom: spacing.lg}}>
-              Preview da Mensagem
-            </h2>
-
-            <div style={{
-              backgroundColor: c.bg.secondary,
-              borderRadius: radius.md,
-              padding: spacing.lg,
-              marginBottom: spacing.lg,
-              border: `1px solid ${c.border}`,
-              whiteSpace: 'pre-wrap',
-              wordBreak: 'break-word',
-              color: c.text.primary,
-              ...typography.small,
-              lineHeight: '1.6',
-            }}>
-              {relatorioMensagem}
-            </div>
-
-            <textarea
-              value={relatorioMensagem}
-              onChange={(e) => setRelatorioMensagem(e.target.value)}
-              style={{
-                width: '100%',
-                minHeight: '200px',
-                padding: spacing.md,
-                borderRadius: radius.md,
-                border: `1px solid ${c.border}`,
-                backgroundColor: c.bg.secondary,
-                color: c.text.primary,
-                fontFamily: 'monospace',
-                fontSize: '14px',
-                marginBottom: spacing.lg,
-                boxSizing: 'border-box',
-              }}
-              placeholder="Edite a mensagem aqui se desejar..."
-            />
-
-            <div style={{
-              display: 'flex',
-              gap: spacing.md,
-              justifyContent: 'flex-end',
-            }}>
-              <button
-                onClick={() => {
-                  setRelatorioPreview(null);
-                  setRelatorioMensagem('');
-                }}
-                disabled={relatorioProcessing}
-                style={{
-                  padding: `${spacing.sm} ${spacing.lg}`,
-                  borderRadius: radius.md,
-                  border: `1px solid ${c.border}`,
-                  backgroundColor: c.bg.secondary,
-                  color: c.text.primary,
-                  cursor: relatorioProcessing ? 'not-allowed' : 'pointer',
-                  opacity: relatorioProcessing ? 0.6 : 1,
-                  ...typography.small,
-                  fontWeight: '500',
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleConfirmarEnvio}
-                disabled={relatorioProcessing}
-                style={{
-                  padding: `${spacing.sm} ${spacing.lg}`,
-                  borderRadius: radius.md,
-                  border: 'none',
-                  backgroundColor: colors[theme].success,
-                  color: '#fff',
-                  cursor: relatorioProcessing ? 'not-allowed' : 'pointer',
-                  opacity: relatorioProcessing ? 0.6 : 1,
-                  ...typography.small,
-                  fontWeight: '600',
-                }}
-              >
-                {relatorioProcessing ? 'Enviando...' : 'Enviar'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

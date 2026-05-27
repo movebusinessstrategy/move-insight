@@ -158,6 +158,59 @@ async function getCampaignInsights(campaignId: string, since: string, until: str
   }
 }
 
+export async function obterContasMetaAds(
+  accountId: string,
+  dataInicial: Date,
+  dataFinal: Date
+): Promise<
+  Array<{
+    id: string;
+    name: string;
+    impressions: number;
+    clicks: number;
+    conversions: number;
+    spend: number;
+    ctr: number;
+    cpc: number;
+    ctr_rate: number;
+    roas: number;
+  }>
+> {
+  try {
+    const since = dataInicial.toISOString().split('T')[0];
+    const until = dataFinal.toISOString().split('T')[0];
+
+    const todasAsCampanhas = await getCampaigns(accountId);
+    const campanhasAtivas = todasAsCampanhas.filter((c: any) => c.status === 'ACTIVE');
+
+    const campanhasComDados = await Promise.all(
+      campanhasAtivas.map(async (camp) => {
+        const insights = await getCampaignInsights(camp.id, since, until);
+        const roas =
+          insights.conversoes > 0 && insights.spend > 0 ? insights.conversoes / insights.spend : 0;
+
+        return {
+          id: camp.id,
+          name: camp.name,
+          impressions: insights.impressoes,
+          clicks: insights.cliques,
+          conversions: Math.round(insights.conversoes),
+          spend: insights.spend,
+          ctr: insights.ctr,
+          cpc: insights.cpc,
+          ctr_rate: insights.ctr,
+          roas,
+        };
+      })
+    );
+
+    return campanhasComDados;
+  } catch (error) {
+    console.error('Erro ao obter contas Meta Ads:', error);
+    return [];
+  }
+}
+
 export async function gerarRelatorio(
   accountId: string,
   period?: DatePreset | { since: string; until: string }
