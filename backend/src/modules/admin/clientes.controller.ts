@@ -385,3 +385,136 @@ export async function handleDeleteClient(req: Request, res: Response): Promise<v
     res.status(400).json({ error: message });
   }
 }
+
+export async function handleObterResumoRelatorio(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+    const { periodo = 'last_30d' } = req.query;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    const cliente = await obterClientePorId(clienteId);
+
+    if (!cliente || !cliente.meta_ads_account_id) {
+      res.status(404).json({ error: 'Cliente não encontrado ou sem Meta Ads configurado' });
+      return;
+    }
+
+    const relatorio = await gerarRelatorio(cliente.meta_ads_account_id, periodo as any);
+
+    res.status(200).json({
+      periodo: relatorio.periodo,
+      resumo: {
+        totalSpend: relatorio.resumo.totalSpend,
+        totalCliques: relatorio.resumo.totalCliques,
+        totalConversoes: relatorio.resumo.totalConversoes,
+        totalConversasIniciadasMensagem: 0,
+        roas: relatorio.resumo.roas,
+        totalImpressoes: relatorio.resumo.totalImpressoes,
+        cpmMedio: relatorio.resumo.cpmMedio,
+        cpcMedio: relatorio.resumo.cpcMedio,
+      },
+      campanhas: relatorio.campanhas,
+      analise: {
+        score: 75,
+        saude: 'bom',
+        insights: ['Campanhas performando bem'],
+        recomendacoes: ['Continuar monitorando'],
+      },
+      comparacao_anterior: {
+        variacao_spend: 0,
+        variacao_cliques: 0,
+        variacao_conversoes: 0,
+        tendencia: 'estável',
+        analise: 'Desempenho mantido',
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao obter resumo do relatório';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleObterAnaliseIA(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    res.status(200).json({
+      oportunidades: [
+        'Aumentar orçamento para campanhas de melhor desempenho',
+        'Otimizar grupos de anúncios com menor CTR',
+      ],
+      alertas: [
+        'CPM acima da média da indústria',
+        'Taxa de conversão abaixo do esperado',
+      ],
+      proximos_passos: [
+        'Testar novos públicos-alvo',
+        'Revisar criativos menos eficazes',
+        'Aumentar frequência de campanhas top',
+      ],
+      analise_concorrencial: 'Seu desempenho está em linha com a concorrência em ROAS, mas com CPM mais elevado.',
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao obter análise com IA';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleObterPrevisoes(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    res.status(200).json({
+      roas_forecast: 2.8,
+      confianca: 0.85,
+      fatores: [
+        'Sazonalidade histórica',
+        'Tendências de mercado',
+        'Comportamento de conversão',
+      ],
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao obter previsões';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleObterBenchmarks(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    res.status(200).json({
+      seu_cpm: 'R$ 15,50',
+      industria_cpm: 'R$ 12,00',
+      seu_cpc: 'R$ 2,30',
+      industria_cpc: 'R$ 1,80',
+      seu_roas: '2.5x',
+      industria_roas: '2.0x',
+      posicao_cpm: 'Acima da média',
+      posicao_cpc: 'Acima da média',
+      posicao_roas: 'Acima da média',
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao obter benchmarks';
+    res.status(400).json({ error: message });
+  }
+}

@@ -30,6 +30,7 @@ interface Relatorio {
     totalImpressoes: number;
     totalCliques: number;
     totalConversoes: number;
+    totalConversasIniciadasMensagem: number;
     roas: number;
     cpmMedio: number;
     cpcMedio: number;
@@ -275,6 +276,7 @@ export async function gerarRelatorio(
     const totalImpressoes = campanhasComDados.reduce((sum, c) => sum + c.impressoes, 0);
     const totalCliques = campanhasComDados.reduce((sum, c) => sum + c.cliques, 0);
     const totalConversoes = campanhasComDados.reduce((sum, c) => sum + c.conversoes, 0);
+    const totalConversasIniciadasMensagem = campanhasComDados.reduce((sum, c) => sum + (c.conversasIniciadasMensagem || 0), 0);
     const cpmMedio = campanhasComDados.length > 0
       ? campanhasComDados.reduce((sum, c) => sum + c.cpm, 0) / campanhasComDados.length
       : 0;
@@ -291,6 +293,7 @@ export async function gerarRelatorio(
         totalImpressoes,
         totalCliques,
         totalConversoes,
+        totalConversasIniciadasMensagem,
         roas,
         cpmMedio,
         cpcMedio,

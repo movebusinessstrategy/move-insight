@@ -25,8 +25,17 @@ interface Campanha {
 }
 
 interface ResumoRelatorio {
-  periodo: { inicio: string; fim: string };
-  resumo: { spend: number; cliques: number; conversoes: number; conversasIniciadasMensagem?: number; roas: number };
+  periodo: string;
+  resumo: {
+    totalSpend: number;
+    totalCliques: number;
+    totalConversoes: number;
+    totalConversasIniciadasMensagem?: number;
+    roas: number;
+    totalImpressoes: number;
+    cpmMedio: number;
+    cpcMedio: number;
+  };
   analise: { score: number; saude: string; insights: string[]; recomendacoes: string[] };
   comparacao_anterior: {
     variacao_spend: number;
@@ -380,8 +389,18 @@ export default function RelatorioClienteDashboard() {
                       <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Investimento</h3>
                       <Target size={18} color={c.accent} />
                     </div>
-                    <p style={{ ...typography.heading, margin: 0, color: c.accent }}>{formatarMoeda(resumo.resumo.spend)}</p>
+                    <p style={{ ...typography.heading, margin: 0, color: c.accent }}>{formatarMoeda(resumo.resumo.totalSpend)}</p>
                   </div>
+
+                  {resumo.resumo.totalConversasIniciadasMensagem !== undefined && resumo.resumo.totalConversasIniciadasMensagem > 0 && (
+                    <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                        <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Conversas Iniciadas</h3>
+                        <div style={{ fontSize: '18px' }}>💬</div>
+                      </div>
+                      <p style={{ ...typography.heading, margin: 0, color: '#06b6d4' }}>{resumo.resumo.totalConversasIniciadasMensagem}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Abas */}
