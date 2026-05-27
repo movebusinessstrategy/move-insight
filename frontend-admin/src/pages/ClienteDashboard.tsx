@@ -140,6 +140,28 @@ export default function ClienteDashboard() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
   };
 
+  const enviarRelatorio = async () => {
+    if (!clienteId) return;
+
+    try {
+      const response = await fetch(`/api/admin/clientes/${clienteId}/relatorio/enviar-agora`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        alert('✅ Relatório enviado via WhatsApp com sucesso!');
+      } else {
+        const data = await response.json();
+        alert(`❌ Erro ao enviar: ${data.error || 'Erro desconhecido'}`);
+      }
+    } catch (err) {
+      alert('❌ Erro ao conectar com o servidor');
+      console.error(err);
+    }
+  };
+
   const obterCorSaude = (saude: string) => {
     switch (saude) {
       case 'excelente':
@@ -171,12 +193,39 @@ export default function ClienteDashboard() {
           </div>
         </div>
 
-        <button
-          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.secondary, padding: spacing.sm }}
-        >
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+          <button
+            onClick={() => enviarRelatorio()}
+            style={{
+              backgroundColor: c.accent,
+              color: '#fff',
+              border: 'none',
+              padding: `${spacing.sm} ${spacing.md}`,
+              borderRadius: radius.md,
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.opacity = '0.9';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.opacity = '1';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            📤 Enviar Relatório
+          </button>
+
+          <button
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.secondary, padding: spacing.sm }}
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}

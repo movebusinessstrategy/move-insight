@@ -114,17 +114,26 @@ async function getCampaignInsights(campaignId: string, since: string, until: str
     const conversoes = data.actions?.find((a: any) => a.action_type === 'offsite_conversion')?.value || 0;
     const frequencia = parseFloat(data.frequency) || 0;
 
-    // Procura em vários tipos possíveis de conversas
+    // Procura em vários tipos possíveis de conversas iniciadas
     let conversasIniciadasMensagem = 0;
     const actionTypes = data.actions?.map((a: any) => a.action_type) || [];
-    const messagingActionType = actionTypes.find((t: string) => t.includes('messaging') || t.includes('conversation'));
 
-    if (messagingActionType) {
-      const action = data.actions.find((a: any) => a.action_type === messagingActionType);
-      conversasIniciadasMensagem = parseInt(action.value) || 0;
-      console.log(`[Meta Ads] Campaign ${campaignId} - ENCONTRADO action com conversas: ${messagingActionType} = ${conversasIniciadasMensagem}`);
+    if (data.actions && Array.isArray(data.actions)) {
+      // Procura por qualquer action relacionado a mensagens
+      const messagingAction = data.actions.find((a: any) =>
+        a.action_type?.toLowerCase().includes('messaging') ||
+        a.action_type?.toLowerCase().includes('conversation') ||
+        a.action_type?.toLowerCase().includes('message')
+      );
+
+      if (messagingAction) {
+        conversasIniciadasMensagem = parseInt(messagingAction.value) || 0;
+        console.log(`[Meta Ads] Campaign ${campaignId} - ENCONTRADO: ${messagingAction.action_type} = ${conversasIniciadasMensagem} conversas`);
+      } else {
+        console.log(`[Meta Ads] Campaign ${campaignId} - Nenhum action com messaging/conversation encontrado. Actions disponíveis:`, actionTypes);
+      }
     } else {
-      console.log(`[Meta Ads] Campaign ${campaignId} - Nenhum action com 'messaging' ou 'conversation' encontrado`);
+      console.log(`[Meta Ads] Campaign ${campaignId} - Nenhum data.actions encontrado`);
     }
 
     console.log(`[Meta Ads] Campaign ${campaignId} - RESUMO: Spend=${spend}, Cliques=${cliques}, Conversas=${conversasIniciadasMensagem}`);
@@ -234,8 +243,11 @@ export async function obterContasMetaAds(
       })
     );
 
-    console.log(`[obterContasMetaAds] ✅ Retornando ${campanhasComDados.length} campanhas com dados`);
-    return campanhasComDados;
+    // Filtrar apenas campanhas com dados (spend > 0 ou cliques > 0)
+    const campanhasComDadosValidos = campanhasComDados.filter((camp) => camp.spend > 0 || camp.clicks > 0);
+
+    console.log(`[obterContasMetaAds] ✅ Retornando ${campanhasComDadosValidos.length} campanhas com dados (filtradas ${campanhasComDados.length - campanhasComDadosValidos.length} sem dados)`);
+    return campanhasComDadosValidos;
   } catch (error) {
     console.error('Erro ao obter contas Meta Ads:', error);
     return [];
