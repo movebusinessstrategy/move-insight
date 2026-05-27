@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3 } from 'lucide-react';
+import { TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3 } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import Header from '../components/Header';
