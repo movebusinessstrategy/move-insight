@@ -241,38 +241,6 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
             gap: spacing.md,
             overflowY: 'auto',
           }}>
-            <button
-              onClick={() => navigate('/dashboard')}
-              style={{
-                background: 'transparent',
-                color: c.text.primary,
-                border: 'none',
-                borderRadius: radius.md,
-                padding: `${spacing.sm} ${spacing.md}`,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing.sm,
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'all 0.2s',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = c.bg.tertiary;
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Users size={18} />
-              Voltar
-            </button>
-
-            <div style={{
-              height: '1px',
-              backgroundColor: c.border,
-              margin: `${spacing.sm} 0`,
-            }} />
           </div>
         )}
 
