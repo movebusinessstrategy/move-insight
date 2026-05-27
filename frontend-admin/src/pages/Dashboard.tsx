@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp, CheckCircle2, Circle } from 'lucide-react';
+import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp, CheckCircle2, Circle, FileText } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, glassMorphism, animations, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
@@ -517,7 +517,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <TrendingUp size={18} />
+            <FileText size={18} />
             Relatórios com IA
           </button>
 
