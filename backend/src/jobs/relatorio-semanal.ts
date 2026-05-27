@@ -78,6 +78,16 @@ export async function initRelatorioSemanal(): Promise<void> {
             const dataInicial = new Date();
             dataInicial.setDate(dataFinal.getDate() - 7);
 
+            if (!cliente.meta_ads_account_id) {
+              console.log(`⏭️ Cliente ${cliente.nome}: sem Meta Ads configurado`);
+              continue;
+            }
+
+            if (!cliente.whatsapp_numero) {
+              console.log(`⏭️ Cliente ${cliente.nome}: sem WhatsApp configurado`);
+              continue;
+            }
+
             const campanhas = await obterContasMetaAds(cliente.meta_ads_account_id, dataInicial, dataFinal);
 
             if (campanhas.length === 0) {

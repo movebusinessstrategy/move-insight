@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 
@@ -64,6 +64,7 @@ interface Benchmark {
 }
 
 type PeriodType = 'last_7d' | 'last_30d' | 'last_90d';
+type TabType = 'analise' | 'campanhas' | 'previsoes' | 'benchmarks';
 
 export default function RelatorioClienteDashboard() {
   const navigate = useNavigate();
@@ -79,6 +80,7 @@ export default function RelatorioClienteDashboard() {
   const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [error, setError] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('analise');
 
   const c = colors[theme];
 
@@ -214,8 +216,8 @@ export default function RelatorioClienteDashboard() {
           <div style={{ textAlign: 'center', padding: spacing.xl }}>Nenhum cliente com Meta Ads configurado</div>
         ) : (
           <div style={{ animation: 'fadeIn 0.5s ease-out' }}>
-            {/* Seletor de Cliente e Período */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing.md, marginBottom: spacing.lg }}>
+            {/* Seletor de Cliente e Período + Botão Refresh */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing.md, marginBottom: spacing.lg, alignItems: 'end' }}>
               {/* Seletor de Cliente */}
               <div style={{ position: 'relative' }}>
                 <label style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, display: 'block', marginBottom: spacing.sm }}>Cliente:</label>
@@ -295,9 +297,34 @@ export default function RelatorioClienteDashboard() {
                   <option value="last_90d">Últimos 90 dias</option>
                 </select>
               </div>
+
+              {/* Botão Refresh Análise */}
+              <button
+                onClick={carregarRelatorio}
+                disabled={loadingRelatorio || !clienteSelecionado}
+                style={{
+                  padding: `${spacing.sm} ${spacing.lg}`,
+                  borderRadius: radius.md,
+                  backgroundColor: c.accent,
+                  color: 'white',
+                  border: 'none',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: loadingRelatorio || !clienteSelecionado ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: spacing.sm,
+                  opacity: loadingRelatorio || !clienteSelecionado ? 0.6 : 1,
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                <RefreshCw size={16} style={{ animation: loadingRelatorio ? 'spin 1s linear infinite' : 'none' }} />
+                Forçar Análise
+              </button>
             </div>
 
-            {/* Relatório */}
+            {/* Relatório com Abas */}
             {loadingRelatorio ? (
               <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
                 <Loader size={40} style={{ animation: 'spin 1s linear infinite' }} />
@@ -344,60 +371,212 @@ export default function RelatorioClienteDashboard() {
                   </div>
                 </div>
 
-                {/* IA Insights */}
-                {insights && (
-                  <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🤖 Análise com IA</h2>
+                {/* Abas */}
+                <div style={{ display: 'flex', gap: spacing.md, marginBottom: spacing.lg, borderBottom: `2px solid ${c.border}` }}>
+                  {(['analise', 'campanhas', 'previsoes', 'benchmarks'] as TabType[]).map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      style={{
+                        padding: `${spacing.md} ${spacing.lg}`,
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: activeTab === tab ? c.accent : c.text.secondary,
+                        borderBottom: activeTab === tab ? `3px solid ${c.accent}` : 'none',
+                        marginBottom: '-2px',
+                        transition: 'color 0.2s',
+                      }}
+                    >
+                      {tab === 'analise' && '🤖 Análise com IA'}
+                      {tab === 'campanhas' && '📊 Meta Ads'}
+                      {tab === 'previsoes' && '🔮 Previsões'}
+                      {tab === 'benchmarks' && '📈 Benchmarks'}
+                    </button>
+                  ))}
+                </div>
 
-                    {insights.oportunidades.length > 0 && (
-                      <div style={{ marginBottom: spacing.lg }}>
-                        <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm }}>✓ Oportunidades</h3>
-                        <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                          {insights.oportunidades.map((item, i) => (
-                            <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
-                              • {item}
-                            </li>
-                          ))}
-                        </ul>
+                {/* Conteúdo das Abas */}
+                {activeTab === 'analise' && (
+                  <>
+                    {insights && (
+                      <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                        <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>Análise Detalhada</h2>
+
+                        {insights.oportunidades.length > 0 && (
+                          <div style={{ marginBottom: spacing.lg }}>
+                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm }}>✓ Oportunidades</h3>
+                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                              {insights.oportunidades.map((item, i) => (
+                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
+                                  • {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {insights.alertas.length > 0 && (
+                          <div style={{ marginBottom: spacing.lg }}>
+                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm }}>⚠️ Alertas</h3>
+                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                              {insights.alertas.map((item, i) => (
+                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
+                                  • {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {insights.proximos_passos.length > 0 && (
+                          <div style={{ marginBottom: spacing.lg }}>
+                            <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.accent, marginBottom: spacing.sm }}>🎯 Próximos Passos</h3>
+                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                              {insights.proximos_passos.map((item, i) => (
+                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
+                                  • {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {insights.alertas.length > 0 && (
-                      <div style={{ marginBottom: spacing.lg }}>
-                        <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm }}>⚠️ Alertas</h3>
-                        <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                          {insights.alertas.map((item, i) => (
-                            <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
-                              • {item}
-                            </li>
-                          ))}
-                        </ul>
+                    {resumo.analise.insights.length > 0 && (
+                      <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
+                        <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>💡 Insights</h2>
+                        {resumo.analise.insights.map((insight, i) => (
+                          <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '13px', marginBottom: spacing.md, borderLeft: `3px solid ${c.accent}` }}>
+                            {insight}
+                          </div>
+                        ))}
                       </div>
                     )}
-                  </div>
-                )}
 
-                {/* Insights */}
-                {resumo.analise.insights.length > 0 && (
-                  <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>💡 Insights</h2>
-                    {resumo.analise.insights.map((insight, i) => (
-                      <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '13px', marginBottom: spacing.md, borderLeft: `3px solid ${c.accent}` }}>
-                        {insight}
+                    {resumo.analise.recomendacoes.length > 0 && (
+                      <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                        <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🎯 Recomendações</h2>
+                        {resumo.analise.recomendacoes.map((rec, i) => (
+                          <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '13px', marginBottom: spacing.md, borderLeft: `3px solid #fbbf24` }}>
+                            {rec}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 )}
 
-                {/* Recomendações */}
-                {resumo.analise.recomendacoes.length > 0 && (
+                {activeTab === 'campanhas' && (
                   <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🎯 Recomendações</h2>
-                    {resumo.analise.recomendacoes.map((rec, i) => (
-                      <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '13px', marginBottom: spacing.md, borderLeft: `3px solid #fbbf24` }}>
-                        {rec}
+                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>Campanhas de Meta Ads</h2>
+                    {resumo.campanhas.length === 0 ? (
+                      <p style={{ color: c.text.secondary }}>Nenhuma campanha encontrada para este período</p>
+                    ) : (
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: `2px solid ${c.border}` }}>
+                              <th style={{ textAlign: 'left', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Campanha</th>
+                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Impressões</th>
+                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Cliques</th>
+                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>CTR</th>
+                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Conversões</th>
+                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Custo</th>
+                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>ROAS</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {resumo.campanhas.map((camp, i) => (
+                              <tr key={i} style={{ borderBottom: `1px solid ${c.border}` }}>
+                                <td style={{ padding: spacing.sm, color: c.text.primary }}>{camp.name}</td>
+                                <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{camp.impressions.toLocaleString('pt-BR')}</td>
+                                <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{camp.clicks.toLocaleString('pt-BR')}</td>
+                                <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{(camp.ctr_rate * 100).toFixed(2)}%</td>
+                                <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{camp.conversions.toLocaleString('pt-BR')}</td>
+                                <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{formatarMoeda(camp.spend)}</td>
+                                <td style={{ padding: spacing.sm, color: '#fbbf24', textAlign: 'right', fontWeight: '600' }}>{camp.roas.toFixed(2)}x</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                    ))}
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'previsoes' && (
+                  <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🔮 Previsões de Desempenho</h2>
+                    {previsao ? (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md, marginBottom: spacing.lg }}>
+                          <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS Previsto</p>
+                            <p style={{ ...typography.heading, margin: 0, color: c.accent, marginTop: spacing.sm }}>{previsao.roas_forecast.toFixed(2)}x</p>
+                          </div>
+                          <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Confiança</p>
+                            <p style={{ ...typography.heading, margin: 0, color: c.accent, marginTop: spacing.sm }}>{previsao.confianca}%</p>
+                          </div>
+                        </div>
+                        {previsao.fatores.length > 0 && (
+                          <div>
+                            <h3 style={{ fontSize: '13px', fontWeight: '600', marginBottom: spacing.sm }}>Fatores Considerados:</h3>
+                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
+                              {previsao.fatores.map((fator, i) => (
+                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
+                                  • {fator}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p style={{ color: c.text.secondary }}>Dados de previsão não disponíveis</p>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'benchmarks' && (
+                  <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
+                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>📈 Benchmarks Competitivos</h2>
+                    {benchmark ? (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing.md }}>
+                        <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
+                          <h3 style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, margin: 0 }}>CPM (Custo por Mil Impressões)</h3>
+                          <div style={{ marginTop: spacing.md }}>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Seu CPM: <strong>{benchmark.seu_cpm}</strong></p>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: <strong>{benchmark.industria_cpm}</strong></p>
+                            <p style={{ fontSize: '12px', color: obterCorSaude(benchmark.posicao_cpm as any), margin: `${spacing.sm} 0 0 0`, fontWeight: '600' }}>Posição: {benchmark.posicao_cpm}</p>
+                          </div>
+                        </div>
+
+                        <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
+                          <h3 style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, margin: 0 }}>CPC (Custo por Clique)</h3>
+                          <div style={{ marginTop: spacing.md }}>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Seu CPC: <strong>{benchmark.seu_cpc}</strong></p>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: <strong>{benchmark.industria_cpc}</strong></p>
+                            <p style={{ fontSize: '12px', color: obterCorSaude(benchmark.posicao_cpc as any), margin: `${spacing.sm} 0 0 0`, fontWeight: '600' }}>Posição: {benchmark.posicao_cpc}</p>
+                          </div>
+                        </div>
+
+                        <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
+                          <h3 style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, margin: 0 }}>ROAS (Retorno sobre Gasto)</h3>
+                          <div style={{ marginTop: spacing.md }}>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Seu ROAS: <strong>{benchmark.seu_roas}</strong></p>
+                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: <strong>{benchmark.industria_roas}</strong></p>
+                            <p style={{ fontSize: '12px', color: obterCorSaude(benchmark.posicao_roas as any), margin: `${spacing.sm} 0 0 0`, fontWeight: '600' }}>Posição: {benchmark.posicao_roas}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p style={{ color: c.text.secondary }}>Dados de benchmark não disponíveis</p>
+                    )}
                   </div>
                 )}
               </>
