@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { Queue } from 'bullmq';
-import { listarClientesComFinanceiro } from '../modules/admin/clientes.service.js';
+import { db } from '../db/client.js';
 
 interface RelatorioJobData {
   clienteId: string;
@@ -8,51 +8,50 @@ interface RelatorioJobData {
 }
 
 export async function startReportScheduler(reportQueue: Queue<RelatorioJobData>) {
-  const clientes = await listarClientesComFinanceiro();
+  try {
+    // Buscar clientes com frequência de relatório ativa
+    const clientes = await db<Array<{ id: string; report_frequency: string; meta_ads_account_id?: string }>>`
+      SELECT id, report_frequency, meta_ads_account_id
+      FROM clientes
+      WHERE report_frequency IN ('semanal', 'mensal') AND status = 'ativo'
+    `;
 
-  cron.schedule(
-    '0 9 * * 1',
-    async () => {
-      const relatorioClientes = clientes.filter(
-        (c) => c.relatorio_frequencia === 'semanal' && c.meta_ads_account_id
-      );
-
-      for (const cliente of relatorioClientes) {
-        try {
-          await reportQueue.add(`relatorio-${cliente.id}-semanal`, {
-            clienteId: cliente.id,
-            frequencia: 'semanal',
-          });
-          console.log(`📧 Job semanal agendado para cliente ${cliente.id}`);
-        } catch (error) {
-          console.error(`❌ Erro agendando job para cliente ${cliente.id}:`, error);
+    // Agenda semanal (segundas 9h América/São Paulo)
+    cron.schedule(
+      '0 9 * * 1',
+      async () => {
+        for (const cliente of clientes) {
+          if (cliente.report_frequency === 'semanal' && cliente.meta_ads_account_id) {
+            await reportQueue.add(
+              `relatorio-${cliente.id}-semanal`,
+              { clienteId: cliente.id, frequencia: 'semanal' },
+              { repeat: { pattern: '0 9 * * 1' } }
+            );
+          }
         }
-      }
-    },
-    { timezone: 'America/Sao_Paulo' }
-  );
+      },
+      { timezone: 'America/Sao_Paulo' }
+    );
 
-  cron.schedule(
-    '0 9 1 * *',
-    async () => {
-      const relatorioClientes = clientes.filter(
-        (c) => c.relatorio_frequencia === 'mensal' && c.meta_ads_account_id
-      );
-
-      for (const cliente of relatorioClientes) {
-        try {
-          await reportQueue.add(`relatorio-${cliente.id}-mensal`, {
-            clienteId: cliente.id,
-            frequencia: 'mensal',
-          });
-          console.log(`📧 Job mensal agendado para cliente ${cliente.id}`);
-        } catch (error) {
-          console.error(`❌ Erro agendando job para cliente ${cliente.id}:`, error);
+    // Agenda mensal (1º dia 9h)
+    cron.schedule(
+      '0 9 1 * *',
+      async () => {
+        for (const cliente of clientes) {
+          if (cliente.report_frequency === 'mensal' && cliente.meta_ads_account_id) {
+            await reportQueue.add(
+              `relatorio-${cliente.id}-mensal`,
+              { clienteId: cliente.id, frequencia: 'mensal' }
+            );
+          }
         }
-      }
-    },
-    { timezone: 'America/Sao_Paulo' }
-  );
+      },
+      { timezone: 'America/Sao_Paulo' }
+    );
 
-  console.log('✅ Scheduler de relatórios iniciado (seg 9h / 1º dia 9h)');
+    console.log('✅ Scheduler de relatórios iniciado');
+  } catch (error) {
+    console.error('❌ Erro ao inicializar scheduler de relatórios:', error);
+    throw error;
+  }
 }

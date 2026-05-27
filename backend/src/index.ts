@@ -67,11 +67,10 @@ app.listen(PORT, async () => {
   console.log(`📱 WhatsApp: Conecte via POST /api/whatsapp/connect`);
 
   // Initialize report queue and worker (não inicializa WhatsApp automaticamente)
-  const reportQueue = new Queue('relatorio', {
-    connection: { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') }
-  });
+  const redisConnection = { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') };
+  const reportQueue = new Queue('relatorio', { connection: redisConnection });
 
-  createRelatorioWorker();
+  createRelatorioWorker(redisConnection);
 
   await startReportScheduler(reportQueue).catch((error) => {
     console.error('⚠️ Report scheduler não foi inicializado:', error);
