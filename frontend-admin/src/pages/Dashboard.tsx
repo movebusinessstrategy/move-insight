@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign } from 'lucide-react';
+import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, glassMorphism, animations, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
@@ -489,6 +489,35 @@ export default function Dashboard({ user }: DashboardProps) {
             backgroundColor: c.border,
             margin: `${spacing.sm} 0`,
           }} />
+
+          <button
+            onClick={() => navigate('/relatorio')}
+            style={{
+              background: 'transparent',
+              color: c.text.primary,
+              border: 'none',
+              borderRadius: radius.md,
+              padding: `${spacing.sm} ${spacing.md}`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing.sm,
+              fontSize: '14px',
+              fontWeight: '500',
+              transition: 'all 0.2s',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = c.bg.tertiary;
+              e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <TrendingUp size={18} />
+            Relatórios com IA
+          </button>
 
           <button
             onClick={() => navigate('/financeiro')}

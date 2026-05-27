@@ -10,10 +10,11 @@ import adminFornecedoresRoutes from './routes/admin.fornecedores.js';
 import adminContasPagarRoutes from './routes/admin.contas-pagar.js';
 import adminReceitasEsporadicasRoutes from './routes/admin.receitas-esporadicas.js';
 import adminFinanceiroRoutes from './routes/admin.financeiro.js';
-import clienteRelatorioRoutes from './routes/cliente.relatorio.js';
+import adminRelatorioRoutes from './routes/cliente.relatorio.js';
 import { sendWhatsAppMessage } from './services/whatsapp.js';
 import { createRelatorioWorker } from './workers/relatorio.worker.js';
 import { startReportScheduler } from './jobs/schedule-reports.js';
+import { initRelatorioSemanal } from './jobs/relatorio-semanal.js';
 import whatsappRoutes from './routes/whatsapp.js';
 
 const app = express();
@@ -52,7 +53,7 @@ app.use('/api/admin', adminFornecedoresRoutes);
 app.use('/api/admin', adminContasPagarRoutes);
 app.use('/api/admin', adminReceitasEsporadicasRoutes);
 app.use('/api/admin', adminFinanceiroRoutes);
-app.use('/api/cliente', clienteRelatorioRoutes);
+app.use('/api/admin', adminRelatorioRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 
 // Health check
@@ -77,4 +78,7 @@ app.listen(PORT, async () => {
   await startReportScheduler(reportQueue).catch((error) => {
     console.error('⚠️ Report scheduler não foi inicializado:', error);
   });
+
+  initRelatorioSemanal();
+  console.log('✅ Weekly AI report scheduler initialized');
 });

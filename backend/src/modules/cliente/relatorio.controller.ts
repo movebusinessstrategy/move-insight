@@ -19,9 +19,9 @@ interface AuthenticatedRequest extends Request {
 
 export async function handleObterResumoRelatorio(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const clienteId = req.params.clienteId || (req.user as any)?.clienteId;
+    const clienteId = req.params.clienteId;
     if (!clienteId) {
-      res.status(401).json({ error: 'Cliente não autenticado' });
+      res.status(400).json({ error: 'clienteId é obrigatório' });
       return;
     }
 
@@ -97,9 +97,9 @@ export async function handleObterResumoRelatorio(req: AuthenticatedRequest, res:
 
 export async function handleObterAnaliseIA(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const clienteId = req.params.clienteId || (req.user as any)?.clienteId;
+    const clienteId = req.params.clienteId;
     if (!clienteId) {
-      res.status(401).json({ error: 'Cliente não autenticado' });
+      res.status(400).json({ error: 'clienteId é obrigatório' });
       return;
     }
 
@@ -138,9 +138,9 @@ export async function handleObterAnaliseIA(req: AuthenticatedRequest, res: Respo
 
 export async function handleObterPrevisoes(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const clienteId = req.params.clienteId || (req.user as any)?.clienteId;
+    const clienteId = req.params.clienteId;
     if (!clienteId) {
-      res.status(401).json({ error: 'Cliente não autenticado' });
+      res.status(400).json({ error: 'clienteId é obrigatório' });
       return;
     }
 
@@ -180,9 +180,9 @@ export async function handleObterPrevisoes(req: AuthenticatedRequest, res: Respo
 
 export async function handleObterBenchmarks(req: AuthenticatedRequest, res: Response): Promise<void> {
   try {
-    const clienteId = req.params.clienteId || (req.user as any)?.clienteId;
+    const clienteId = req.params.clienteId;
     if (!clienteId) {
-      res.status(401).json({ error: 'Cliente não autenticado' });
+      res.status(400).json({ error: 'clienteId é obrigatório' });
       return;
     }
 

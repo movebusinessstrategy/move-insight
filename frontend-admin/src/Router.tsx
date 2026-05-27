@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ClienteDashboard from './pages/ClienteDashboard';
+import RelatorioClienteDashboard from './pages/RelatorioClienteDashboard';
 import FinanceiroDashboard from './pages/FinanceiroDashboard';
 import FornecedoresPage from './pages/FornecedoresPage';
 import ContasPagarPage from './pages/ContasPagarPage';
@@ -64,6 +65,14 @@ export default function Router() {
           element={
             <ProtectedRoute user={user} loading={loading}>
               <Dashboard user={user!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/relatorio"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <RelatorioClienteDashboard />
             </ProtectedRoute>
           }
         />
