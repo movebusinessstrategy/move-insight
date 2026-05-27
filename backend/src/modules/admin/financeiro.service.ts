@@ -32,8 +32,7 @@ export async function obterResumoFinanceiro(adminId: string): Promise<ResumoFina
   const receitasClientes = await db<Array<{ total: string }>>`
     SELECT COALESCE(SUM(valor), 0) as total
     FROM faturas
-    WHERE cliente_id IN (SELECT id FROM clientes WHERE admin_id = ${adminId})
-    AND status = 'paga'
+    WHERE status = 'paga'
   `;
 
   // Total de receitas esporádicas recebidas

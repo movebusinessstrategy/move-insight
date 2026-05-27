@@ -3,7 +3,7 @@ import { obterResumoFinanceiro } from './financeiro.service.js';
 
 export async function handleObterResumoFinanceiro(req: Request, res: Response): Promise<void> {
   try {
-    const adminId = (req as any).user?.id;
+    const adminId = (req as any).adminUser?.id;
     if (!adminId) {
       res.status(401).json({ error: 'Não autorizado' });
       return;
