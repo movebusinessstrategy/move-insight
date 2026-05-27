@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ClienteDashboard from './pages/ClienteDashboard';
+import FinanceiroDashboard from './pages/FinanceiroDashboard';
+import FornecedoresPage from './pages/FornecedoresPage';
+import ContasPagarPage from './pages/ContasPagarPage';
+import ReceitasEsporadicasPage from './pages/ReceitasEsporadicasPage';
 
 interface User {
   id: string;
@@ -68,6 +72,38 @@ export default function Router() {
           element={
             <ProtectedRoute user={user} loading={loading}>
               <ClienteDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/financeiro"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <FinanceiroDashboard user={user!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fornecedores"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <FornecedoresPage user={user!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contas-pagar"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <ContasPagarPage user={user!} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/receitas-esporadicas"
+          element={
+            <ProtectedRoute user={user} loading={loading}>
+              <ReceitasEsporadicasPage user={user!} />
             </ProtectedRoute>
           }
         />

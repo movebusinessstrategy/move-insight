@@ -256,14 +256,16 @@ MOVE Insights
   }
 
   await db`
-    INSERT INTO mensagens_enviadas (id, cliente_id, tipo, status, conteudo, whatsapp_msg_id)
+    INSERT INTO mensagens_enviadas (id, cliente_id, tipo, status, conteudo, whatsapp_msg_id, destinatario_phone, triggered_by)
     VALUES (
       gen_random_uuid(),
       ${clienteId},
       'lembrete_pagamento',
       ${status},
       ${mensagem},
-      ${msgId}
+      ${msgId},
+      ${whatsapp},
+      'sistema'
     )
   `;
 }
@@ -471,7 +473,7 @@ export async function enviarRelatorioWhatsApp(
   const period = frequencia === 'semanal' ? 'last_7d' : 'last_30d';
 
   const relatorio = await gerarRelatorio(cliente.meta_ads_account_id, period);
-  const mensagem = formatarRelatorioWhatsApp(relatorio);
+  const mensagem = await formatarRelatorioWhatsApp(relatorio);
 
   let msgId: string | null = null;
   let status = 'pendente';
@@ -486,14 +488,16 @@ export async function enviarRelatorioWhatsApp(
   }
 
   await db`
-    INSERT INTO mensagens_enviadas (id, cliente_id, tipo, status, conteudo, whatsapp_msg_id)
+    INSERT INTO mensagens_enviadas (id, cliente_id, tipo, status, conteudo, whatsapp_msg_id, destinatario_phone, triggered_by)
     VALUES (
       gen_random_uuid(),
       ${clienteId},
       ${'relatorio_' + frequencia},
       ${status},
       ${mensagem},
-      ${msgId}
+      ${msgId},
+      ${whatsappNumber},
+      'sistema'
     )
   `;
 }

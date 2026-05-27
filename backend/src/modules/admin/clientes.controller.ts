@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
-import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente, enviarLembracaPagamentoBatch, atualizarClientesBatch, enviarRelatorioWhatsApp } from './clientes.service.js';
+import { criarCliente, listarClientesComFinanceiro, obterClientePorId, enviarLembrancePagamento, atualizarCliente, enviarLembracaPagamentoBatch, atualizarClientesBatch } from './clientes.service.js';
 import { gerarRelatorio } from '../../services/meta-ads.js';
+import { db } from '../../db/client.js';
 
 export async function handleCriarCliente(req: Request, res: Response): Promise<void> {
   try {
@@ -230,17 +231,101 @@ export async function handleAtualizarClientesBatch(req: Request, res: Response):
   }
 }
 
-export async function handleEnviarRelatorioAgora(req: Request, res: Response): Promise<void> {
+export async function handlePreviewRelatorio(req: Request, res: Response): Promise<void> {
   try {
     const { clienteId } = req.params;
+    const { period = 'last_7d', since, until } = req.query;
+
+    console.log(`[Preview] clienteId: ${clienteId}, period: ${period}, since: ${since}, until: ${until}`);
 
     if (!clienteId) {
       res.status(400).json({ error: 'ID do cliente é obrigatório' });
       return;
     }
 
+    const cliente = await obterClientePorId(clienteId);
+
+    if (!cliente) {
+      res.status(404).json({ error: 'Cliente não encontrado' });
+      return;
+    }
+
+    if (!cliente.meta_ads_account_id) {
+      res.status(400).json({ error: 'Cliente não possui ID de conta Meta Ads configurado' });
+      return;
+    }
+
+    let periodParam: any = period as string;
+    if (since && until) {
+      periodParam = {
+        since: String(since),
+        until: String(until),
+      };
+    }
+
+    console.log(`[Preview] Usando periodParam:`, periodParam);
+
+    const { formatarRelatorioWhatsApp } = await import('../../services/meta-ads.js');
+    const relatorio = await gerarRelatorio(cliente.meta_ads_account_id, periodParam);
+    const mensagem = await formatarRelatorioWhatsApp(relatorio, cliente.nome);
+
+    res.status(200).json({ mensagem, periodo: relatorio.periodo });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao gerar preview do relatório';
+    res.status(400).json({ error: message });
+  }
+}
+
+export async function handleEnviarRelatorioAgora(req: Request, res: Response): Promise<void> {
+  try {
+    const { clienteId } = req.params;
+    const { mensagem } = req.body;
+
+    if (!clienteId) {
+      res.status(400).json({ error: 'ID do cliente é obrigatório' });
+      return;
+    }
+
+    const cliente = await obterClientePorId(clienteId);
+
+    if (!cliente) {
+      res.status(404).json({ error: 'Cliente não encontrado' });
+      return;
+    }
+
+    if (!cliente.whatsapp_numero) {
+      res.status(400).json({ error: 'Cliente não possui WhatsApp configurado' });
+      return;
+    }
+
     const sendMessage = (req as any).sendWhatsAppMessage;
-    await enviarRelatorioWhatsApp(clienteId, 'semanal', sendMessage);
+
+    const whatsappNumber = cliente.whatsapp_numero;
+    let msgId: string | null = null;
+    let status = 'pendente';
+
+    try {
+      if (sendMessage && mensagem) {
+        msgId = await sendMessage(whatsappNumber, mensagem);
+        status = msgId ? 'enviado' : 'erro';
+      }
+    } catch (_error) {
+      status = 'erro';
+    }
+
+    await db`
+      INSERT INTO mensagens_enviadas (id, cliente_id, tipo, status, conteudo, whatsapp_msg_id, destinatario_phone, triggered_by)
+      VALUES (
+        gen_random_uuid(),
+        ${clienteId},
+        'relatorio_manual',
+        ${status},
+        ${mensagem},
+        ${msgId},
+        ${whatsappNumber},
+        'admin'
+      )
+    `;
 
     res.status(200).json({ message: 'Relatório enviado com sucesso' });
   } catch (error) {

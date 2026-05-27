@@ -1,8 +1,13 @@
 import axios from 'axios';
+import Anthropic from '@anthropic-ai/sdk';
 
 const ACCESS_TOKEN = process.env.META_ADS_ACCESS_TOKEN;
 const API_VERSION = process.env.META_ADS_API_VERSION || 'v20.0';
 const BASE_URL = `https://graph.facebook.com/${API_VERSION}`;
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 interface Campanha {
   nome: string;
@@ -10,11 +15,11 @@ interface Campanha {
   cliques: number;
   ctr: number;
   conversoes: number;
-  mensagens: number;
   spend: number;
   cpm: number;
   cpc: number;
   frequencia: number;
+  conversasIniciadasMensagem?: number;
 }
 
 interface Relatorio {
@@ -22,9 +27,9 @@ interface Relatorio {
   campanhas: Campanha[];
   resumo: {
     totalSpend: number;
+    totalImpressoes: number;
     totalCliques: number;
     totalConversoes: number;
-    totalMensagens: number;
     roas: number;
     cpmMedio: number;
     cpcMedio: number;
@@ -96,12 +101,32 @@ async function getCampaignInsights(campaignId: string, since: string, until: str
     });
 
     const data = response.data.data?.[0] || {};
+
+    // Log de todos os actions para debug
+    console.log(`[Meta Ads] Campaign ${campaignId} - TODOS os ACTIONS:`,
+      JSON.stringify(data.actions, null, 2)
+    );
+
     const impressoes = parseInt(data.impressions) || 0;
     const cliques = parseInt(data.clicks) || 0;
     const spend = parseFloat(data.spend) || 0;
     const conversoes = data.actions?.find((a: any) => a.action_type === 'offsite_conversion')?.value || 0;
-    const mensagens = data.actions?.find((a: any) => a.action_type === 'messaging_conversation_started_7d')?.value || 0;
     const frequencia = parseFloat(data.frequency) || 0;
+
+    // Procura em vários tipos possíveis de conversas
+    let conversasIniciadasMensagem = 0;
+    const actionTypes = data.actions?.map((a: any) => a.action_type) || [];
+    const messagingActionType = actionTypes.find((t: string) => t.includes('messaging') || t.includes('conversation'));
+
+    if (messagingActionType) {
+      const action = data.actions.find((a: any) => a.action_type === messagingActionType);
+      conversasIniciadasMensagem = parseInt(action.value) || 0;
+      console.log(`[Meta Ads] Campaign ${campaignId} - ENCONTRADO action com conversas: ${messagingActionType} = ${conversasIniciadasMensagem}`);
+    } else {
+      console.log(`[Meta Ads] Campaign ${campaignId} - Nenhum action com 'messaging' ou 'conversation' encontrado`);
+    }
+
+    console.log(`[Meta Ads] Campaign ${campaignId} - RESUMO: Spend=${spend}, Cliques=${cliques}, Conversas=${conversasIniciadasMensagem}`);
 
     const cpm = impressoes > 0 ? (spend / impressoes) * 1000 : 0;
     const cpc = cliques > 0 ? spend / cliques : 0;
@@ -111,11 +136,11 @@ async function getCampaignInsights(campaignId: string, since: string, until: str
       cliques,
       ctr: parseFloat(data.ctr) || 0,
       conversoes,
-      mensagens,
       spend,
       cpm,
       cpc,
       frequencia,
+      conversasIniciadasMensagem,
     };
   } catch (error) {
     console.error('Erro ao buscar insights da campanha:', error);
@@ -124,11 +149,11 @@ async function getCampaignInsights(campaignId: string, since: string, until: str
       cliques: 0,
       ctr: 0,
       conversoes: 0,
-      mensagens: 0,
       spend: 0,
       cpm: 0,
       cpc: 0,
       frequencia: 0,
+      conversasIniciadasMensagem: 0,
     };
   }
 }
@@ -138,6 +163,7 @@ export async function gerarRelatorio(
   period?: DatePreset | { since: string; until: string }
 ): Promise<Relatorio> {
   try {
+    console.log(`[gerarRelatorio] period recebido:`, period);
     let dateRange: { since: string; until: string; display: string };
 
     if (!period || typeof period === 'string') {
@@ -149,6 +175,8 @@ export async function gerarRelatorio(
         display: `${new Date(period.since).toLocaleDateString('pt-BR')} - ${new Date(period.until).toLocaleDateString('pt-BR')}`,
       };
     }
+
+    console.log(`[gerarRelatorio] dateRange:`, dateRange);
 
     const todasAsCampanhas = await getCampaigns(accountId);
     const campanhasAtivas = todasAsCampanhas.filter((c: any) => c.status === 'ACTIVE');
@@ -164,9 +192,9 @@ export async function gerarRelatorio(
     );
 
     const totalSpend = campanhasComDados.reduce((sum, c) => sum + c.spend, 0);
+    const totalImpressoes = campanhasComDados.reduce((sum, c) => sum + c.impressoes, 0);
     const totalCliques = campanhasComDados.reduce((sum, c) => sum + c.cliques, 0);
     const totalConversoes = campanhasComDados.reduce((sum, c) => sum + c.conversoes, 0);
-    const totalMensagens = campanhasComDados.reduce((sum, c) => sum + c.mensagens, 0);
     const cpmMedio = campanhasComDados.length > 0
       ? campanhasComDados.reduce((sum, c) => sum + c.cpm, 0) / campanhasComDados.length
       : 0;
@@ -180,9 +208,9 @@ export async function gerarRelatorio(
       campanhas: campanhasComDados,
       resumo: {
         totalSpend,
+        totalImpressoes,
         totalCliques,
         totalConversoes,
-        totalMensagens,
         roas,
         cpmMedio,
         cpcMedio,
@@ -194,39 +222,123 @@ export async function gerarRelatorio(
   }
 }
 
-export function formatarRelatorioWhatsApp(relatorio: Relatorio): string {
+function formatarRelatorioFallback(relatorio: Relatorio, nomeCliente?: string): string {
+  const saudacao = getSaudacao();
+  const nomeFormatado = nomeCliente ? nomeCliente.split(' ')[0] : 'você';
+  const introducao = `${saudacao} ${nomeFormatado}! Estou te mandando um relatório para acompanhar como foi o andamento de suas campanhas essa semana.`;
+
   const linhas = [
-    '📊 *RELATÓRIO SEMANAL - META ADS*',
+    introducao,
     '',
     `Período: ${relatorio.periodo}`,
     '',
-    '🎯 *Campanhas:*',
-    '',
   ];
 
-  relatorio.campanhas.forEach((camp) => {
-    linhas.push(`📱 *${camp.nome}*`);
-    linhas.push(`├ Impressões: ${camp.impressoes.toLocaleString('pt-BR')}`);
-    linhas.push(`├ Cliques: ${camp.cliques}`);
-    linhas.push(`├ CTR: ${camp.ctr.toFixed(2)}%`);
-    linhas.push(`├ Conversões: ${camp.conversoes}`);
-    linhas.push(`├ Mensagens: ${camp.mensagens}`);
-    linhas.push(`├ CPM: R$ ${camp.cpm.toFixed(2)}`);
-    linhas.push(`├ CPC: R$ ${camp.cpc.toFixed(2)}`);
-    linhas.push(`└ Spend: R$ ${camp.spend.toFixed(2)}`);
-    linhas.push('');
-  });
+  if (relatorio.campanhas.length > 0) {
+    relatorio.campanhas.forEach((camp) => {
+      if (camp.spend > 0) {
+        linhas.push(`${camp.nome}`);
+        linhas.push(`Investimento: R$ ${camp.spend.toFixed(2)}`);
+        linhas.push(`Pessoas que viram: ${camp.impressoes.toLocaleString('pt-BR')}`);
+        linhas.push(`Cliques: ${camp.cliques}`);
+        if (camp.conversasIniciadasMensagem && camp.conversasIniciadasMensagem > 0) {
+          linhas.push(`Conversas iniciadas: ${camp.conversasIniciadasMensagem}`);
+        }
+        linhas.push('');
+      }
+    });
+  }
 
-  linhas.push('💰 *Resumo Geral*');
-  linhas.push(`├ Total Spend: R$ ${relatorio.resumo.totalSpend.toFixed(2)}`);
-  linhas.push(`├ Total Cliques: ${relatorio.resumo.totalCliques}`);
-  linhas.push(`├ Total Conversões: ${relatorio.resumo.totalConversoes}`);
-  linhas.push(`├ Total Mensagens: ${relatorio.resumo.totalMensagens}`);
-  linhas.push(`├ CPM Médio: R$ ${relatorio.resumo.cpmMedio.toFixed(2)}`);
-  linhas.push(`├ CPC Médio: R$ ${relatorio.resumo.cpcMedio.toFixed(2)}`);
-  linhas.push(`└ ROAS: ${relatorio.resumo.roas.toFixed(2)}x`);
+  if (relatorio.campanhas.some((c) => c.spend > 0)) {
+    linhas.push('RESUMO');
+    linhas.push('');
+    linhas.push(`Total gasto: R$ ${relatorio.resumo.totalSpend.toFixed(2)}`);
+    linhas.push(`Total de visualizações: ${relatorio.resumo.totalImpressoes.toLocaleString('pt-BR')}`);
+    linhas.push(`Total de cliques: ${relatorio.resumo.totalCliques}`);
+  }
+
   linhas.push('');
-  linhas.push('Enviado por MOVE Insights');
+  linhas.push('MOVE Insights');
 
   return linhas.join('\n');
+}
+
+function getSaudacao(): string {
+  const hora = new Date().getHours();
+  if (hora >= 5 && hora < 12) {
+    return 'Bom dia';
+  } else if (hora >= 12 && hora < 18) {
+    return 'Boa tarde';
+  } else {
+    return 'Boa noite';
+  }
+}
+
+export async function formatarRelatorioWhatsApp(relatorio: Relatorio, nomeCliente?: string): Promise<string> {
+  try {
+    const campanhasDesc = relatorio.campanhas
+      .filter((c) => c.spend > 0)
+      .map((c) => {
+        let desc = `${c.nome}: R$ ${c.spend.toFixed(2)} investidos, ${c.impressoes} pessoas viram, ${c.cliques} cliques`;
+        if (c.conversasIniciadasMensagem && c.conversasIniciadasMensagem > 0) {
+          desc += `, ${c.conversasIniciadasMensagem} pessoas iniciaram conversa`;
+        }
+        return desc;
+      })
+      .join('\n');
+
+    const saudacao = getSaudacao();
+    const nomeFormatado = nomeCliente ? nomeCliente.split(' ')[0] : 'você';
+    const introducao = `${saudacao} ${nomeFormatado}! Estou te mandando um relatório para acompanhar como foi o andamento de suas campanhas essa semana.`;
+
+    const prompt = `Você é um gestor de tráfego escrevendo um relatório simples para seu cliente entender como os anúncios estão indo.
+
+IMPORTANTE - Regras obrigatórias:
+- NENHUM emoji
+- NENHUMA formatação (sem negrito, sem asteriscos, sem travessões)
+- Linguagem super simples, para quem não entende de marketing
+- Máximo 12 linhas (incluindo introdução)
+- Números com ponto decimal (R$ 1.234,56)
+
+Comece com essa introdução (ou similar):
+"${introducao}"
+
+Depois liste os dados:
+
+Dados do período ${relatorio.periodo}:
+
+${campanhasDesc}
+
+Total gasto: R$ ${relatorio.resumo.totalSpend.toFixed(2)}
+Pessoas que viram seus anúncios: ${relatorio.resumo.totalImpressoes}
+Pessoas que clicaram: ${relatorio.resumo.totalCliques}
+
+Escreva a mensagem com a introdução, depois os dados, e termine motivando a continuar investindo.`;
+
+    console.log(`[Claude] Enviando prompt para geração de mensagem`);
+    const message = await anthropic.messages.create({
+      model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-6',
+      max_tokens: 400,
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+    });
+    console.log(`[Claude] Resposta recebida da API`);
+
+    const content = message.content[0];
+    if (content.type === 'text') {
+      console.log(`[Claude] Mensagem gerada, primeiras 100 chars:`, content.text.substring(0, 100));
+      return content.text;
+    }
+
+    console.log(`[Claude] Tipo inesperado: ${content.type}, usando fallback`);
+    return formatarRelatorioFallback(relatorio, nomeCliente);
+  } catch (error) {
+    console.error('Erro ao gerar mensagem com Claude:', error);
+    console.log(`[Claude] Erro, usando fallback`);
+    return formatarRelatorioFallback(relatorio, nomeCliente);
+  }
 }

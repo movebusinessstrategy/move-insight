@@ -10,11 +10,11 @@ interface Campanha {
   cliques: number;
   ctr: number;
   conversoes: number;
-  mensagens: number;
   spend: number;
   cpm: number;
   cpc: number;
   frequencia: number;
+  conversasIniciadasMensagem?: number;
 }
 
 interface Relatorio {
@@ -22,9 +22,9 @@ interface Relatorio {
   campanhas: Campanha[];
   resumo: {
     totalSpend: number;
+    totalImpressoes: number;
     totalCliques: number;
     totalConversoes: number;
-    totalMensagens: number;
     roas: number;
     cpmMedio: number;
     cpcMedio: number;
@@ -91,6 +91,8 @@ export default function ClienteDashboard() {
   const [paymentProcessing, setPaymentProcessing] = useState<string | null>(null);
   const [reminderProcessing, setReminderProcessing] = useState<string | null>(null);
   const [relatorioProcessing, setRelatorioProcessing] = useState(false);
+  const [relatorioPreview, setRelatorioPreview] = useState<{ mensagem: string; periodo: string } | null>(null);
+  const [relatorioMensagem, setRelatorioMensagem] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
@@ -320,23 +322,50 @@ export default function ClienteDashboard() {
 
     setRelatorioProcessing(true);
     try {
-      const periodLabel = {
-        last_7d: 'últimos 7 dias',
-        last_30d: 'últimos 30 dias',
-        last_90d: 'últimos 90 dias',
-      }[period];
+      const params = new URLSearchParams();
+      if (useCustomDate && customDateStart && customDateEnd) {
+        params.append('since', customDateStart);
+        params.append('until', customDateEnd);
+      } else {
+        params.append('period', period);
+      }
 
-      const mensagem = `*MOVE Insights* 📊\n\n📱 Relatório de Campanhas (${periodLabel})\n\nCliente: ${cliente.nome}\n\n💰 *Resumo*\n├ Investimento: R$ ${relatorio?.resumo.totalSpend.toFixed(2) || '0.00'}\n├ Cliques: ${relatorio?.resumo.totalCliques.toLocaleString('pt-BR') || '0'}\n├ Conversões: ${relatorio?.resumo.totalConversoes.toLocaleString('pt-BR') || '0'}\n├ Mensagens: ${relatorio?.resumo.totalMensagens.toLocaleString('pt-BR') || '0'}\n└ ROAS: ${relatorio?.resumo.roas.toFixed(2) || '0.00'}x`;
-
-      const res = await fetch(`/api/admin/clientes/${clienteId}/enviar-relatorio`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(`/api/admin/clientes/${clienteId}/relatorio/preview?${params.toString()}`, {
         credentials: 'include',
-        body: JSON.stringify({ numero: cliente.whatsapp_numero, mensagem }),
       });
 
       if (res.ok) {
-        alert('Relatório de campanhas enviado com sucesso!');
+        const data = await res.json();
+        setRelatorioPreview(data);
+        setRelatorioMensagem(data.mensagem);
+      } else {
+        const data = await res.json();
+        alert(`Erro: ${data.error}`);
+      }
+    } catch (err) {
+      console.error('Erro ao gerar preview:', err);
+      alert('Erro ao gerar preview do relatório');
+    } finally {
+      setRelatorioProcessing(false);
+    }
+  };
+
+  const handleConfirmarEnvio = async () => {
+    if (!clienteId) return;
+
+    setRelatorioProcessing(true);
+    try {
+      const res = await fetch(`/api/admin/clientes/${clienteId}/relatorio/enviar-agora`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ mensagem: relatorioMensagem }),
+      });
+
+      if (res.ok) {
+        alert('Relatório enviado com sucesso!');
+        setRelatorioPreview(null);
+        setRelatorioMensagem('');
       } else {
         const data = await res.json();
         alert(`Erro: ${data.error}`);
@@ -760,11 +789,9 @@ export default function ClienteDashboard() {
               >
                 {[
                   { label: 'Investimento Total', value: `R$ ${relatorio.resumo.totalSpend.toFixed(2)}`, desc: 'Gasto em publicidade' },
+                  { label: 'Visualizações', value: relatorio.resumo.totalImpressoes.toLocaleString('pt-BR'), desc: 'Pessoas que viram seus anúncios' },
                   { label: 'Cliques', value: relatorio.resumo.totalCliques.toLocaleString('pt-BR'), desc: 'Pessoas que clicaram' },
-                  { label: 'Mensagens Iniciadas', value: relatorio.resumo.totalMensagens.toLocaleString('pt-BR'), desc: 'Conversas no WhatsApp/Messenger' },
                   { label: 'Conversões', value: relatorio.resumo.totalConversoes.toLocaleString('pt-BR'), desc: 'Vendas/Ações completadas' },
-                  { label: 'Eficiência (ROAS)', value: `${relatorio.resumo.roas.toFixed(2)}x`, desc: 'Retorno por real investido' },
-                  { label: 'CPM Médio', value: `R$ ${relatorio.resumo.cpmMedio.toFixed(2)}`, desc: 'Custo por mil impressões' },
                 ].map((metric, idx) => (
                   <div
                     key={idx}
@@ -982,14 +1009,6 @@ export default function ClienteDashboard() {
                               fontWeight: '500',
                             }}>
                               {campanha.conversoes.toLocaleString('pt-BR')}
-                            </td>
-                            <td style={{
-                              padding: spacing.md,
-                              textAlign: 'center',
-                              color: c.text.secondary,
-                              ...typography.small,
-                            }}>
-                              {campanha.mensagens.toLocaleString('pt-BR')}
                             </td>
                             <td style={{
                               padding: spacing.md,
@@ -1568,6 +1587,112 @@ export default function ClienteDashboard() {
             </>
           )}
         </>
+      )}
+
+      {relatorioPreview && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            backgroundColor: c.bg.primary,
+            borderRadius: radius.xl,
+            padding: spacing.xl,
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: shadows.lg,
+            border: `1px solid ${c.border}`,
+          }}>
+            <h2 style={{...typography.heading, color: c.text.primary, marginBottom: spacing.lg}}>
+              Preview da Mensagem
+            </h2>
+
+            <div style={{
+              backgroundColor: c.bg.secondary,
+              borderRadius: radius.md,
+              padding: spacing.lg,
+              marginBottom: spacing.lg,
+              border: `1px solid ${c.border}`,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              color: c.text.primary,
+              ...typography.small,
+              lineHeight: '1.6',
+            }}>
+              {relatorioMensagem}
+            </div>
+
+            <textarea
+              value={relatorioMensagem}
+              onChange={(e) => setRelatorioMensagem(e.target.value)}
+              style={{
+                width: '100%',
+                minHeight: '200px',
+                padding: spacing.md,
+                borderRadius: radius.md,
+                border: `1px solid ${c.border}`,
+                backgroundColor: c.bg.secondary,
+                color: c.text.primary,
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                marginBottom: spacing.lg,
+                boxSizing: 'border-box',
+              }}
+              placeholder="Edite a mensagem aqui se desejar..."
+            />
+
+            <div style={{
+              display: 'flex',
+              gap: spacing.md,
+              justifyContent: 'flex-end',
+            }}>
+              <button
+                onClick={() => {
+                  setRelatorioPreview(null);
+                  setRelatorioMensagem('');
+                }}
+                disabled={relatorioProcessing}
+                style={{
+                  padding: `${spacing.sm} ${spacing.lg}`,
+                  borderRadius: radius.md,
+                  border: `1px solid ${c.border}`,
+                  backgroundColor: c.bg.secondary,
+                  color: c.text.primary,
+                  cursor: relatorioProcessing ? 'not-allowed' : 'pointer',
+                  opacity: relatorioProcessing ? 0.6 : 1,
+                  ...typography.small,
+                  fontWeight: '500',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmarEnvio}
+                disabled={relatorioProcessing}
+                style={{
+                  padding: `${spacing.sm} ${spacing.lg}`,
+                  borderRadius: radius.md,
+                  border: 'none',
+                  backgroundColor: colors[theme].success,
+                  color: '#fff',
+                  cursor: relatorioProcessing ? 'not-allowed' : 'pointer',
+                  opacity: relatorioProcessing ? 0.6 : 1,
+                  ...typography.small,
+                  fontWeight: '600',
+                }}
+              >
+                {relatorioProcessing ? 'Enviando...' : 'Enviar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       </div>
     </div>

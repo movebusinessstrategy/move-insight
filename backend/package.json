@@ -14,7 +14,7 @@
     "meta:check-token": "node --loader ts-node/esm src/scripts/meta-check.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.12.0",
+    "@anthropic-ai/sdk": "^0.98.0",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.4.8",
     "cookie-parser": "^1.4.6",

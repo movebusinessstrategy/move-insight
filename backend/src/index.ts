@@ -6,6 +6,10 @@ import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
 import adminFaturasRoutes from './routes/admin.faturas.js';
+import adminFornecedoresRoutes from './routes/admin.fornecedores.js';
+import adminContasPagarRoutes from './routes/admin.contas-pagar.js';
+import adminReceitasEsporadicasRoutes from './routes/admin.receitas-esporadicas.js';
+import adminFinanceiroRoutes from './routes/admin.financeiro.js';
 import { sendWhatsAppMessage } from './services/whatsapp.js';
 import { createRelatorioWorker } from './workers/relatorio.worker.js';
 import { startReportScheduler } from './jobs/schedule-reports.js';
@@ -43,6 +47,10 @@ app.use('/api/auth/admin', authAdminRoutes);
 app.use('/api/cliente/auth', authClienteRoutes);
 app.use('/api/admin', adminClientesRoutes);
 app.use('/api/admin', adminFaturasRoutes);
+app.use('/api/admin', adminFornecedoresRoutes);
+app.use('/api/admin', adminContasPagarRoutes);
+app.use('/api/admin', adminReceitasEsporadicasRoutes);
+app.use('/api/admin', adminFinanceiroRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 
 // Health check
