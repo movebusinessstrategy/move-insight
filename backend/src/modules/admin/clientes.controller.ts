@@ -411,7 +411,7 @@ export async function handleObterResumoRelatorio(req: Request, res: Response): P
         totalSpend: relatorio.resumo.totalSpend,
         totalCliques: relatorio.resumo.totalCliques,
         totalConversoes: relatorio.resumo.totalConversoes,
-        totalConversasIniciadasMensagem: 0,
+        totalConversasIniciadasMensagem: relatorio.resumo.totalConversasIniciadasMensagem,
         roas: relatorio.resumo.roas,
         totalImpressoes: relatorio.resumo.totalImpressoes,
         cpmMedio: relatorio.resumo.cpmMedio,

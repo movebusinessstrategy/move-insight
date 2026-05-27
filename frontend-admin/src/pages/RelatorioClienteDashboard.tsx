@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3, Wand2, XCircle } from 'lucide-react';
+import { TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3, Wand2, XCircle } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
+import Header from '../components/Header';
 
 interface Cliente {
   id: string;
@@ -205,22 +206,15 @@ export default function RelatorioClienteDashboard() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: c.bg.primary, color: c.text.primary }}>
       <style>{keyframes}</style>
 
-      {/* Header */}
-      <div style={{ backgroundColor: c.bg.secondary, borderBottom: `1px solid ${c.border}`, padding: `${spacing.md} ${spacing.lg}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: shadows.sm }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-          <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.primary }}>
-            <ArrowLeft size={24} />
-          </button>
-          <div>
-            <h1 style={{ ...typography.heading, margin: 0 }}>Análise de Clientes</h1>
-            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Relatórios e Insights de IA</p>
-          </div>
-        </div>
-
-        <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.text.secondary, padding: spacing.sm }}>
-          {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-      </div>
+      <Header
+        theme={theme}
+        onThemeChange={setTheme}
+        onLogout={() => navigate('/login')}
+        title="Análise de Clientes"
+        subtitle="Meta Ads + IA"
+        showBackButton
+        onBack={() => navigate('/dashboard')}
+      />
 
       {/* Main Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 100%)` }}>

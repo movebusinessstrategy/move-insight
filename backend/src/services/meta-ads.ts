@@ -175,6 +175,7 @@ export async function obterContasMetaAds(
     cpc: number;
     ctr_rate: number;
     roas: number;
+    totalConversasIniciadasMensagem?: number;
   }>
 > {
   try {
@@ -212,6 +213,7 @@ export async function obterContasMetaAds(
             cpc: insights.cpc,
             ctr_rate: insights.ctr,
             roas,
+            totalConversasIniciadasMensagem: insights.conversasIniciadasMensagem,
           };
         } catch (campError) {
           console.error(`[obterContasMetaAds] Erro ao processar campanha ${camp.id}:`, campError);
@@ -226,6 +228,7 @@ export async function obterContasMetaAds(
             cpc: 0,
             ctr_rate: 0,
             roas: 0,
+            totalConversasIniciadasMensagem: 0,
           };
         }
       })

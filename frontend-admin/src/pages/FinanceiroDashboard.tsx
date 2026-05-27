@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, LogOut, DollarSign, TrendingUp, AlertCircle, Plus, ArrowRight, Users, Calendar, ArrowLeft } from 'lucide-react';
+import { DollarSign, TrendingUp, AlertCircle, Plus, ArrowRight, Users, Calendar } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, animations, keyframes, glassMorphism } from '../theme';
 import { getPageStyles } from '../styles/global';
 import type { Theme } from '../theme';
-import logoLight from '../assets/logo-light.png';
-import logoDark from '../assets/logo-dark.png';
+import Header from '../components/Header';
 
 interface User {
   id: string;
@@ -121,108 +120,15 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
     }}>
       <style>{keyframes}</style>
 
-      {/* Header */}
-      <div style={{
-        backgroundColor: c.bg.secondary,
-        borderBottom: `1px solid ${c.border}`,
-        padding: `${spacing.md} ${spacing.lg}`,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
-        minHeight: '70px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: c.text.primary,
-              padding: spacing.sm,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '50px', width: 'auto' }} />
-          <span style={{ ...typography.small, color: c.text.secondary }}>Financeiro</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: c.text.secondary,
-              padding: spacing.sm,
-              borderRadius: radius.md,
-              transition: 'all 0.2s',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = c.bg.tertiary;
-              e.currentTarget.style.boxShadow = `0 0 12px ${c.accent}33`;
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-          </button>
-
-          <div style={{
-            height: '24px',
-            width: '1px',
-            backgroundColor: c.border,
-          }} />
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-            <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: c.bg.tertiary,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              fontWeight: '600',
-            }}>
-              {user.email.charAt(0).toUpperCase()}
-            </div>
-            <button
-              onClick={handleLogout}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: c.text.secondary,
-                padding: spacing.sm,
-                display: 'flex',
-                alignItems: 'center',
-                gap: spacing.xs,
-                fontSize: '14px',
-                transition: 'color 0.2s',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.color = c.text.primary;
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.color = c.text.secondary;
-              }}
-            >
-              <LogOut size={18} />
-              Sair
-            </button>
-          </div>
-        </div>
-      </div>
+      <Header
+        theme={theme}
+        onThemeChange={setTheme}
+        onLogout={handleLogout}
+        title="Financeiro"
+        subtitle="Controle de receitas e despesas"
+        showBackButton
+        onBack={() => navigate('/dashboard')}
+      />
 
       {/* Sidebar + Content Container */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>

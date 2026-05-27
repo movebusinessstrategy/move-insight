@@ -465,6 +465,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 fontSize: '14px',
                 fontWeight: '500',
                 transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
               }}
               onMouseOver={(e) => {
                 if (activeTab !== id) {
@@ -505,6 +506,7 @@ export default function Dashboard({ user }: DashboardProps) {
               fontSize: '14px',
               fontWeight: '500',
               transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = c.bg.tertiary;
@@ -534,6 +536,7 @@ export default function Dashboard({ user }: DashboardProps) {
               fontSize: '14px',
               fontWeight: '500',
               transition: 'all 0.2s',
+              whiteSpace: 'nowrap',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = c.bg.tertiary;

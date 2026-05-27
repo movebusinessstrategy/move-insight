@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, Wand2, XCircle } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, Wand2, XCircle, MessageSquare } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 
@@ -93,12 +93,14 @@ export default function ClienteDashboard() {
   }, [clienteId, period]);
 
   const carregarDados = async () => {
+    if (!clienteId) return;
+
     try {
       setLoading(true);
       setError('');
 
       // Carregar resumo do relatório
-      const resResumo = await fetch(`/api/cliente/relatorio/resumo?periodo=${period}`, {
+      const resResumo = await fetch(`/api/admin/clientes/${clienteId}/relatorio/resumo?periodo=${period}`, {
         credentials: 'include',
       });
       if (resResumo.ok) {
@@ -107,21 +109,21 @@ export default function ClienteDashboard() {
       }
 
       // Carregar análise IA
-      const resInsights = await fetch('/api/cliente/relatorio/analise-ia', { credentials: 'include' });
+      const resInsights = await fetch(`/api/admin/clientes/${clienteId}/relatorio/analise-ia`, { credentials: 'include' });
       if (resInsights.ok) {
         const dataInsights = await resInsights.json();
         setInsights(dataInsights);
       }
 
       // Carregar previsões
-      const resPrevisao = await fetch('/api/cliente/relatorio/previsoes', { credentials: 'include' });
+      const resPrevisao = await fetch(`/api/admin/clientes/${clienteId}/relatorio/previsoes`, { credentials: 'include' });
       if (resPrevisao.ok) {
         const dataPrevisao = await resPrevisao.json();
         setPrevisao(dataPrevisao);
       }
 
       // Carregar benchmarks
-      const resBenchmark = await fetch('/api/cliente/relatorio/benchmarks', { credentials: 'include' });
+      const resBenchmark = await fetch(`/api/admin/clientes/${clienteId}/relatorio/benchmarks`, { credentials: 'include' });
       if (resBenchmark.ok) {
         const dataBenchmark = await resBenchmark.json();
         setBenchmark(dataBenchmark);
@@ -216,11 +218,35 @@ export default function ClienteDashboard() {
               </select>
             </div>
 
+            {/* Card Conversas Iniciadas - PRINCIPAL */}
+            <div
+              style={{
+                ...glassMorphism[theme],
+                borderRadius: radius.lg,
+                padding: spacing.lg,
+                boxShadow: shadows.md,
+                border: `2px solid ${c.accent}`,
+                marginBottom: spacing.lg,
+                backgroundColor: theme === 'light' ? c.accent + '10' : c.accent + '15',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+                <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary, fontWeight: '600' }}>Conversas Iniciadas via WhatsApp</h3>
+                <MessageSquare size={20} color={c.accent} />
+              </div>
+              <p style={{ ...typography.heading, margin: 0, color: c.accent, fontSize: '32px' }}>
+                {resumo.resumo.totalConversasIniciadasMensagem || 0}
+              </p>
+              <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.sm} 0 0 0`, fontWeight: '500' }}>
+                Leads gerados no período
+              </p>
+            </div>
+
             {/* Resumo Executivo - Cards Principais */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
                 gap: spacing.md,
                 marginBottom: spacing.lg,
               }}
@@ -349,7 +375,7 @@ export default function ClienteDashboard() {
             {resumo.comparacao_anterior && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
                 <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><BarChart3 size={20} /> Comparação com Período Anterior</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: spacing.md }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Spend</p>
                     <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_spend > 0 ? c.error : '#10b981' }}>
@@ -382,7 +408,7 @@ export default function ClienteDashboard() {
             {previsao && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
                 <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Wand2 size={20} /> Previsões para Próximos 30 Dias</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS Previsto</p>
                     <p style={{ ...typography.heading, margin: `${spacing.sm} 0 0 0` }}>{previsao.roas_forecast.toFixed(2)}x</p>
@@ -409,7 +435,7 @@ export default function ClienteDashboard() {
             {benchmark && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
                 <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><TrendingUp size={20} /> Benchmarks vs Indústria</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>CPM</p>
                     <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpm}</p>
