@@ -112,6 +112,13 @@ export default function RelatorioClienteDashboard() {
     }
   }, [clienteIdFromUrl, clientes]);
 
+  // Auto-load report when client or period changes
+  useEffect(() => {
+    if (clienteSelecionado && !loadingRelatorio) {
+      carregarRelatorio();
+    }
+  }, [clienteSelecionado, period]);
+
   const carregarClientes = async () => {
     try {
       setLoading(true);

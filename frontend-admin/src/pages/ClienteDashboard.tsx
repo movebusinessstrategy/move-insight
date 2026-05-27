@@ -140,7 +140,24 @@ export default function ClienteDashboard() {
       const resInsights = await fetch(`/api/admin/clientes/${clienteId}/relatorio/analise-ia`, { credentials: 'include' });
       if (resInsights.ok) {
         const dataInsights = await resInsights.json();
-        setInsights(dataInsights);
+        if (dataInsights && Object.keys(dataInsights).length > 0) {
+          setInsights(dataInsights);
+        } else {
+          setInsights({
+            oportunidades: ['Aguardando dados de campanhas'],
+            alertas: [],
+            proximos_passos: ['Ative campanhas para análise automática'],
+            analise_concorrencial: 'Análise indisponível sem dados',
+          });
+        }
+      } else {
+        console.warn('Erro ao carregar insights:', resInsights.status);
+        setInsights({
+          oportunidades: ['Erro ao carregar análise'],
+          alertas: [],
+          proximos_passos: ['Tente recarregar a página'],
+          analise_concorrencial: 'Erro na análise',
+        });
       }
 
       // Carregar previsões
@@ -234,6 +251,9 @@ export default function ClienteDashboard() {
               fontSize: '14px',
               fontWeight: '600',
               transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing.sm,
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.opacity = '0.9';
@@ -244,7 +264,8 @@ export default function ClienteDashboard() {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            📤 Enviar Relatório
+            <BarChart3 size={16} />
+            Enviar Relatório
           </button>
 
           <button
@@ -389,15 +410,6 @@ export default function ClienteDashboard() {
                   <AlertCircle size={18} color={obterCorSaude(resumo.analise.saude)} />
                 </div>
                 <p style={{ ...typography.heading, margin: 0, color: obterCorSaude(resumo.analise.saude), textTransform: 'capitalize' }}>{resumo.analise.saude}</p>
-              </div>
-
-              {/* Card ROAS */}
-              <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-                  <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>ROAS</h3>
-                  <Zap size={18} color="#fbbf24" />
-                </div>
-                <p style={{ ...typography.heading, margin: 0, color: '#fbbf24' }}>{resumo.resumo.roas.toFixed(2)}x</p>
               </div>
 
               {/* Card Spend */}

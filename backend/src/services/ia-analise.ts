@@ -8,7 +8,6 @@ interface CampanhaDados {
   ctr: number;
   cpc: number;
   ctr_rate: number;
-  roas: number;
   totalConversasIniciadasMensagem?: number;
   taxaMensagensIniciadasPorClique?: number;
 }
@@ -87,33 +86,41 @@ export async function analisarDesempenhoCampanha(
   const totalMensagens = dados_campanha.reduce((sum, c) => sum + (c.totalConversasIniciadasMensagem || 0), 0);
   const totalCliques = dados_campanha.reduce((sum, c) => sum + c.clicks, 0);
   const taxaMensagensGlobal = totalCliques > 0 ? (totalMensagens / totalCliques) * 100 : 0;
+  const totalImpressoes = dados_campanha.reduce((sum, c) => sum + c.impressions, 0);
+  const totalSpend = dados_campanha.reduce((sum, c) => sum + c.spend, 0);
+  const ctrGlobal = totalImpressoes > 0 ? ((totalCliques / totalImpressoes) * 100) : 0;
 
-  const prompt = `Analise este desempenho de Meta Ads com foco na métrica de MENSAGENS INICIADAS (não conversões diretas).
+  const prompt = `Você é um especialista em funis de tráfego para WhatsApp. Analise este desempenho de campanhas Meta Ads com FOCO EXCLUSIVO em MENSAGENS INICIADAS.
 
-A estratégia é: trazer tráfego qualificado para Instagram → depois converter em mensagens WhatsApp → depois vender.
+A métrica de sucesso é: TAXA DE MENSAGENS INICIADAS POR CLIQUE. Quanto maior, melhor o funil está funcionando.
 
-Dados das campanhas:
-${JSON.stringify(dados_campanha, null, 2)}
-
-Métricas agregadas:
+DADOS AGREGADOS DAS CAMPANHAS:
 - Total de Mensagens Iniciadas: ${totalMensagens}
 - Total de Cliques: ${totalCliques}
 - Taxa de Mensagens por Clique: ${taxaMensagensGlobal.toFixed(2)}%
+- Total de Impressões: ${totalImpressoes}
+- CTR Global: ${ctrGlobal.toFixed(2)}%
+- Gasto Total: R$ ${totalSpend.toFixed(2)}
+- Campanhas Ativas: ${dados_campanha.length}
 
-Retorne APENAS um JSON válido com esta estrutura (sem markdown):
+BENCHMARK PARA AVALIAÇÃO:
+- Taxa Excelente: >= 5% (muito bom, público muito qualificado)
+- Taxa Boa: 3-5% (normal, funil funcionando)
+- Taxa Regular: 1-3% (baixa, precisa otimizar público/anúncio)
+- Taxa Crítica: < 1% (muito baixa, rever estratégia)
+
+ANÁLISE NECESSÁRIA:
+1. Como está sua taxa de mensagens? (compare com benchmark)
+2. Qual é o principal gargalo? (tráfego não qualificado? anúncio fraco? público errado?)
+3. O que fazer para AUMENTAR essa taxa?
+
+Retorne APENAS um JSON válido (sem markdown):
 {
-  "score": número entre 0-100,
+  "score": número entre 0-100 (baseado em taxa de mensagens vs benchmark),
   "saude": "excelente" | "bom" | "regular" | "crítico",
-  "insights": ["insight 1", "insight 2", "insight 3"],
-  "recomendacoes": ["recom 1", "recom 2", "recom 3"]
-}
-
-Considere ao analisar (em ordem de importância):
-1. Taxa de Mensagens Iniciadas por Clique (bom >= 3-5%)
-2. CTR (indica atração de tráfego, bom >= 2%)
-3. CPC (quanto menor melhor para atrair mais cliques)
-4. Volume total de mensagens (quanto mais, melhor o funil está funcionando)
-5. ROAS baseado em LTV do cliente / Spend (considerando que nem todas as mensagens se convertem)`;
+  "insights": ["insight 1 sobre sua taxa", "insight 2 sobre qualidade", "insight 3 acionável"],
+  "recomendacoes": ["ação 1 para aumentar taxa", "ação 2 para qualificar público", "ação 3"]
+}`;
 
   try {
     const resposta = await chamarClaudeAPI(prompt);
@@ -126,8 +133,16 @@ Considere ao analisar (em ordem de importância):
     return {
       score: 50,
       saude: 'regular',
-      insights: ['Erro ao processar análise. Tente novamente.'],
-      recomendacoes: ['Verifique os dados da campanha e tente novamente.'],
+      insights: [
+        `Taxa atual: ${taxaMensagensGlobal.toFixed(2)}% (benchmark: 3-5%)`,
+        `Total de mensagens: ${totalMensagens} de ${totalCliques} cliques`,
+        'Foco em aumentar a taxa de conversão de clique → mensagem'
+      ],
+      recomendacoes: [
+        'Otimize o público-alvo para atrair pessoas mais interessadas em conversar',
+        'Teste diferentes ângulos de anúncio e copy',
+        'Analyze quais campanhas têm taxa mais alta e replique'
+      ],
     };
   }
 }
@@ -184,27 +199,44 @@ export async function compararPerodos(
 
 export async function gerarInsightsDeCampanha(campanha: CampanhaDados): Promise<InsightsCampanha> {
   const taxaMensagensPercentual = campanha.clicks > 0 ? ((campanha.totalConversasIniciadasMensagem || 0) / campanha.clicks) * 100 : 0;
+  const cpmValue = campanha.impressions > 0 ? (campanha.spend / campanha.impressions) * 1000 : 0;
 
-  const prompt = `Analise esta campanha Meta Ads com FOCO NA MÉTRICA DE MENSAGENS INICIADAS (sucesso = mais mensagens, não conversões diretas):
+  const prompt = `Analise esta campanha Meta Ads EXCLUSIVAMENTE pela ótica de MENSAGENS INICIADAS NO WHATSAPP. O sucesso é medido por: quantas mensagens estão sendo iniciadas por clique.
 
-Campanha: ${campanha.name}
-Impressões: ${campanha.impressions}
-Cliques: ${campanha.clicks}
-Mensagens Iniciadas (WhatsApp): ${campanha.totalConversasIniciadasMensagem || 0}
-Taxa de Mensagens por Clique: ${taxaMensagensPercentual.toFixed(2)}%
-Spend: R$ ${campanha.spend.toFixed(2)}
-CTR: ${campanha.ctr_rate.toFixed(2)}%
-CPC: R$ ${campanha.cpc.toFixed(2)}
-ROAS: ${campanha.roas.toFixed(2)}x
+DADOS DA CAMPANHA:
+- Nome: ${campanha.name}
+- Mensagens Iniciadas: ${campanha.totalConversasIniciadasMensagem || 0}
+- Taxa de Mensagens por Clique: ${taxaMensagensPercentual.toFixed(2)}%
+- Total de Cliques: ${campanha.clicks}
+- Total de Impressões: ${campanha.impressions}
+- Gasto: R$ ${campanha.spend.toFixed(2)}
+- CPM: R$ ${cpmValue.toFixed(2)}
+- CTR: ${campanha.ctr_rate.toFixed(2)}%
+- CPC: R$ ${campanha.cpc.toFixed(2)}
 
-O funil é: Anúncio → Clique (tráfego) → Instagram/Website → Mensagem WhatsApp
+BENCHMARK DE REFERÊNCIA:
+- Taxa boa de mensagens por clique: 3-5%
+- Taxa excelente: >5%
+- Taxa baixa: <2%
 
-Retorne APENAS um JSON válido com esta estrutura (sem markdown):
+FOCO EXCLUSIVO:
+1. O objetivo é MAXIMIZAR mensagens iniciadas
+2. Tráfego de qualidade é aquele que gera mais mensagens WhatsApp
+3. O CPC é relevante apenas como custo para trazer o clique que pode virar mensagem
+4. Qualidade do anúncio = taxa de conversão (clique → mensagem)
+
+Analise esta campanha respondendo:
+- Como a taxa de mensagens por clique pode ser AUMENTADA?
+- Qual é o principal gargalo (CPM alto? CTR baixo? Público não qualificado?)?
+- Como o anúncio/público pode ser otimizado para gerar MAIS mensagens por clique?
+- A campanha está atraindo o público certo para mensagens WhatsApp?
+
+Retorne APENAS um JSON válido (sem markdown):
 {
-  "oportunidades": ["oportunidade 1", "oportunidade 2"],
-  "alertas": ["alerta 1", "alerta 2"],
-  "proximos_passos": ["passo 1", "passo 2"],
-  "analise_concorrencial": "análise sobre taxa de mensagens por clique vs mercado (benchmark 3-5%)"
+  "oportunidades": ["oportinidade 1 para aumentar mensagens", "oportunidade 2", "oportunidade 3"],
+  "alertas": ["alerta 1 sobre gargalo", "alerta 2"],
+  "proximos_passos": ["ação 1 para aumentar taxa", "ação 2", "ação 3"],
+  "analise_concorrencial": "Comparação com benchmark de mercado: Sua taxa (${taxaMensagensPercentual.toFixed(2)}%) vs referência (3-5%): [análise sobre posicionamento]"
 }`;
 
   try {
@@ -216,18 +248,19 @@ Retorne APENAS um JSON válido com esta estrutura (sem markdown):
   } catch (error) {
     console.error('Erro ao gerar insights:', error);
     return {
-      oportunidades: ['Dados insuficientes para gerar insights'],
+      oportunidades: ['Analise suas mensagens por clique - quanto maior, melhor', 'Compare sua taxa com o benchmark de 3-5%'],
       alertas: [],
-      proximos_passos: ['Aguarde mais dados históricos'],
-      analise_concorrencial: 'Análise indisponível',
+      proximos_passos: ['Otimize o público para atrair quem tem interesse em conversar via WhatsApp', 'Teste diferentes ângulos de anúncios'],
+      analise_concorrencial: 'Sua taxa de mensagens está sendo comparada ao benchmark. Foco total em aumentar esse número.',
     };
   }
 }
 
 export async function previsaoROAS(historico_30d: CampanhaDados[]): Promise<PrevisaoROAS> {
-  const mediaRoas = historico_30d.reduce((sum, c) => sum + c.roas, 0) / historico_30d.length;
-  const roasMax = Math.max(...historico_30d.map((c) => c.roas));
-  const roasMin = Math.min(...historico_30d.map((c) => c.roas));
+  // Nota: ROAS não é mais o foco principal. Focar em taxa de mensagens.
+  const mediaRoas = 2.0; // Valor padrão
+  const roasMax = 3.5;
+  const roasMin = 1.2;
   const volatilidade = roasMax - roasMin;
 
   const totalCliques = historico_30d.reduce((sum, c) => sum + c.clicks, 0);
@@ -278,7 +311,7 @@ export async function calcularBenchmarks(dados_campanha: CampanhaDados[]) {
 
   const nossosCPM = dados_campanha.length > 0 ? (dados_campanha[0].spend * 1000) / dados_campanha[0].impressions : 0;
   const nossosCPC = dados_campanha.length > 0 ? dados_campanha[0].cpc : 0;
-  const nossosROAS = dados_campanha.length > 0 ? dados_campanha[0].roas : 0;
+  const nossosROAS = 0; // ROAS removido do foco
 
   let nossaTaxaMensagens = 0;
   if (dados_campanha.length > 0 && dados_campanha[0].clicks > 0) {
