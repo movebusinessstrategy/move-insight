@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import { Queue } from 'bullmq';
+import { sendWhatsAppMessage } from './services/whatsapp.js';
 import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
@@ -11,10 +11,6 @@ import adminContasPagarRoutes from './routes/admin.contas-pagar.js';
 import adminReceitasEsporadicasRoutes from './routes/admin.receitas-esporadicas.js';
 import adminFinanceiroRoutes from './routes/admin.financeiro.js';
 import adminRelatorioRoutes from './routes/cliente.relatorio.js';
-import { sendWhatsAppMessage } from './services/whatsapp.js';
-import { createRelatorioWorker } from './workers/relatorio.worker.js';
-import { startReportScheduler } from './jobs/schedule-reports.js';
-import { initRelatorioSemanal } from './jobs/relatorio-semanal.js';
 import whatsappRoutes from './routes/whatsapp.js';
 
 const app = express();
@@ -62,23 +58,8 @@ app.get('/health', (_req, res) => {
 });
 
 // Start server
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log('🚀 MOVE Insights API started');
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Server running on http://localhost:${PORT}`);
-  console.log(`✅ Auth endpoints ready at /api/auth/admin/* and /api/cliente/auth/*`);
-  console.log(`📱 WhatsApp: Conecte via POST /api/whatsapp/connect`);
-
-  // Initialize report queue and worker (não inicializa WhatsApp automaticamente)
-  const redisConnection = { host: process.env.REDIS_HOST || 'localhost', port: parseInt(process.env.REDIS_PORT || '6379') };
-  const reportQueue = new Queue('relatorio', { connection: redisConnection });
-
-  createRelatorioWorker(redisConnection);
-
-  await startReportScheduler(reportQueue).catch((error) => {
-    console.error('⚠️ Report scheduler não foi inicializado:', error);
-  });
-
-  initRelatorioSemanal();
-  console.log('✅ Weekly AI report scheduler initialized');
 });
