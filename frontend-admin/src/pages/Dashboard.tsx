@@ -517,7 +517,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <FileText size={18} />
+            <BarChart3 size={18} />
             Relatórios com IA
           </button>
 
