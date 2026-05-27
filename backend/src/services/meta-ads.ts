@@ -180,8 +180,11 @@ export async function obterContasMetaAds(
     const since = dataInicial.toISOString().split('T')[0];
     const until = dataFinal.toISOString().split('T')[0];
 
+    console.log(`[obterContasMetaAds] Buscando campanhas para account ${accountId}, período ${since} a ${until}`);
     const todasAsCampanhas = await getCampaigns(accountId);
+    console.log(`[obterContasMetaAds] Total de campanhas: ${todasAsCampanhas.length}`);
     const campanhasAtivas = todasAsCampanhas.filter((c: any) => c.status === 'ACTIVE');
+    console.log(`[obterContasMetaAds] Campanhas ativas: ${campanhasAtivas.length}`);
 
     const campanhasComDados = await Promise.all(
       campanhasAtivas.map(async (camp) => {

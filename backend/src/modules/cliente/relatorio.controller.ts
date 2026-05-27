@@ -54,13 +54,16 @@ export async function handleObterResumoRelatorio(req: AuthenticatedRequest, res:
     }
 
     // Buscar dados Meta Ads para o período
+    console.log(`[Relatório] Buscando Meta Ads: cliente=${cliente.id}, account=${cliente.meta_ads_account_id}, período=${dataInicial.toISOString().split('T')[0]} a ${dataFinal.toISOString().split('T')[0]}`);
     const contasAtual = await obterContasMetaAds(cliente.meta_ads_account_id, dataInicial, dataFinal);
+    console.log(`[Relatório] Campanhas encontradas: ${contasAtual.length}`);
 
     // Buscar dados período anterior (mesma duração)
     const duracao = Math.floor((dataFinal.getTime() - dataInicial.getTime()) / (1000 * 60 * 60 * 24));
     const dataInicialAnterior = new Date(dataInicial);
     dataInicialAnterior.setDate(dataInicialAnterior.getDate() - duracao);
     const contasAnterior = await obterContasMetaAds(cliente.meta_ads_account_id, dataInicialAnterior, dataInicial);
+    console.log(`[Relatório] Campanhas período anterior: ${contasAnterior.length}`);
 
     // Análise de desempenho
     const analiseDesempenho = await analisarDesempenhoCampanha(contasAtual);

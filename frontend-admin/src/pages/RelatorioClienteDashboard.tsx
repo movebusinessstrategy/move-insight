@@ -133,26 +133,34 @@ export default function RelatorioClienteDashboard() {
 
       if (resResumo.ok) {
         const dataResumo = await resResumo.json();
+        console.log('Resumo:', dataResumo);
         setResumo(dataResumo);
+      } else {
+        const errorData = await resResumo.json();
+        console.error('Erro resumo:', errorData);
+        setError(errorData.error || 'Erro ao carregar resumo');
       }
 
       if (resInsights.ok) {
         const dataInsights = await resInsights.json();
+        console.log('Insights:', dataInsights);
         setInsights(dataInsights);
       }
 
       if (resPrevisao.ok) {
         const dataPrevisao = await resPrevisao.json();
+        console.log('Previsão:', dataPrevisao);
         setPrevisao(dataPrevisao);
       }
 
       if (resBenchmark.ok) {
         const dataBenchmark = await resBenchmark.json();
+        console.log('Benchmark:', dataBenchmark);
         setBenchmark(dataBenchmark);
       }
     } catch (err) {
       setError('Erro ao carregar relatório');
-      console.error(err);
+      console.error('Erro na requisição:', err);
     } finally {
       setLoadingRelatorio(false);
     }
