@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3, Wand2, XCircle } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 
@@ -225,8 +225,8 @@ export default function RelatorioClienteDashboard() {
       {/* Main Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 100%)` }}>
         {error && (
-          <div style={{ backgroundColor: c.error + '20', color: c.error, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, border: `1px solid ${c.error}40` }}>
-            ⚠️ {error}
+          <div style={{ backgroundColor: c.error + '20', color: c.error, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, border: `1px solid ${c.error}40`, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+            <AlertCircle size={18} /> {error}
           </div>
         )}
 
@@ -396,7 +396,7 @@ export default function RelatorioClienteDashboard() {
                     <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
                         <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Conversas Iniciadas</h3>
-                        <div style={{ fontSize: '18px' }}>💬</div>
+                        <Zap size={18} color="#06b6d4" />
                       </div>
                       <p style={{ ...typography.heading, margin: 0, color: '#06b6d4' }}>{resumo.resumo.totalConversasIniciadasMensagem}</p>
                     </div>
@@ -422,10 +422,10 @@ export default function RelatorioClienteDashboard() {
                         transition: 'color 0.2s',
                       }}
                     >
-                      {tab === 'analise' && '🤖 Análise com IA'}
-                      {tab === 'campanhas' && '📊 Meta Ads'}
-                      {tab === 'previsoes' && '🔮 Previsões'}
-                      {tab === 'benchmarks' && '📈 Benchmarks'}
+                      {tab === 'analise' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><Zap size={16} /> Análise com IA</div>}
+                      {tab === 'campanhas' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><BarChart3 size={16} /> Meta Ads</div>}
+                      {tab === 'previsoes' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><Wand2 size={16} /> Previsões</div>}
+                      {tab === 'benchmarks' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><TrendingUp size={16} /> Benchmarks</div>}
                     </button>
                   ))}
                 </div>
@@ -436,7 +436,7 @@ export default function RelatorioClienteDashboard() {
                     {insights && (
                       <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg }}>
-                          <div style={{ fontSize: '24px' }}>🤖</div>
+                          <Zap size={24} color={c.accent} />
                           <h2 style={{ ...typography.heading, margin: 0 }}>Análise Detalhada com IA</h2>
                         </div>
 
@@ -444,7 +444,7 @@ export default function RelatorioClienteDashboard() {
                           {insights.oportunidades.length > 0 && (
                             <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.lg, padding: spacing.lg, borderTop: `3px solid #10b981` }}>
                               <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#10b981', marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-                                <span style={{ fontSize: '18px' }}>✓</span> Oportunidades
+                                <CheckCircle2 size={18} /> Oportunidades
                               </h3>
                               <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
                                 {insights.oportunidades.map((item, i) => (
@@ -460,7 +460,7 @@ export default function RelatorioClienteDashboard() {
                           {insights.alertas.length > 0 && (
                             <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.lg, padding: spacing.lg, borderTop: `3px solid ${c.error}` }}>
                               <h3 style={{ fontSize: '14px', fontWeight: '700', color: c.error, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-                                <span style={{ fontSize: '18px' }}>⚠️</span> Alertas
+                                <AlertCircle size={18} /> Alertas
                               </h3>
                               <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
                                 {insights.alertas.map((item, i) => (
@@ -476,7 +476,7 @@ export default function RelatorioClienteDashboard() {
                           {insights.proximos_passos.length > 0 && (
                             <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.lg, padding: spacing.lg, borderTop: `3px solid ${c.accent}` }}>
                               <h3 style={{ fontSize: '14px', fontWeight: '700', color: c.accent, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
-                                <span style={{ fontSize: '18px' }}>🎯</span> Próximos Passos
+                                <Target size={18} /> Próximos Passos
                               </h3>
                               <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
                                 {insights.proximos_passos.map((item, i) => (
@@ -495,7 +495,7 @@ export default function RelatorioClienteDashboard() {
                     {resumo.analise.insights.length > 0 && (
                       <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg }}>
-                          <div style={{ fontSize: '24px' }}>💡</div>
+                          <Lightbulb size={24} color={c.accent} />
                           <h2 style={{ ...typography.heading, margin: 0 }}>Insights Principais</h2>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: spacing.md }}>
@@ -531,7 +531,7 @@ export default function RelatorioClienteDashboard() {
                     {resumo.analise.recomendacoes.length > 0 && (
                       <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg }}>
-                          <div style={{ fontSize: '24px' }}>🎯</div>
+                          <Target size={24} color={c.accent} />
                           <h2 style={{ ...typography.heading, margin: 0 }}>Recomendações de Ação</h2>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: spacing.md }}>
@@ -606,7 +606,7 @@ export default function RelatorioClienteDashboard() {
 
                 {activeTab === 'previsoes' && (
                   <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🔮 Previsões de Desempenho</h2>
+                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Wand2 size={20} /> Previsões de Desempenho</h2>
                     {previsao ? (
                       <>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md, marginBottom: spacing.lg }}>
@@ -640,7 +640,7 @@ export default function RelatorioClienteDashboard() {
 
                 {activeTab === 'benchmarks' && (
                   <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>📈 Benchmarks Competitivos</h2>
+                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><TrendingUp size={20} /> Benchmarks Competitivos</h2>
                     {benchmark ? (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing.md }}>
                         <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>

@@ -258,8 +258,12 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
             borderRadius: radius.lg,
             marginBottom: spacing.md,
             border: `1px solid ${c.error}40`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: spacing.sm,
           }}>
-            ⚠️ {error}
+            <AlertCircle size={18} />
+            {error}
           </div>
         ) : resumo ? (
           <div style={{ animation: 'fadeIn 0.5s ease-out' }}>

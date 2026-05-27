@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp } from 'lucide-react';
+import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp, CheckCircle2, Circle } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, glassMorphism, animations, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
@@ -1095,7 +1095,12 @@ export default function Dashboard({ user }: DashboardProps) {
                 ...typography.heading,
                 margin: `0 0 ${spacing.lg} 0`,
                 animation: 'slideUp 0.5s ease-out',
-              }}>📊 Meta Ads - Visão Geral</h2>
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+                  <BarChart3 size={20} />
+                  Meta Ads - Visão Geral
+                </div>
+              </h2>
 
               {clientes.length === 0 ? (
                 <div style={{
@@ -1146,8 +1151,9 @@ export default function Dashboard({ user }: DashboardProps) {
                         </div>
                         <div style={{ backgroundColor: c.bg.tertiary, padding: spacing.md, borderRadius: radius.md }}>
                           <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Status</p>
-                          <p style={{ fontSize: '13px', color: cliente.status === 'ativo' ? '#10b981' : c.warning, fontWeight: '600', margin: 0 }}>
-                            {cliente.status === 'ativo' ? '✓ Ativo' : '○ Inativo'}
+                          <p style={{ fontSize: '13px', color: cliente.status === 'ativo' ? '#10b981' : c.warning, fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                            {cliente.status === 'ativo' ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                            {cliente.status === 'ativo' ? 'Ativo' : 'Inativo'}
                           </p>
                         </div>
                       </div>

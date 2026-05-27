@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, Wand2, XCircle } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 
@@ -180,8 +180,9 @@ export default function ClienteDashboard() {
       {/* Main Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: spacing.lg, background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 100%)` }}>
         {error && (
-          <div style={{ backgroundColor: c.error + '20', color: c.error, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, border: `1px solid ${c.error}40` }}>
-            ⚠️ {error}
+          <div style={{ backgroundColor: c.error + '20', color: c.error, padding: spacing.md, borderRadius: radius.lg, marginBottom: spacing.md, border: `1px solid ${c.error}40`, display: 'flex', alignItems: 'center', gap: spacing.sm }}>
+            <AlertCircle size={18} />
+            {error}
           </div>
         )}
 
@@ -267,7 +268,7 @@ export default function ClienteDashboard() {
             {/* Insights de IA */}
             {insights && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🤖 Análise com IA</h2>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Zap size={20} /> Análise com IA</h2>
 
                 {insights.analise_concorrencial && (
                   <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', lineHeight: '1.6' }}>
@@ -277,7 +278,7 @@ export default function ClienteDashboard() {
 
                 {insights.oportunidades.length > 0 && (
                   <div style={{ marginBottom: spacing.lg }}>
-                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm }}>✓ Oportunidades</h3>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm, display: 'flex', alignItems: 'center', gap: spacing.sm }}><CheckCircle2 size={16} /> Oportunidades</h3>
                     <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
                       {insights.oportunidades.map((oportunidade, i) => (
                         <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
@@ -290,7 +291,7 @@ export default function ClienteDashboard() {
 
                 {insights.alertas.length > 0 && (
                   <div style={{ marginBottom: spacing.lg }}>
-                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm }}>⚠️ Alertas</h3>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm, display: 'flex', alignItems: 'center', gap: spacing.sm }}><AlertCircle size={16} /> Alertas</h3>
                     <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
                       {insights.alertas.map((alerta, i) => (
                         <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
@@ -303,11 +304,11 @@ export default function ClienteDashboard() {
 
                 {insights.proximos_passos.length > 0 && (
                   <div>
-                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.accent, marginBottom: spacing.sm }}>→ Próximos Passos</h3>
+                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.accent, marginBottom: spacing.sm, display: 'flex', alignItems: 'center', gap: spacing.sm }}><ArrowRight size={16} /> Próximos Passos</h3>
                     <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
                       {insights.proximos_passos.map((passo, i) => (
                         <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
-                          □ {passo}
+                          • {passo}
                         </li>
                       ))}
                     </ul>
@@ -319,7 +320,7 @@ export default function ClienteDashboard() {
             {/* Insights Principais */}
             {resumo.analise.insights.length > 0 && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>💡 Insights Principais</h2>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Lightbulb size={20} /> Insights Principais</h2>
                 <div style={{ display: 'grid', gap: spacing.md }}>
                   {resumo.analise.insights.map((insight, i) => (
                     <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', borderLeft: `3px solid ${c.accent}` }}>
@@ -333,7 +334,7 @@ export default function ClienteDashboard() {
             {/* Recomendações */}
             {resumo.analise.recomendacoes.length > 0 && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🎯 Recomendações</h2>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Target size={20} /> Recomendações</h2>
                 <div style={{ display: 'grid', gap: spacing.md }}>
                   {resumo.analise.recomendacoes.map((rec, i) => (
                     <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', borderLeft: `3px solid #fbbf24` }}>
@@ -347,7 +348,7 @@ export default function ClienteDashboard() {
             {/* Comparação Período Anterior */}
             {resumo.comparacao_anterior && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>📊 Comparação com Período Anterior</h2>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><BarChart3 size={20} /> Comparação com Período Anterior</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Spend</p>
@@ -380,7 +381,7 @@ export default function ClienteDashboard() {
             {/* Previsões */}
             {previsao && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>🔮 Previsões para Próximos 30 Dias</h2>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Wand2 size={20} /> Previsões para Próximos 30 Dias</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS Previsto</p>
@@ -407,14 +408,17 @@ export default function ClienteDashboard() {
             {/* Benchmarks */}
             {benchmark && (
               <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md }}>📈 Benchmarks vs Indústria</h2>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><TrendingUp size={20} /> Benchmarks vs Indústria</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>CPM</p>
                     <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpm}</p>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: R$ {benchmark.industria_cpm}</p>
                     <p style={{ fontSize: '11px', color: benchmark.posicao_cpm === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
-                      {benchmark.posicao_cpm === 'melhor' ? '✓ Melhor' : '✗ Acima da média'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                        {benchmark.posicao_cpm === 'melhor' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                        {benchmark.posicao_cpm === 'melhor' ? 'Melhor' : 'Acima da média'}
+                      </div>
                     </p>
                   </div>
                   <div>
@@ -422,15 +426,19 @@ export default function ClienteDashboard() {
                     <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpc}</p>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: R$ {benchmark.industria_cpc}</p>
                     <p style={{ fontSize: '11px', color: benchmark.posicao_cpc === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
-                      {benchmark.posicao_cpc === 'melhor' ? '✓ Melhor' : '✗ Acima da média'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                        {benchmark.posicao_cpc === 'melhor' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                        {benchmark.posicao_cpc === 'melhor' ? 'Melhor' : 'Acima da média'}
+                      </div>
                     </p>
                   </div>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS</p>
                     <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: {benchmark.seu_roas}x</p>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: {benchmark.industria_roas}x</p>
-                    <p style={{ fontSize: '11px', color: benchmark.posicao_roas === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
-                      {benchmark.posicao_roas === 'melhor' ? '✓ Melhor' : '✗ Abaixo da média'}
+                    <p style={{ fontSize: '11px', color: benchmark.posicao_roas === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600', display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+                      {benchmark.posicao_roas === 'melhor' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                      {benchmark.posicao_roas === 'melhor' ? 'Melhor' : 'Abaixo da média'}
                     </p>
                   </div>
                 </div>
