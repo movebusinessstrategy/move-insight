@@ -148,11 +148,8 @@ export default function FinanceiroDashboard({ user }: FinanceiroDashboardProps) 
           >
             <ArrowLeft size={20} />
           </button>
-          <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '40px', width: 'auto' }} />
-          <div>
-            <h1 style={{ ...typography.heading, margin: 0, fontSize: '18px' }}>MOVE Insights</h1>
-            <p style={{ ...typography.tiny, color: c.text.secondary, margin: '2px 0 0 0', fontSize: '12px' }}>Financeiro</p>
-          </div>
+          <img src={theme === 'light' ? logoLight : logoDark} alt="Logo" style={{ height: '50px', width: 'auto' }} />
+          <span style={{ ...typography.small, color: c.text.secondary }}>Financeiro</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
