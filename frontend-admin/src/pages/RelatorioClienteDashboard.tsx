@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { TrendingUp, AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3, Wand2, XCircle } from 'lucide-react';
+import { AlertCircle, Zap, Target, Loader, ChevronDown, RefreshCw, CheckCircle2, Lightbulb, BarChart3 } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import Header from '../components/Header';
@@ -22,7 +22,6 @@ interface Campanha {
   ctr: number;
   cpc: number;
   ctr_rate: number;
-  roas: number;
 }
 
 interface ResumoRelatorio {
@@ -32,7 +31,6 @@ interface ResumoRelatorio {
     totalCliques: number;
     totalConversoes: number;
     totalConversasIniciadasMensagem?: number;
-    roas: number;
     totalImpressoes: number;
     cpmMedio: number;
     cpcMedio: number;
@@ -55,26 +53,8 @@ interface InsightsCampanha {
   analise_concorrencial: string;
 }
 
-interface Previsao {
-  roas_forecast: number;
-  confianca: number;
-  fatores: string[];
-}
-
-interface Benchmark {
-  seu_cpm: string;
-  industria_cpm: string;
-  seu_cpc: string;
-  industria_cpc: string;
-  seu_roas: string;
-  industria_roas: string;
-  posicao_cpm: string;
-  posicao_cpc: string;
-  posicao_roas: string;
-}
-
 type PeriodType = 'last_7d' | 'last_30d' | 'last_90d';
-type TabType = 'analise' | 'campanhas' | 'previsoes' | 'benchmarks';
+type TabType = 'analise' | 'campanhas';
 
 export default function RelatorioClienteDashboard() {
   const navigate = useNavigate();
@@ -87,8 +67,6 @@ export default function RelatorioClienteDashboard() {
   const [period, setPeriod] = useState<PeriodType>('last_30d');
   const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
   const [insights, setInsights] = useState<InsightsCampanha | null>(null);
-  const [previsao, setPrevisao] = useState<Previsao | null>(null);
-  const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [error, setError] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('analise');
@@ -146,11 +124,9 @@ export default function RelatorioClienteDashboard() {
       setLoadingRelatorio(true);
       setError('');
 
-      const [resResumo, resInsights, resPrevisao, resBenchmark] = await Promise.all([
+      const [resResumo, resInsights] = await Promise.all([
         fetch(`/api/admin/clientes/${clienteSelecionado}/relatorio/resumo?periodo=${period}`, { credentials: 'include' }),
         fetch(`/api/admin/clientes/${clienteSelecionado}/relatorio/analise-ia`, { credentials: 'include' }),
-        fetch(`/api/admin/clientes/${clienteSelecionado}/relatorio/previsoes`, { credentials: 'include' }),
-        fetch(`/api/admin/clientes/${clienteSelecionado}/relatorio/benchmarks`, { credentials: 'include' }),
       ]);
 
       if (resResumo.ok) {
@@ -167,18 +143,6 @@ export default function RelatorioClienteDashboard() {
         const dataInsights = await resInsights.json();
         console.log('Insights:', dataInsights);
         setInsights(dataInsights);
-      }
-
-      if (resPrevisao.ok) {
-        const dataPrevisao = await resPrevisao.json();
-        console.log('Previsão:', dataPrevisao);
-        setPrevisao(dataPrevisao);
-      }
-
-      if (resBenchmark.ok) {
-        const dataBenchmark = await resBenchmark.json();
-        console.log('Benchmark:', dataBenchmark);
-        setBenchmark(dataBenchmark);
       }
     } catch (err) {
       setError('Erro ao carregar relatório');
@@ -379,14 +343,6 @@ export default function RelatorioClienteDashboard() {
 
                   <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-                      <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>ROAS</h3>
-                      <Zap size={18} color="#fbbf24" />
-                    </div>
-                    <p style={{ ...typography.heading, margin: 0, color: '#fbbf24' }}>{resumo.resumo.roas.toFixed(2)}x</p>
-                  </div>
-
-                  <div style={{ ...glassMorphism[theme], borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
                       <h3 style={{ margin: 0, fontSize: '13px', color: c.text.secondary }}>Investimento</h3>
                       <Target size={18} color={c.accent} />
                     </div>
@@ -406,7 +362,7 @@ export default function RelatorioClienteDashboard() {
 
                 {/* Abas */}
                 <div style={{ display: 'flex', gap: spacing.md, marginBottom: spacing.lg, borderBottom: `2px solid ${c.border}` }}>
-                  {(['analise', 'campanhas', 'previsoes', 'benchmarks'] as TabType[]).map((tab) => (
+                  {(['analise', 'campanhas'] as TabType[]).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -425,8 +381,6 @@ export default function RelatorioClienteDashboard() {
                     >
                       {tab === 'analise' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><Zap size={16} /> Análise com IA</div>}
                       {tab === 'campanhas' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><BarChart3 size={16} /> Meta Ads</div>}
-                      {tab === 'previsoes' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><Wand2 size={16} /> Previsões</div>}
-                      {tab === 'benchmarks' && <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}><TrendingUp size={16} /> Benchmarks</div>}
                     </button>
                   ))}
                 </div>
@@ -583,7 +537,6 @@ export default function RelatorioClienteDashboard() {
                               <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>CTR</th>
                               <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Conversões</th>
                               <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>Custo</th>
-                              <th style={{ textAlign: 'right', padding: spacing.sm, color: c.text.secondary, fontWeight: '600' }}>ROAS</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -595,7 +548,6 @@ export default function RelatorioClienteDashboard() {
                                 <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{(camp.ctr_rate * 100).toFixed(2)}%</td>
                                 <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{camp.conversions.toLocaleString('pt-BR')}</td>
                                 <td style={{ padding: spacing.sm, color: c.text.primary, textAlign: 'right' }}>{formatarMoeda(camp.spend)}</td>
-                                <td style={{ padding: spacing.sm, color: '#fbbf24', textAlign: 'right', fontWeight: '600' }}>{camp.roas.toFixed(2)}x</td>
                               </tr>
                             ))}
                           </tbody>
@@ -605,77 +557,6 @@ export default function RelatorioClienteDashboard() {
                   </div>
                 )}
 
-                {activeTab === 'previsoes' && (
-                  <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Wand2 size={20} /> Previsões de Desempenho</h2>
-                    {previsao ? (
-                      <>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: spacing.md, marginBottom: spacing.lg }}>
-                          <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS Previsto</p>
-                            <p style={{ ...typography.heading, margin: 0, color: c.accent, marginTop: spacing.sm }}>{previsao.roas_forecast.toFixed(2)}x</p>
-                          </div>
-                          <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Confiança</p>
-                            <p style={{ ...typography.heading, margin: 0, color: c.accent, marginTop: spacing.sm }}>{previsao.confianca}%</p>
-                          </div>
-                        </div>
-                        {previsao.fatores.length > 0 && (
-                          <div>
-                            <h3 style={{ fontSize: '13px', fontWeight: '600', marginBottom: spacing.sm }}>Fatores Considerados:</h3>
-                            <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                              {previsao.fatores.map((fator, i) => (
-                                <li key={i} style={{ padding: `${spacing.xs} 0`, fontSize: '13px' }}>
-                                  • {fator}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <p style={{ color: c.text.secondary }}>Dados de previsão não disponíveis</p>
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'benchmarks' && (
-                  <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                    <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><TrendingUp size={20} /> Benchmarks Competitivos</h2>
-                    {benchmark ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: spacing.md }}>
-                        <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
-                          <h3 style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, margin: 0 }}>CPM (Custo por Mil Impressões)</h3>
-                          <div style={{ marginTop: spacing.md }}>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Seu CPM: <strong>{benchmark.seu_cpm}</strong></p>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: <strong>{benchmark.industria_cpm}</strong></p>
-                            <p style={{ fontSize: '12px', color: obterCorSaude(benchmark.posicao_cpm as any), margin: `${spacing.sm} 0 0 0`, fontWeight: '600' }}>Posição: {benchmark.posicao_cpm}</p>
-                          </div>
-                        </div>
-
-                        <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
-                          <h3 style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, margin: 0 }}>CPC (Custo por Clique)</h3>
-                          <div style={{ marginTop: spacing.md }}>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Seu CPC: <strong>{benchmark.seu_cpc}</strong></p>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: <strong>{benchmark.industria_cpc}</strong></p>
-                            <p style={{ fontSize: '12px', color: obterCorSaude(benchmark.posicao_cpc as any), margin: `${spacing.sm} 0 0 0`, fontWeight: '600' }}>Posição: {benchmark.posicao_cpc}</p>
-                          </div>
-                        </div>
-
-                        <div style={{ backgroundColor: c.bg.tertiary, borderRadius: radius.md, padding: spacing.md }}>
-                          <h3 style={{ fontSize: '12px', fontWeight: '600', color: c.text.secondary, margin: 0 }}>ROAS (Retorno sobre Gasto)</h3>
-                          <div style={{ marginTop: spacing.md }}>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Seu ROAS: <strong>{benchmark.seu_roas}</strong></p>
-                            <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: <strong>{benchmark.industria_roas}</strong></p>
-                            <p style={{ fontSize: '12px', color: obterCorSaude(benchmark.posicao_roas as any), margin: `${spacing.sm} 0 0 0`, fontWeight: '600' }}>Posição: {benchmark.posicao_roas}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <p style={{ color: c.text.secondary }}>Dados de benchmark não disponíveis</p>
-                    )}
-                  </div>
-                )}
               </>
             )}
           </div>
