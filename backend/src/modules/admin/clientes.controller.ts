@@ -406,6 +406,8 @@ export async function handleObterResumoRelatorio(req: Request, res: Response): P
 
     const relatorio = await gerarRelatorio(cliente.meta_ads_account_id, periodo as any);
 
+    console.log(`[handleObterResumoRelatorio] Relatório bruto:`, JSON.stringify(relatorio.campanhas.slice(0, 1), null, 2));
+
     res.status(200).json({
       periodo: relatorio.periodo,
       resumo: {

@@ -280,11 +280,13 @@ export async function gerarRelatorio(
     const campanhasComDados: Campanha[] = await Promise.all(
       campanhasAtivas.map(async (camp) => {
         const insights = await getCampaignInsights(camp.id, dateRange.since, dateRange.until);
-        return {
+        const campanhaMapeada = {
           id: camp.id,
           nome: camp.name,
           ...insights,
         };
+        console.log(`[gerarRelatorio] Campanha ${camp.id}:`, campanhaMapeada);
+        return campanhaMapeada;
       })
     );
 
