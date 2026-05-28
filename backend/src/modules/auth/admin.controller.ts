@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { loginAdmin } from './admin.service.js';
+import { loginAdmin, registerAdmin } from './admin.service.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -40,4 +40,32 @@ export async function handleAdminLogout(_req: Request, res: Response): Promise<v
 export function handleAdminMe(req: Request, res: Response): void {
   const user = (req as any).adminUser;
   res.status(200).json({ user });
+}
+
+export async function handleAdminRegister(req: Request, res: Response): Promise<void> {
+  try {
+    const { email, senha, nome } = req.body as {
+      email?: string;
+      senha?: string;
+      nome?: string;
+    };
+
+    if (!email || !senha || !nome) {
+      res.status(400).json({ error: 'Email, senha e nome são obrigatórios' });
+      return;
+    }
+
+    const user = await registerAdmin({ email, senha, nome });
+
+    // Salvar sessão no cookie
+    res.cookie('admin_session', JSON.stringify(user), COOKIE_OPTIONS);
+
+    res.status(201).json({
+      message: 'Admin registrado com sucesso',
+      user,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro ao registrar admin';
+    res.status(400).json({ error: message });
+  }
 }
