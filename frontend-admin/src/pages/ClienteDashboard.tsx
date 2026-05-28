@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, Wand2, XCircle, MessageSquare, Key } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, TrendingUp, AlertCircle, Zap, Target, Loader, BarChart3, CheckCircle2, Lightbulb, ArrowRight, XCircle, MessageSquare, Key } from 'lucide-react';
 import { colors, spacing, typography, shadows, radius, glassMorphism, keyframes } from '../theme';
 import CriarLoginClienteModal from '../components/CriarLoginClienteModal';
 import type { Theme } from '../theme';
@@ -48,24 +48,6 @@ interface InsightsCampanha {
   analise_concorrencial: string;
 }
 
-interface Previsao {
-  roas_forecast: number;
-  confianca: number;
-  fatores: string[];
-}
-
-interface Benchmark {
-  seu_cpm: string;
-  industria_cpm: string;
-  seu_cpc: string;
-  industria_cpc: string;
-  seu_roas: string;
-  industria_roas: string;
-  posicao_cpm: string;
-  posicao_cpc: string;
-  posicao_roas: string;
-}
-
 interface Cliente {
   id: string;
   nome: string;
@@ -84,8 +66,6 @@ export default function ClienteDashboard() {
   const [period, setPeriod] = useState<PeriodType>('last_30d');
   const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
   const [insights, setInsights] = useState<InsightsCampanha | null>(null);
-  const [previsao, setPrevisao] = useState<Previsao | null>(null);
-  const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [error, setError] = useState('');
   const [modalLoginAberto, setModalLoginAberto] = useState(false);
 
@@ -158,20 +138,6 @@ export default function ClienteDashboard() {
           proximos_passos: ['Tente recarregar a página'],
           analise_concorrencial: 'Erro na análise',
         });
-      }
-
-      // Carregar previsões
-      const resPrevisao = await fetch(`/api/admin/clientes/${clienteId}/relatorio/previsoes`, { credentials: 'include' });
-      if (resPrevisao.ok) {
-        const dataPrevisao = await resPrevisao.json();
-        setPrevisao(dataPrevisao);
-      }
-
-      // Carregar benchmarks
-      const resBenchmark = await fetch(`/api/admin/clientes/${clienteId}/relatorio/benchmarks`, { credentials: 'include' });
-      if (resBenchmark.ok) {
-        const dataBenchmark = await resBenchmark.json();
-        setBenchmark(dataBenchmark);
       }
     } catch (err) {
       setError('Erro ao carregar dados');
@@ -535,70 +501,36 @@ export default function ClienteDashboard() {
               </div>
             )}
 
-            {/* Previsões */}
-            {previsao && (
-              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Wand2 size={20} /> Previsões para Próximos 30 Dias</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: spacing.md }}>
-                  <div>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS Previsto</p>
-                    <p style={{ ...typography.heading, margin: `${spacing.sm} 0 0 0` }}>{previsao.roas_forecast.toFixed(2)}x</p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Confiança</p>
-                    <p style={{ ...typography.heading, margin: `${spacing.sm} 0 0 0` }}>{previsao.confianca}%</p>
-                  </div>
-                </div>
-                {previsao.fatores.length > 0 && (
-                  <div style={{ marginTop: spacing.md }}>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `0 0 ${spacing.sm} 0` }}>Fatores Considerados:</p>
-                    <ul style={{ margin: 0, paddingLeft: spacing.lg, color: c.text.primary, fontSize: '13px' }}>
-                      {previsao.fatores.map((fator, i) => (
-                        <li key={i}>{fator}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Benchmarks */}
-            {benchmark && (
-              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}` }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><TrendingUp size={20} /> Benchmarks vs Indústria</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: spacing.md }}>
-                  <div>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>CPM</p>
-                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpm}</p>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: R$ {benchmark.industria_cpm}</p>
-                    <p style={{ fontSize: '11px', color: benchmark.posicao_cpm === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
-                        {benchmark.posicao_cpm === 'melhor' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                        {benchmark.posicao_cpm === 'melhor' ? 'Melhor' : 'Acima da média'}
-                      </div>
-                    </p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>CPC</p>
-                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: R$ {benchmark.seu_cpc}</p>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: R$ {benchmark.industria_cpc}</p>
-                    <p style={{ fontSize: '11px', color: benchmark.posicao_cpc === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
-                        {benchmark.posicao_cpc === 'melhor' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                        {benchmark.posicao_cpc === 'melhor' ? 'Melhor' : 'Acima da média'}
-                      </div>
-                    </p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>ROAS</p>
-                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0` }}>Seu: {benchmark.seu_roas}x</p>
-                    <p style={{ fontSize: '12px', color: c.text.secondary, margin: `${spacing.xs} 0 0 0` }}>Indústria: {benchmark.industria_roas}x</p>
-                    <p style={{ fontSize: '11px', color: benchmark.posicao_roas === 'melhor' ? '#10b981' : c.error, margin: `${spacing.xs} 0 0 0`, fontWeight: '600', display: 'flex', alignItems: 'center', gap: spacing.xs }}>
-                      {benchmark.posicao_roas === 'melhor' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
-                      {benchmark.posicao_roas === 'melhor' ? 'Melhor' : 'Abaixo da média'}
-                    </p>
-                  </div>
-                </div>
+            {/* Campanhas Detalhadas */}
+            {resumo && resumo.campanhas.length > 0 && (
+              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg, overflowX: 'auto' }}>
+                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><BarChart3 size={20} /> Detalhes das Campanhas</h2>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: `2px solid ${c.border}` }}>
+                      <th style={{ textAlign: 'left', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>Campanha</th>
+                      <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>Impressões</th>
+                      <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>Cliques</th>
+                      <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>CTR</th>
+                      <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>CPC</th>
+                      <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>Conversões</th>
+                      <th style={{ textAlign: 'right', padding: spacing.md, color: c.text.secondary, fontWeight: '600' }}>Investimento</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {resumo.campanhas.map((campanha, idx) => (
+                      <tr key={idx} style={{ borderBottom: `1px solid ${c.border}` }}>
+                        <td style={{ padding: spacing.md, color: c.text.primary, fontWeight: '500' }}>{campanha.name}</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{campanha.impressions.toLocaleString('pt-BR')}</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{campanha.clicks.toLocaleString('pt-BR')}</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{campanha.ctr_rate.toFixed(2)}%</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>R$ {campanha.cpc.toFixed(2)}</td>
+                        <td style={{ padding: spacing.md, color: '#10b981', textAlign: 'right', fontWeight: '500' }}>{campanha.conversions.toLocaleString('pt-BR')}</td>
+                        <td style={{ padding: spacing.md, color: c.accent, textAlign: 'right', fontWeight: '500' }}>R$ {campanha.spend.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

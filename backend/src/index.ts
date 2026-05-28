@@ -10,6 +10,7 @@ import clienteCriatativosRoutes from './routes/cliente.criativos.js';
 import adminClientesRoutes from './routes/admin.clientes.js';
 import adminFaturasRoutes from './routes/admin.faturas.js';
 import adminRelatorioRoutes from './routes/cliente.relatorio.js';
+import adminFinanceiroRoutes from './routes/admin.financeiro.js';
 import whatsappRoutes from './routes/whatsapp.js';
 
 const app = express();
@@ -49,6 +50,7 @@ app.use('/api/cliente/relatorio', adminRelatorioRoutes);
 app.use('/api/admin', adminClientesRoutes);
 app.use('/api/admin', adminFaturasRoutes);
 app.use('/api/admin', adminRelatorioRoutes);
+app.use('/api/admin', adminFinanceiroRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 
 // Health check

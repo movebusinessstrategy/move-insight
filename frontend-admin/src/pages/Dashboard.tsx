@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp, CheckCircle2, Circle, FileText } from 'lucide-react';
+import { Moon, Sun, Users, MessageSquare, BarChart3, LogOut, Plus, Edit2, Eye, Bell, Send, Settings, Download, Trash2, Filter, Search, Menu, DollarSign, TrendingUp, CheckCircle2, Circle, FileText, Brain } from 'lucide-react';
 import { colors, spacing, radius, typography, shadows, glassMorphism, animations, keyframes } from '../theme';
 import type { Theme } from '../theme';
 import logoLight from '../assets/logo-light.png';
@@ -517,7 +517,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <BarChart3 size={18} />
+            <Brain size={20} style={{ flexShrink: 0, strokeWidth: 2 }} />
             Relatórios com IA
           </button>
 
@@ -1142,7 +1142,7 @@ export default function Dashboard({ user }: DashboardProps) {
                         e.currentTarget.style.transform = 'translateY(0)';
                         e.currentTarget.style.boxShadow = shadows.md;
                       }}
-                      onClick={() => navigate(`/relatorio-cliente/${cliente.id}`)}
+                      onClick={() => navigate(`/dashboard/cliente/${cliente.id}`)}
                     >
                       <h3 style={{ ...typography.subheading, margin: `0 0 ${spacing.md} 0` }}>{cliente.nome}</h3>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: spacing.md, marginBottom: spacing.lg }}>
