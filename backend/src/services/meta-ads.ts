@@ -281,6 +281,7 @@ export async function gerarRelatorio(
       campanhasAtivas.map(async (camp) => {
         const insights = await getCampaignInsights(camp.id, dateRange.since, dateRange.until);
         return {
+          id: camp.id,
           nome: camp.name,
           ...insights,
         };
