@@ -480,20 +480,20 @@ export default function ClienteDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: spacing.md }}>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Spend</p>
-                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_spend > 0 ? c.error : '#10b981' }}>
-                      {resumo.comparacao_anterior.variacao_spend > 0 ? '+' : ''}{resumo.comparacao_anterior.variacao_spend.toFixed(1)}%
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: (resumo.comparacao_anterior.variacao_spend ?? 0) > 0 ? c.error : '#10b981' }}>
+                      {(resumo.comparacao_anterior.variacao_spend ?? 0) > 0 ? '+' : ''}{((resumo.comparacao_anterior.variacao_spend ?? 0)).toFixed(1)}%
                     </p>
                   </div>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Cliques</p>
-                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_cliques > 0 ? '#10b981' : c.error }}>
-                      {resumo.comparacao_anterior.variacao_cliques > 0 ? '+' : ''}{resumo.comparacao_anterior.variacao_cliques.toFixed(1)}%
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: (resumo.comparacao_anterior.variacao_cliques ?? 0) > 0 ? '#10b981' : c.error }}>
+                      {(resumo.comparacao_anterior.variacao_cliques ?? 0) > 0 ? '+' : ''}{((resumo.comparacao_anterior.variacao_cliques ?? 0)).toFixed(1)}%
                     </p>
                   </div>
                   <div>
                     <p style={{ fontSize: '12px', color: c.text.secondary, margin: 0 }}>Variação de Conversões</p>
-                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: resumo.comparacao_anterior.variacao_conversoes > 0 ? '#10b981' : c.error }}>
-                      {resumo.comparacao_anterior.variacao_conversoes > 0 ? '+' : ''}{resumo.comparacao_anterior.variacao_conversoes.toFixed(1)}%
+                    <p style={{ ...typography.body, margin: `${spacing.xs} 0 0 0`, color: (resumo.comparacao_anterior.variacao_conversoes ?? 0) > 0 ? '#10b981' : c.error }}>
+                      {(resumo.comparacao_anterior.variacao_conversoes ?? 0) > 0 ? '+' : ''}{((resumo.comparacao_anterior.variacao_conversoes ?? 0)).toFixed(1)}%
                     </p>
                   </div>
                   <div>
@@ -526,12 +526,12 @@ export default function ClienteDashboard() {
                     {resumo.campanhas.map((campanha, idx) => (
                       <tr key={idx} style={{ borderBottom: `1px solid ${c.border}` }}>
                         <td style={{ padding: spacing.md, color: c.text.primary, fontWeight: '500' }}>{campanha.name}</td>
-                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{campanha.impressions.toLocaleString('pt-BR')}</td>
-                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{campanha.clicks.toLocaleString('pt-BR')}</td>
-                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{campanha.ctr_rate.toFixed(2)}%</td>
-                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>R$ {campanha.cpc.toFixed(2)}</td>
-                        <td style={{ padding: spacing.md, color: '#10b981', textAlign: 'right', fontWeight: '500' }}>{campanha.conversions.toLocaleString('pt-BR')}</td>
-                        <td style={{ padding: spacing.md, color: c.accent, textAlign: 'right', fontWeight: '500' }}>R$ {campanha.spend.toFixed(2)}</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{(campanha.impressions ?? 0).toLocaleString('pt-BR')}</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{(campanha.clicks ?? 0).toLocaleString('pt-BR')}</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>{((campanha.ctr_rate ?? 0)).toFixed(2)}%</td>
+                        <td style={{ padding: spacing.md, color: c.text.primary, textAlign: 'right' }}>R$ {((campanha.cpc ?? 0)).toFixed(2)}</td>
+                        <td style={{ padding: spacing.md, color: '#10b981', textAlign: 'right', fontWeight: '500' }}>{(campanha.conversions ?? 0).toLocaleString('pt-BR')}</td>
+                        <td style={{ padding: spacing.md, color: c.accent, textAlign: 'right', fontWeight: '500' }}>R$ {((campanha.spend ?? 0)).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
