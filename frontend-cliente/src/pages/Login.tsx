@@ -50,17 +50,16 @@ export default function Login() {
       }
 
       const data = (await response.json()) as {
+        token: string;
         cliente: ClienteData;
-        senha_provisoria: boolean;
       };
 
-      // Se senha provisória, redireciona para trocar senha
-      if (data.senha_provisoria) {
-        window.location.href = '/trocar-senha';
-      } else {
-        // Caso contrário, vai para dashboard
-        window.location.href = '/dashboard';
-      }
+      // Armazenar token no localStorage
+      localStorage.setItem('cliente_token', data.token);
+      localStorage.setItem('cliente_data', JSON.stringify(data.cliente));
+
+      // Redirecionar para dashboard
+      window.location.href = '/dashboard';
     } catch (err) {
       setError({
         message: err instanceof Error ? err.message : 'Erro desconhecido',

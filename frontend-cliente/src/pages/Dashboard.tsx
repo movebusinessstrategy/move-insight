@@ -42,11 +42,24 @@ export default function Dashboard({ cliente }: { cliente: Cliente }) {
     setError(null);
 
     try {
+      const token = localStorage.getItem('cliente_token');
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+
       const response = await fetch(`/api/cliente/dashboard/resumo?periodo=${periodo}`, {
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('cliente_token');
+          window.location.href = '/login';
+          return;
+        }
         const data = await response.json();
         throw new Error(data.error || 'Erro ao carregar dashboard');
       }
@@ -62,10 +75,15 @@ export default function Dashboard({ cliente }: { cliente: Cliente }) {
 
   const handleLogout = async () => {
     try {
+      const token = localStorage.getItem('cliente_token');
       await fetch('/api/cliente/auth/logout', {
         method: 'POST',
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${token || ''}`,
+        },
       });
+      localStorage.removeItem('cliente_token');
+      localStorage.removeItem('cliente_data');
       window.location.href = '/login';
     } catch (err) {
       console.error('Erro ao fazer logout:', err);

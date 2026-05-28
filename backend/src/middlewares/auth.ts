@@ -1,5 +1,8 @@
 import type { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import type { UserSession, ClienteSession } from '../types/index.js';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'cliente-secret-key-move-insights';
 
 declare global {
   namespace Express {
@@ -29,8 +32,23 @@ export function requireAdminAuth(req: Request, res: Response, next: NextFunction
 
 export function requireClienteAuth(req: Request, res: Response, next: NextFunction): void {
   try {
-    const sessionJson = req.cookies.cliente_session;
+    // Tenta JWT token primeiro (Authorization: Bearer token)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      req.clienteUser = {
+        id: decoded.id,
+        cliente_id: decoded.cliente_id,
+        email: decoded.email,
+        nome: decoded.nome,
+      };
+      next();
+      return;
+    }
 
+    // Fallback para cookie (backwards compatibility)
+    const sessionJson = req.cookies.cliente_session;
     if (!sessionJson) {
       res.status(401).json({ error: 'Autenticação necessária' });
       return;

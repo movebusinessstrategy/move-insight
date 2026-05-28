@@ -9,8 +9,9 @@ export interface ClienteSession {
   id: string;
   cliente_id: string;
   email: string;
-  cliente_nome: string;
-  senha_provisoria: boolean;
+  nome?: string;
+  cliente_nome?: string;
+  senha_provisoria?: boolean;
 }
 
 export interface AuthRequest {

@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { sendWhatsAppMessage } from './services/whatsapp.js';
 import authAdminRoutes from './routes/auth.admin.js';
 import authClienteRoutes from './routes/auth.cliente.js';
+import clienteAuthRoutes from './routes/cliente.auth.js';
 import clienteDashboardRoutes from './routes/cliente.dashboard.js';
 import clienteContextoRoutes from './routes/cliente.contexto.js';
 import clienteCriatativosRoutes from './routes/cliente.criativos.js';
@@ -42,6 +43,7 @@ app.use((_req: any, res, next) => {
 
 // Routes
 app.use('/api/auth/admin', authAdminRoutes);
+app.use('/api/auth/cliente', clienteAuthRoutes);
 app.use('/api/cliente/auth', authClienteRoutes);
 app.use('/api/cliente/dashboard', clienteDashboardRoutes);
 app.use('/api/cliente/contexto', clienteContextoRoutes);
