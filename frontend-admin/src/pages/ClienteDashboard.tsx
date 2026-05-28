@@ -111,10 +111,14 @@ export default function ClienteDashboard() {
       const resResumo = await fetch(`/api/admin/clientes/${clienteId}/relatorio/resumo?periodo=${period}`, {
         credentials: 'include',
       });
-      if (resResumo.ok) {
-        const dataResumo = await resResumo.json();
-        setResumo(dataResumo);
+
+      if (!resResumo.ok) {
+        const errorData = await resResumo.json().catch(() => ({}));
+        throw new Error(errorData.error || `Erro ao carregar resumo (${resResumo.status})`);
       }
+
+      const dataResumo = await resResumo.json();
+      setResumo(dataResumo);
 
       // Carregar análise IA
       const resInsights = await fetch(`/api/admin/clientes/${clienteId}/relatorio/analise-ia`, { credentials: 'include' });
@@ -140,7 +144,8 @@ export default function ClienteDashboard() {
         });
       }
     } catch (err) {
-      setError('Erro ao carregar dados');
+      const message = err instanceof Error ? err.message : 'Erro ao carregar dados';
+      setError(message);
       console.error(err);
     } finally {
       setLoading(false);
