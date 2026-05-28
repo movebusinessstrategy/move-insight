@@ -65,7 +65,6 @@ export default function ClienteDashboard() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<PeriodType>('last_30d');
   const [resumo, setResumo] = useState<ResumoRelatorio | null>(null);
-  const [insights, setInsights] = useState<InsightsCampanha | null>(null);
   const [error, setError] = useState('');
   const [modalLoginAberto, setModalLoginAberto] = useState(false);
 
@@ -120,29 +119,6 @@ export default function ClienteDashboard() {
       const dataResumo = await resResumo.json();
       setResumo(dataResumo);
 
-      // Carregar análise IA
-      const resInsights = await fetch(`/api/admin/clientes/${clienteId}/relatorio/analise-ia`, { credentials: 'include' });
-      if (resInsights.ok) {
-        const dataInsights = await resInsights.json();
-        if (dataInsights && Object.keys(dataInsights).length > 0) {
-          setInsights(dataInsights);
-        } else {
-          setInsights({
-            oportunidades: ['Aguardando dados de campanhas'],
-            alertas: [],
-            proximos_passos: ['Ative campanhas para análise automática'],
-            analise_concorrencial: 'Análise indisponível sem dados',
-          });
-        }
-      } else {
-        console.warn('Erro ao carregar insights:', resInsights.status);
-        setInsights({
-          oportunidades: ['Erro ao carregar análise'],
-          alertas: [],
-          proximos_passos: ['Tente recarregar a página'],
-          analise_concorrencial: 'Erro na análise',
-        });
-      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar dados';
       setError(message);
@@ -393,85 +369,6 @@ export default function ClienteDashboard() {
               </div>
             </div>
 
-            {/* Insights de IA */}
-            {insights && (
-              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Zap size={20} /> Análise com IA</h2>
-
-                {insights.analise_concorrencial && (
-                  <div style={{ marginBottom: spacing.lg, padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', lineHeight: '1.6' }}>
-                    <p style={{ margin: 0 }}>{insights.analise_concorrencial}</p>
-                  </div>
-                )}
-
-                {insights.oportunidades.length > 0 && (
-                  <div style={{ marginBottom: spacing.lg }}>
-                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: '#10b981', marginBottom: spacing.sm, display: 'flex', alignItems: 'center', gap: spacing.sm }}><CheckCircle2 size={16} /> Oportunidades</h3>
-                    <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                      {insights.oportunidades.map((oportunidade, i) => (
-                        <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
-                          • {oportunidade}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {insights.alertas.length > 0 && (
-                  <div style={{ marginBottom: spacing.lg }}>
-                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.error, marginBottom: spacing.sm, display: 'flex', alignItems: 'center', gap: spacing.sm }}><AlertCircle size={16} /> Alertas</h3>
-                    <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                      {insights.alertas.map((alerta, i) => (
-                        <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
-                          • {alerta}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {insights.proximos_passos.length > 0 && (
-                  <div>
-                    <h3 style={{ fontSize: '13px', fontWeight: '600', color: c.accent, marginBottom: spacing.sm, display: 'flex', alignItems: 'center', gap: spacing.sm }}><ArrowRight size={16} /> Próximos Passos</h3>
-                    <ul style={{ margin: 0, paddingLeft: spacing.lg, listStyle: 'none' }}>
-                      {insights.proximos_passos.map((passo, i) => (
-                        <li key={i} style={{ padding: `${spacing.xs} 0`, color: c.text.primary, fontSize: '13px' }}>
-                          • {passo}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Insights Principais */}
-            {resumo.analise.insights.length > 0 && (
-              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Lightbulb size={20} /> Insights Principais</h2>
-                <div style={{ display: 'grid', gap: spacing.md }}>
-                  {resumo.analise.insights.map((insight, i) => (
-                    <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', borderLeft: `3px solid ${c.accent}` }}>
-                      {insight}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Recomendações */}
-            {resumo.analise.recomendacoes.length > 0 && (
-              <div style={{ backgroundColor: c.bg.secondary, borderRadius: radius.lg, padding: spacing.lg, boxShadow: shadows.md, border: `1px solid ${c.border}`, marginBottom: spacing.lg }}>
-                <h2 style={{ ...typography.heading, marginTop: 0, marginBottom: spacing.md, display: 'flex', alignItems: 'center', gap: spacing.md }}><Target size={20} /> Recomendações</h2>
-                <div style={{ display: 'grid', gap: spacing.md }}>
-                  {resumo.analise.recomendacoes.map((rec, i) => (
-                    <div key={i} style={{ padding: spacing.md, backgroundColor: c.bg.tertiary, borderRadius: radius.md, fontSize: '14px', borderLeft: `3px solid #fbbf24` }}>
-                      {rec}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Comparação Período Anterior */}
             {resumo.comparacao_anterior && (
