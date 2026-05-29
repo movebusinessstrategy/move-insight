@@ -517,8 +517,8 @@ export default function Dashboard({ user }: DashboardProps) {
               fontWeight: '500',
               transition: 'all 0.2s',
               whiteSpace: 'nowrap',
-              width: '40px',
-              height: '40px',
+              width: '52px',
+              height: '52px',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.color = c.accent;
@@ -527,7 +527,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <Brain size={28} style={{ flexShrink: 0, strokeWidth: 1.5 }} />
+            <Brain size={26} style={{ flexShrink: 0, strokeWidth: 1.5 }} />
           </button>
 
           <button
@@ -551,8 +551,8 @@ export default function Dashboard({ user }: DashboardProps) {
               fontWeight: '500',
               transition: 'all 0.2s',
               whiteSpace: 'nowrap',
-              width: '40px',
-              height: '40px',
+              width: '52px',
+              height: '52px',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.color = c.accent;
