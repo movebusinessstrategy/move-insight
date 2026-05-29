@@ -436,13 +436,13 @@ export default function Dashboard({ user }: DashboardProps) {
       }}>
         {/* Sidebar */}
         <div style={{
-          width: '70px',
+          width: '90px',
           backgroundColor: c.bg.secondary,
           borderRight: `1px solid ${c.border}`,
           padding: spacing.md,
           display: 'flex',
           flexDirection: 'column',
-          gap: spacing.sm,
+          gap: spacing.md,
           alignItems: 'center',
         }}>
           {[
@@ -471,8 +471,8 @@ export default function Dashboard({ user }: DashboardProps) {
                 fontWeight: '500',
                 transition: 'all 0.2s',
                 whiteSpace: 'nowrap',
-                width: '40px',
-                height: '40px',
+                width: '52px',
+                height: '52px',
               }}
               title={label}
               onMouseOver={(e) => {
@@ -493,7 +493,7 @@ export default function Dashboard({ user }: DashboardProps) {
           <div style={{
             height: '1px',
             backgroundColor: c.border,
-            width: '40px',
+            width: '52px',
           }} />
 
           <button
