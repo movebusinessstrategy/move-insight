@@ -486,7 +486,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 }
               }}
             >
-              <Icon size={28} />
+              <Icon size={24} />
             </button>
           ))}
 
@@ -527,7 +527,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <Brain size={26} style={{ flexShrink: 0, strokeWidth: 1.5 }} />
+            <Brain size={24} style={{ flexShrink: 0, strokeWidth: 1.5 }} />
           </button>
 
           <button
@@ -561,7 +561,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <DollarSign size={28} />
+            <DollarSign size={24} />
           </button>
         </div>
 
