@@ -527,7 +527,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <Brain size={24} style={{ flexShrink: 0, strokeWidth: 2 }} />
+            <Brain size={28} style={{ flexShrink: 0, strokeWidth: 1.5 }} />
           </button>
 
           <button
