@@ -486,7 +486,7 @@ export default function Dashboard({ user }: DashboardProps) {
                 }
               }}
             >
-              <Icon size={24} />
+              <Icon size={28} />
             </button>
           ))}
 
@@ -561,7 +561,7 @@ export default function Dashboard({ user }: DashboardProps) {
               e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <DollarSign size={24} />
+            <DollarSign size={28} />
           </button>
         </div>
 
