@@ -454,10 +454,13 @@ export default function Dashboard({ user }: DashboardProps) {
               key={id}
               onClick={() => setActiveTab(id as TabType)}
               style={{
-                background: activeTab === id ? c.accent : 'transparent',
-                color: activeTab === id ? '#FFFFFF' : c.text.primary,
-                border: 'none',
-                borderRadius: radius.md,
+                background: 'transparent',
+                color: activeTab === id ? c.accent : c.text.primary,
+                borderLeft: activeTab === id ? `4px solid ${c.accent}` : '4px solid transparent',
+                borderTop: 'none',
+                borderRight: 'none',
+                borderBottom: 'none',
+                borderRadius: '0px',
                 padding: spacing.md,
                 cursor: 'pointer',
                 display: 'flex',
@@ -474,16 +477,16 @@ export default function Dashboard({ user }: DashboardProps) {
               title={label}
               onMouseOver={(e) => {
                 if (activeTab !== id) {
-                  e.currentTarget.style.backgroundColor = c.bg.tertiary;
+                  e.currentTarget.style.color = c.accent;
                 }
               }}
               onMouseOut={(e) => {
                 if (activeTab !== id) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = c.text.primary;
                 }
               }}
             >
-              <Icon size={18} />
+              <Icon size={24} />
             </button>
           ))}
 
@@ -499,8 +502,11 @@ export default function Dashboard({ user }: DashboardProps) {
             style={{
               background: 'transparent',
               color: c.text.primary,
-              border: 'none',
-              borderRadius: radius.md,
+              borderLeft: '4px solid transparent',
+              borderTop: 'none',
+              borderRight: 'none',
+              borderBottom: 'none',
+              borderRadius: '0px',
               padding: spacing.md,
               cursor: 'pointer',
               display: 'flex',
@@ -515,13 +521,13 @@ export default function Dashboard({ user }: DashboardProps) {
               height: '40px',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = c.bg.tertiary;
+              e.currentTarget.style.color = c.accent;
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <Brain size={20} style={{ flexShrink: 0, strokeWidth: 2 }} />
+            <Brain size={24} style={{ flexShrink: 0, strokeWidth: 2 }} />
           </button>
 
           <button
@@ -530,8 +536,11 @@ export default function Dashboard({ user }: DashboardProps) {
             style={{
               background: 'transparent',
               color: c.text.primary,
-              border: 'none',
-              borderRadius: radius.md,
+              borderLeft: '4px solid transparent',
+              borderTop: 'none',
+              borderRight: 'none',
+              borderBottom: 'none',
+              borderRadius: '0px',
               padding: spacing.md,
               cursor: 'pointer',
               display: 'flex',
@@ -546,13 +555,13 @@ export default function Dashboard({ user }: DashboardProps) {
               height: '40px',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = c.bg.tertiary;
+              e.currentTarget.style.color = c.accent;
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = c.text.primary;
             }}
           >
-            <DollarSign size={18} />
+            <DollarSign size={24} />
           </button>
         </div>
 
