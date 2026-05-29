@@ -336,14 +336,14 @@ export default function Dashboard({ user }: DashboardProps) {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        minHeight: '100px',
+        minHeight: '70px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <img
             src={theme === 'light' ? logoLight : logoDark}
             alt="MOVE Insights"
             style={{
-              height: '80px',
+              height: '52px',
               width: 'auto',
             }}
           />
@@ -429,20 +429,21 @@ export default function Dashboard({ user }: DashboardProps) {
       {/* Main Content */}
       <div style={{
         display: 'flex',
-        height: 'calc(100vh - 100px)',
+        height: 'calc(100vh - 70px)',
         background: `linear-gradient(135deg, ${c.bg.primary} 0%, ${c.bg.secondary} 50%, ${c.bg.tertiary} 100%)`,
         backgroundSize: '200% 200%',
         ...animations.gradientShift,
       }}>
         {/* Sidebar */}
         <div style={{
-          width: '200px',
+          width: '70px',
           backgroundColor: c.bg.secondary,
           borderRight: `1px solid ${c.border}`,
-          padding: spacing.lg,
+          padding: spacing.md,
           display: 'flex',
           flexDirection: 'column',
-          gap: spacing.md,
+          gap: spacing.sm,
+          alignItems: 'center',
         }}>
           {[
             { id: 'clientes', label: 'Clientes', icon: Users },
@@ -457,98 +458,101 @@ export default function Dashboard({ user }: DashboardProps) {
                 color: activeTab === id ? '#FFFFFF' : c.text.primary,
                 border: 'none',
                 borderRadius: radius.md,
-                padding: `${spacing.sm} ${spacing.md}`,
+                padding: spacing.md,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: spacing.sm,
-                fontSize: '14px',
+                justifyContent: 'center',
+                gap: 0,
+                fontSize: '0px',
                 fontWeight: '500',
                 transition: 'all 0.2s',
                 whiteSpace: 'nowrap',
+                width: '40px',
+                height: '40px',
               }}
+              title={label}
               onMouseOver={(e) => {
                 if (activeTab !== id) {
                   e.currentTarget.style.backgroundColor = c.bg.tertiary;
-                  e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
                 }
               }}
               onMouseOut={(e) => {
                 if (activeTab !== id) {
                   e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.boxShadow = 'none';
                 }
               }}
             >
               <Icon size={18} />
-              {label}
             </button>
           ))}
 
           <div style={{
             height: '1px',
             backgroundColor: c.border,
-            margin: `${spacing.sm} 0`,
+            width: '40px',
           }} />
 
           <button
             onClick={() => navigate('/relatorio')}
+            title="Relatórios com IA"
             style={{
               background: 'transparent',
               color: c.text.primary,
               border: 'none',
               borderRadius: radius.md,
-              padding: `${spacing.sm} ${spacing.md}`,
+              padding: spacing.md,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: spacing.sm,
-              fontSize: '14px',
+              justifyContent: 'center',
+              gap: 0,
+              fontSize: '0px',
               fontWeight: '500',
               transition: 'all 0.2s',
               whiteSpace: 'nowrap',
+              width: '40px',
+              height: '40px',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = c.bg.tertiary;
-              e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <Brain size={20} style={{ flexShrink: 0, strokeWidth: 2 }} />
-            Relatórios com IA
           </button>
 
           <button
             onClick={() => navigate('/financeiro')}
+            title="Financeiro"
             style={{
               background: 'transparent',
               color: c.text.primary,
               border: 'none',
               borderRadius: radius.md,
-              padding: `${spacing.sm} ${spacing.md}`,
+              padding: spacing.md,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: spacing.sm,
-              fontSize: '14px',
+              justifyContent: 'center',
+              gap: 0,
+              fontSize: '0px',
               fontWeight: '500',
               transition: 'all 0.2s',
               whiteSpace: 'nowrap',
+              width: '40px',
+              height: '40px',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = c.bg.tertiary;
-              e.currentTarget.style.boxShadow = `inset 0 0 12px ${c.accent}33`;
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.boxShadow = 'none';
             }}
           >
             <DollarSign size={18} />
-            Financeiro
           </button>
         </div>
 
